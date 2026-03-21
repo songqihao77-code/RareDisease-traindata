@@ -1,4 +1,4 @@
-"""
+﻿"""
 Hyperedge Readout
 接收 hgnn_encoder.py 输出的节点表示 Z [N_hpo, d]，
 以及 build_hypergraph.py 输出的 H_case / H_disease，
@@ -38,11 +38,10 @@ class HyperedgeReadout(nn.Module):
           case_repr = H_case^T @ Z / case_degree
           case_degree[j] = H_case 第 j 列之和（该病例包含的 HPO 数目）
         """
-        H = _hmat(H_case, Z.device)                          # [N_hpo, N_case]
-        out = _spmm(H.t().coalesce(), Z)                      # [N_case, d]
-        # 列和：每个病例的 HPO 覆盖度；clamp 防除零
-        deg = torch.sparse.sum(H, dim=0).to_dense().clamp(min=1e-6)  # [N_case]
-        return out / deg.unsqueeze(1)                         # [N_case, d]
+        H = _hmat(H_case, Z.device)
+        out = _spmm(H.t().coalesce(), Z)
+        deg = torch.sparse.sum(H, dim=0).to_dense().clamp(min=1e-6)
+        return out / deg.unsqueeze(1)
 
     def build_disease_repr(self, Z: torch.Tensor, H_disease) -> torch.Tensor:
         """
@@ -50,11 +49,11 @@ class HyperedgeReadout(nn.Module):
           disease_repr = H_disease^T @ Z
           保留 H_disease 原始权重语义，不做额外归一化。
         """
-        H = _hmat(H_disease, Z.device)                       # [N_hpo, N_disease]
-        return _spmm(H.t().coalesce(), Z)                     # [N_disease, d]
+        H = _hmat(H_disease, Z.device)
+        return _spmm(H.t().coalesce(), Z)
 
     def forward(self, Z: torch.Tensor, H_case, H_disease) -> dict:
         return {
-            "case_repr":    self.build_case_repr(Z, H_case),
+            "case_repr": self.build_case_repr(Z, H_case),
             "disease_repr": self.build_disease_repr(Z, H_disease),
         }

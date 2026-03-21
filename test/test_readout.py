@@ -1,14 +1,10 @@
-"""
-测试 readout.py 的正确性与输出可读性。
-构造小规模假数据，运行 HyperedgeReadout，打印中间值和最终结果。
-"""
+﻿import os
+import sys
 
 import numpy as np
-import torch
 import scipy.sparse
+import torch
 
-import sys
-import os
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
@@ -25,9 +21,6 @@ torch.manual_seed(42)
 
 
 def make_data():
-    """构造可复现的假数据，返回 Z、H_case、H_disease（scipy sparse）。"""
-
-    # Z：HPO 节点表示，模拟 hgnn_encoder 输出
     Z = torch.randn(N_HPO, D)
 
     # H_case：二值稀疏矩阵 [N_HPO, N_CASE]
@@ -54,93 +47,54 @@ def make_data():
     return Z, H_case, H_disease
 
 
-def print_sparse(name, M):
-    """打印 scipy sparse 矩阵的稠密形式，便于人工核查。"""
-    print(f"\n{name}（形状 {M.shape}）：")
-    print(np.array2string(M.toarray(), precision=2, suppress_small=True))
-
-
-def print_tensor(name, T):
-    """打印 Tensor，保留 4 位小数。"""
-    print(f"\n{name}（形状 {list(T.shape)}）：")
-    print(torch.round(T, decimals=4).detach().numpy())
-
-
-# ── 手工验证辅助：逐列手算 case_repr ────────────────────────────────────────
 def manual_case_repr(Z_np, H_case_dense):
-    """用 numpy 手工计算 case_repr，供与模型输出对比。"""
-    out = H_case_dense.T @ Z_np                          # [N_case, D]
-    deg = H_case_dense.sum(axis=0, keepdims=True).T      # [N_case, 1]
+    out = H_case_dense.T @ Z_np
+    deg = H_case_dense.sum(axis=0, keepdims=True).T
     return out / np.maximum(deg, 1e-6)
 
 
 def manual_disease_repr(Z_np, H_disease_dense):
-    """用 numpy 手工计算 disease_repr，供与模型输出对比。"""
-    return H_disease_dense.T @ Z_np                      # [N_disease, D]
+    return H_disease_dense.T @ Z_np
 
 
-# ── 主测试流程 ────────────────────────────────────────────────────────────────
 def main():
-    print("=" * 60)
-    print("  HyperedgeReadout 测试")
-    print("=" * 60)
-
     Z, H_case, H_disease = make_data()
-
-    # ── 打印输入 ──────────────────────────────────────────────────
-    print_tensor("Z（HPO 节点表示）", Z)
-    print_sparse("H_case（病例超边矩阵）", H_case)
-    print_sparse("H_disease（疾病超边矩阵）", H_disease)
-
-    # ── 每个病例的 HPO 覆盖度（即 case_degree）───────────────────
-    case_deg = np.array(H_case.sum(axis=0)).flatten()
-    print(f"\ncase_degree（每个病例的 HPO 数目）：{case_deg}")
-
-    # ── 运行 readout 模块 ─────────────────────────────────────────
     model = HyperedgeReadout()
     model.eval()
+
     with torch.no_grad():
         out = model(Z, H_case, H_disease)
 
-    case_repr    = out["case_repr"]
+    case_repr = out["case_repr"]
     disease_repr = out["disease_repr"]
 
-    print_tensor("case_repr（病例表示，平均 readout）", case_repr)
-    print_tensor("disease_repr（疾病表示，加权 readout）", disease_repr)
+    ref_case = manual_case_repr(Z.numpy(), H_case.toarray())
+    ref_disease = manual_disease_repr(Z.numpy(), H_disease.toarray())
 
-    # ── 与 numpy 手工结果对比（逐元素差）────────────────────────
-    Z_np = Z.numpy()
-    H_c_dense = H_case.toarray()
-    H_d_dense = H_disease.toarray()
-
-    ref_case    = manual_case_repr(Z_np, H_c_dense)
-    ref_disease = manual_disease_repr(Z_np, H_d_dense)
-
-    diff_case    = np.abs(case_repr.numpy()    - ref_case).max()
+    diff_case = np.abs(case_repr.numpy() - ref_case).max()
     diff_disease = np.abs(disease_repr.numpy() - ref_disease).max()
 
-    print(f"\n── 精度验证 ──────────────────────────────────")
-    print(f"case_repr    最大绝对误差：{diff_case:.2e}  {'PASS' if diff_case < 1e-5 else 'FAIL'}")
-    print(f"disease_repr 最大绝对误差：{diff_disease:.2e}  {'PASS' if diff_disease < 1e-5 else 'FAIL'}")
+    assert case_repr.shape == (N_CASE, D), f"case_repr shape 异常: {case_repr.shape}"
+    assert disease_repr.shape == (N_DISEASE, D), f"disease_repr shape 异常: {disease_repr.shape}"
+    assert diff_case < 1e-5, f"case_repr 数值不一致: {diff_case}"
+    assert diff_disease < 1e-5, f"disease_repr 数值不一致: {diff_disease}"
 
-    # ── 输出形状断言 ─────────────────────────────────────────────
-    assert case_repr.shape    == (N_CASE,    D), f"形状异常：{case_repr.shape}"
-    assert disease_repr.shape == (N_DISEASE, D), f"形状异常：{disease_repr.shape}"
-    print("\n形状断言：PASS")
-
-    # ── 测试 Tensor 输入（非 scipy sparse）─────────────────────
-    H_case_t    = torch.tensor(H_c_dense, dtype=torch.float32)
-    H_disease_t = torch.tensor(H_d_dense, dtype=torch.float32)
+    H_case_t = torch.tensor(H_case.toarray(), dtype=torch.float32)
+    H_disease_t = torch.tensor(H_disease.toarray(), dtype=torch.float32)
     with torch.no_grad():
-        out2 = model(Z, H_case_t, H_disease_t)
-    diff2 = max(
-        (out2["case_repr"]    - case_repr).abs().max().item(),
-        (out2["disease_repr"] - disease_repr).abs().max().item(),
-    )
-    print(f"稠密 Tensor 输入一致性误差：{diff2:.2e}  {'PASS' if diff2 < 1e-5 else 'FAIL'}")
+        out_dense = model(Z, H_case_t, H_disease_t)
 
-    print("\n全部测试完成。")
-    print("=" * 60)
+    diff_dense = max(
+        (out_dense["case_repr"] - case_repr).abs().max().item(),
+        (out_dense["disease_repr"] - disease_repr).abs().max().item(),
+    )
+    assert diff_dense < 1e-5, f"dense 输入结果不一致: {diff_dense}"
+
+    print("test_readout.py passed")
+    print(f"case_repr_shape={tuple(case_repr.shape)}")
+    print(f"disease_repr_shape={tuple(disease_repr.shape)}")
+    print(f"max_case_diff={diff_case:.2e}")
+    print(f"max_disease_diff={diff_disease:.2e}")
 
 
 if __name__ == "__main__":
