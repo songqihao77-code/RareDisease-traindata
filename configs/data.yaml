@@ -1,0 +1,27 @@
+# 数据集配置
+# batch_size：每个 batch 包含的病例数（按 case_id 顺序切分）
+batch_size: 8
+
+# 训练集文件列表
+train_files:
+  - D:/RareDisease/data/processed/train/DDD.xlsx
+  - D:/RareDisease/data/processed/train/HMS.xlsx
+  - D:/RareDisease/data/processed/train/LIRICA.xlsx
+  - D:/RareDisease/data/processed/train/MIMIC-Rare.xlsx
+  - D:/RareDisease/data/processed/train/MME.xlsx
+  - D:/RareDisease/data/processed/train/Mygene2.xlsx
+  - D:/RareDisease/data/processed/train/RAMEDIS.xlsx
+# 测试集文件列表
+test_files:
+  - D:/RareDisease/data/processed/test/DDD.xlsx
+  - D:/RareDisease/data/processed/test/HMS.xlsx
+  - D:/RareDisease/data/processed/test/LIRICA.xlsx
+  - D:/RareDisease/data/processed/test/MIMIC-Rare.xlsx
+  - D:/RareDisease/data/processed/test/MME.xlsx
+  - D:/RareDisease/data/processed/test/Mygene2.xlsx
+  - D:/RareDisease/data/processed/test/RAMEDIS.xlsx
+
+# 病例文件列名（与实际列名不同时在这里改）
+case_id_col:    case_id
+label_col:      mondo_label
+hpo_col:        hpo_id
