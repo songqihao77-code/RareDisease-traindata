@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -19,6 +20,7 @@ SEED = 7
 SMOKE_BATCH_SIZE = 8
 OVERFIT_STEPS = 100
 OVERFIT_LR = 0.05
+HIDDEN_DIM = 128
 
 
 def set_seed(seed: int = SEED) -> None:
@@ -71,6 +73,38 @@ def _assert_finite(name: str, tensor: torch.Tensor) -> None:
     assert torch.isfinite(tensor).all(), f"{name} 含有 nan 或 inf"
 
 
+def _build_model_config(num_hpo: int, hidden_dim: int = HIDDEN_DIM) -> dict:
+    return {
+        "encoder": {
+            "type": "hgnn",
+            "params": {
+                "num_hpo": num_hpo,
+                "hidden_dim": hidden_dim,
+            },
+        },
+        "readout": {"type": "hyperedge"},
+        "scorer": {"type": "cosine"},
+        "outputs": {
+            "return_intermediate": True,
+            "include_global_scores": True,
+            "include_metadata": True,
+        },
+    }
+
+
+def _build_pipeline(num_hpo: int, hidden_dim: int = HIDDEN_DIM) -> ModelPipeline:
+    return ModelPipeline(config=_build_model_config(num_hpo=num_hpo, hidden_dim=hidden_dim))
+
+
+def _run_pipeline(pipeline: ModelPipeline, batch_graph: dict) -> dict:
+    out = pipeline(batch_graph)
+    out["Z"] = out["node_repr"]
+    out["scores_local"] = out["scores"]
+    out["scores"] = out["scores_global"]
+    out["loss"] = F.cross_entropy(out["scores_local"], out["gold_disease_cols_local"])
+    return out
+
+
 def run_full_chain_checks() -> dict:
     set_seed()
     prepared = _prepare_batch(batch_size=SMOKE_BATCH_SIZE)
@@ -85,8 +119,8 @@ def run_full_chain_checks() -> dict:
         static["disease_to_idx"],
         static["H_disease"],
     )
-    pipeline = ModelPipeline(num_hpo=batch_graph["H"].shape[0], hidden_dim=128)
-    forward_out = pipeline(batch_graph)
+    pipeline = _build_pipeline(num_hpo=batch_graph["H"].shape[0], hidden_dim=HIDDEN_DIM)
+    forward_out = _run_pipeline(pipeline, batch_graph)
 
     batch_size = len(batch_graph["case_ids"])
     disease_count = batch_graph["H_disease"].shape[1]
@@ -132,7 +166,7 @@ def run_full_chain_checks() -> dict:
             "passed": (
                 "Z" in forward_out
                 and forward_out["Z"].shape[0] == static["num_hpo"]
-                and forward_out["Z"].shape[1] == 128
+                and forward_out["Z"].shape[1] == HIDDEN_DIM
             ),
             "detail": f"Z_shape={tuple(forward_out['Z'].shape)}",
         },
@@ -227,7 +261,7 @@ def run_small_sample_overfit() -> dict:
     prepared = _prepare_batch(batch_size=SMOKE_BATCH_SIZE)
     compact_graph = _prepare_compact_graph(prepared["batch_df"], prepared["static"])
 
-    pipeline = ModelPipeline(num_hpo=compact_graph["H"].shape[0], hidden_dim=128)
+    pipeline = _build_pipeline(num_hpo=compact_graph["H"].shape[0], hidden_dim=HIDDEN_DIM)
     optimizer = torch.optim.Adam(pipeline.parameters(), lr=OVERFIT_LR)
 
     reached_full_acc_at = None
@@ -237,7 +271,7 @@ def run_small_sample_overfit() -> dict:
 
     for step in range(1, OVERFIT_STEPS + 1):
         optimizer.zero_grad()
-        out = pipeline(compact_graph)
+        out = _run_pipeline(pipeline, compact_graph)
         loss = out["loss"]
         _assert_finite("overfit_scores", out["scores"])
         _assert_finite("overfit_Z", out["Z"])

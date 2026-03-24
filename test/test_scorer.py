@@ -1,12 +1,12 @@
-﻿import os
-import sys
+try:
+    from ._script_bootstrap import bootstrap_project
+except ImportError:
+    from _script_bootstrap import bootstrap_project
+
+bootstrap_project(allow_omp_duplicate=True)
 
 import numpy as np
 import torch
-
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
 
 from src.models.scorer import CosineScorer
 
@@ -24,7 +24,7 @@ def np_cosine(A, B_):
     return A_n @ B_n.T
 
 
-def main():
+def main() -> dict:
     case_repr = torch.randn(B, D)
     disease_repr = torch.randn(M, D)
 
@@ -56,7 +56,18 @@ def main():
     print(f"max_diff={diff:.2e}")
     print(f"score_range=({s_min:.4f}, {s_max:.4f})")
 
+    return {
+        "scores_shape": tuple(scores.shape),
+        "max_diff": float(diff),
+        "score_range": (float(s_min), float(s_max)),
+        "diag_err": diag_err,
+    }
+
+
+def test_scorer_smoke() -> None:
+    result = main()
+    assert result["scores_shape"] == (B, M)
+
 
 if __name__ == "__main__":
     main()
-

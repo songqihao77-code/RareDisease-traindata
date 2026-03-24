@@ -1,21 +1,21 @@
-﻿import os
-import sys
+try:
+    from ._script_bootstrap import bootstrap_project
+except ImportError:
+    from _script_bootstrap import bootstrap_project
+
+bootstrap_project(allow_omp_duplicate=True)
 
 import numpy as np
 import scipy.sparse
 import torch
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
-
 from src.models.readout import HyperedgeReadout
 
-# ── 测试参数 ─────────────────────────────────────────────────────────────────
-N_HPO     = 6   # HPO 节点数
-N_CASE    = 3   # 病例数
-N_DISEASE = 4   # 疾病数
-D         = 8   # 节点表示维度
+
+N_HPO = 6
+N_CASE = 3
+N_DISEASE = 4
+D = 8
 
 torch.manual_seed(42)
 
@@ -23,19 +23,13 @@ torch.manual_seed(42)
 def make_data():
     Z = torch.randn(N_HPO, D)
 
-    # H_case：二值稀疏矩阵 [N_HPO, N_CASE]
-    #   病例0 → HPO {0,1,2}
-    #   病例1 → HPO {2,3}
-    #   病例2 → HPO {0,4,5}
-    rows_c = [0, 1, 2,  2, 3,  0, 4, 5]
-    cols_c = [0, 0, 0,  1, 1,  2, 2, 2]
+    rows_c = [0, 1, 2, 2, 3, 0, 4, 5]
+    cols_c = [0, 0, 0, 1, 1, 2, 2, 2]
     H_case = scipy.sparse.csr_matrix(
         (np.ones(len(rows_c), dtype=np.float32), (rows_c, cols_c)),
         shape=(N_HPO, N_CASE),
     )
 
-    # H_disease：加权稀疏矩阵 [N_HPO, N_DISEASE]
-    #   用不同权重模拟知识库中 HPO→疾病的关联强度
     rows_d = [0, 1, 3, 2, 4, 5, 1, 3]
     cols_d = [0, 0, 1, 1, 2, 2, 3, 3]
     vals_d = [0.8, 0.6, 0.9, 0.5, 1.0, 0.7, 0.4, 0.3]
@@ -57,7 +51,7 @@ def manual_disease_repr(Z_np, H_disease_dense):
     return H_disease_dense.T @ Z_np
 
 
-def main():
+def main() -> dict:
     Z, H_case, H_disease = make_data()
     model = HyperedgeReadout()
     model.eval()
@@ -95,6 +89,20 @@ def main():
     print(f"disease_repr_shape={tuple(disease_repr.shape)}")
     print(f"max_case_diff={diff_case:.2e}")
     print(f"max_disease_diff={diff_disease:.2e}")
+
+    return {
+        "case_repr_shape": tuple(case_repr.shape),
+        "disease_repr_shape": tuple(disease_repr.shape),
+        "max_case_diff": float(diff_case),
+        "max_disease_diff": float(diff_disease),
+        "max_dense_diff": diff_dense,
+    }
+
+
+def test_readout_smoke() -> None:
+    result = main()
+    assert result["case_repr_shape"] == (N_CASE, D)
+    assert result["disease_repr_shape"] == (N_DISEASE, D)
 
 
 if __name__ == "__main__":
