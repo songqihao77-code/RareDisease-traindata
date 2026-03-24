@@ -204,7 +204,7 @@ class ModelPipeline(nn.Module):
     ) -> dict[str, Any]:
         """
         统一前向流程：
-        1. encoder 对统一超图 H 编码，得到 HPO 节点表示 node_repr
+        1. encoder 对疾病超图 H_disease 编码，得到 HPO 节点表示 node_repr
         2. readout 用 H_case / H_disease 聚合出病例表示与疾病表示
         3. scorer 计算病例到疾病的分数矩阵 scores
         """
@@ -213,8 +213,8 @@ class ModelPipeline(nn.Module):
         if return_intermediate is not None:
             include_intermediate = bool(return_intermediate)
 
-        # 第一步：用统一超图 H 编码全部 HPO 节点，得到节点表示。
-        node_repr = self.encoder(batch_graph["H"])
+        # B 组对照只切换 encoder 输入；病例超边仍保留给后续 readout / scorer / loss 使用。
+        node_repr = self.encoder(batch_graph["H_disease"])
         if not isinstance(node_repr, torch.Tensor) or node_repr.ndim != 2 or node_repr.shape[0] != num_hpo:
             raise ValueError("encoder 必须返回形状为 [num_hpo, hidden_dim] 的张量。")
 
