@@ -41,13 +41,18 @@ class HGNNEncoder(nn.Module):
       Z : HPO 节点表示矩阵，形状 [num_hpo, hidden_dim]
     """
 
-    def __init__(self, num_hpo: int, hidden_dim: int = 128):
+    def __init__(self, num_hpo: int, hidden_dim: int = 128, alpha: float = 0.15):
         super().__init__()
+        self.alpha = float(alpha)
         # 可学习初始节点嵌入 X^(0)，形状 [num_hpo, hidden_dim]
         self.X0     = nn.Parameter(torch.randn(num_hpo, hidden_dim) * 0.01)
         # 两层线性变换 Θ^(0) 和 Θ^(1)，均无偏置
         self.theta0 = nn.Linear(hidden_dim, hidden_dim, bias=False)
         self.theta1 = nn.Linear(hidden_dim, hidden_dim, bias=False)
+        
+        # 增加 LayerNorm 引擎防止超点大规模混合崩塌
+        self.ln0 = nn.LayerNorm(hidden_dim)
+        self.ln1 = nn.LayerNorm(hidden_dim)
 
     def _propagate(self, H: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
         """
@@ -85,10 +90,16 @@ class HGNNEncoder(nn.Module):
             if not H.is_sparse:
                 H = H.to_sparse().coalesce()
 
-        # 第一层：X^(1) = ReLU(P X^(0) Θ^(0))
-        X1 = F.relu(self.theta0(self._propagate(H, self.X0)))
+        X_init = self.X0
 
-        # 第二层：Z = X^(2) = P X^(1) Θ^(1)
-        Z = self.theta1(self._propagate(H, X1))
+        # 第一层：加入 LayerNorm，并混合最初字典特征抵抗遗忘 (Initial Residual)
+        prop1 = self._propagate(H, X_init)
+        X1 = F.relu(self.ln0(self.theta0(prop1)))
+        X1_out = (1.0 - self.alpha) * X1 + self.alpha * X_init
+
+        # 第二层：加入 LayerNorm，混合初解，最后附加前一层残差（ResGuard 引擎）
+        prop2 = self._propagate(H, X1_out)
+        X2 = self.ln1(self.theta1(prop2))
+        Z = (1.0 - self.alpha) * X2 + self.alpha * X_init + X1_out
 
         return Z  # [num_hpo, hidden_dim]

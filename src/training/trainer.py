@@ -20,6 +20,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.data.build_hypergraph import build_batch_hypergraph, load_static_graph
 from src.data.dataset import CaseBatchLoader, load_case_files
 from src.models.model_pipeline import ModelPipeline
+from src.training.hard_negative_miner import mine_hard_negatives
 from src.training.loss_builder import build_loss
 
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "train.yaml"
@@ -56,6 +57,100 @@ def list_case_files(train_dir: str | Path) -> list[Path]:
     return file_paths
 
 
+def resolve_train_files(paths_cfg: dict[str, Any]) -> list[Path]:
+    """解析训练文件列表，优先使用 train_files，否则扫描 train_dir。"""
+    if not isinstance(paths_cfg, dict):
+        raise TypeError(f"paths_cfg 必须是 dict，当前收到 {type(paths_cfg).__name__}。")
+
+    raw_train_files = paths_cfg.get("train_files")
+    if raw_train_files:
+        if not isinstance(raw_train_files, list):
+            raise TypeError("paths.train_files 必须是列表。")
+
+        file_paths: list[Path] = []
+        skipped_files: list[str] = []
+        for item in raw_train_files:
+            path = Path(item)
+            if path.name.startswith("~$"):
+                skipped_files.append(path.name)
+                continue
+            if not path.is_file():
+                raise FileNotFoundError(f"训练文件不存在: {path}")
+            file_paths.append(path)
+
+        if not file_paths:
+            raise FileNotFoundError("paths.train_files 中没有可用的 .xlsx 文件。")
+        if skipped_files:
+            print(f"跳过临时文件: {', '.join(skipped_files)}")
+        return file_paths
+
+    train_dir = paths_cfg.get("train_dir")
+    if not train_dir:
+        raise KeyError("paths 中必须提供 train_files 或 train_dir。")
+    return list_case_files(train_dir)
+
+
+def load_init_checkpoint(
+    model: torch.nn.Module,
+    checkpoint_path: str | Path | None,
+) -> Path | None:
+    """仅加载初始 checkpoint 的模型权重，不恢复优化器状态。"""
+    if checkpoint_path is None:
+        return None
+
+    resolved_path = Path(checkpoint_path)
+    if not resolved_path.is_file():
+        raise FileNotFoundError(f"init_checkpoint_path 不存在: {resolved_path}")
+
+    checkpoint = torch.load(resolved_path, map_location="cpu")
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+    elif isinstance(checkpoint, dict):
+        state_dict = checkpoint
+    else:
+        raise ValueError(f"无法识别 checkpoint 结构: {resolved_path}")
+
+    model_state = model.state_dict()
+    compatible_state_dict: dict[str, Any] = {}
+    skipped_keys: list[str] = []
+    unexpected_keys: list[str] = []
+
+    # readout 升级后，允许跳过这部分不兼容的旧权重。
+    for key, value in state_dict.items():
+        if key not in model_state:
+            unexpected_keys.append(key)
+            continue
+        if getattr(model_state[key], "shape", None) != getattr(value, "shape", None):
+            skipped_keys.append(key)
+            continue
+        compatible_state_dict[key] = value
+
+    missing_keys, load_unexpected_keys = model.load_state_dict(compatible_state_dict, strict=False)
+    unexpected_keys.extend(load_unexpected_keys)
+
+    allowed_prefixes = ("readout.", "case_refiner.")
+    disallowed_missing = [key for key in missing_keys if not key.startswith(allowed_prefixes)]
+    disallowed_unexpected = [
+        key for key in [*unexpected_keys, *skipped_keys] if not key.startswith(allowed_prefixes)
+    ]
+    if disallowed_missing or disallowed_unexpected:
+        raise ValueError(
+            f"加载初始 checkpoint 失败，missing_keys={disallowed_missing}, "
+            f"unexpected_keys={disallowed_unexpected}"
+        )
+
+    relaxed_missing = [key for key in missing_keys if key.startswith(allowed_prefixes)]
+    relaxed_skipped = [
+        key for key in [*unexpected_keys, *skipped_keys] if key.startswith(allowed_prefixes)
+    ]
+    if relaxed_missing or relaxed_skipped:
+        print(
+            "[WARN] init checkpoint 与当前 readout 结构不完全一致，"
+            "已跳过相关权重并继续加载。"
+        )
+    return resolved_path
+
+
 def split_train_val_by_case(
     df: pd.DataFrame,
     val_ratio: float,
@@ -65,8 +160,11 @@ def split_train_val_by_case(
     """按 case_id 切分训练集和验证集。"""
     if case_id_col not in df.columns:
         raise KeyError(f"数据中缺少列: {case_id_col}")
-    if not 0 < val_ratio < 1:
-        raise ValueError("val_ratio 必须在 0 和 1 之间。")
+    if not 0.0 <= val_ratio < 1.0:
+        raise ValueError("val_ratio 必须在 0 到 1 之间（可以为 0，表示关闭验证集全量训练）。")
+
+    if val_ratio == 0.0:
+        return df.copy(), pd.DataFrame(columns=df.columns)
 
     case_ids = df[case_id_col].dropna().drop_duplicates().tolist()
     if len(case_ids) < 2:
@@ -88,8 +186,6 @@ def split_train_val_by_case(
 
     if train_df.empty:
         raise ValueError("train_df 为空，请检查切分结果。")
-    if val_df.empty:
-        raise ValueError("val_df 为空，请调大 val_ratio 或检查数据量。")
 
     return train_df, val_df
 
@@ -133,6 +229,9 @@ def run_one_epoch(
     random_seed: int,
     grad_clip_norm: float | None,
     log_every: int,
+    hpo_dropout_prob: float = 0.0,
+    hpo_corruption_prob: float = 0.0,
+    hard_negative_cfg: dict[str, Any] | None = None,
 ) -> dict[str, float]:
     """执行一轮训练或验证。"""
     if is_train:
@@ -142,11 +241,16 @@ def run_one_epoch(
         model.eval()
         context = torch.no_grad()
 
-    batch_indices = list(range(len(loader)))
+    loader.set_epoch(
+        epoch=epoch,
+        shuffle=(is_train and shuffle),
+        random_seed=random_seed,
+    )
     total_steps = len(loader)
-    if is_train and shuffle and len(batch_indices) > 1:
-        rng = random.Random(random_seed + epoch)
-        rng.shuffle(batch_indices)
+    hard_negative_cfg = hard_negative_cfg or {}
+    use_hard_negative = bool(hard_negative_cfg.get("use_hard_negative", True))
+    hard_negative_start_epoch = int(hard_negative_cfg.get("start_epoch", 2))
+    hard_negative_k = int(hard_negative_cfg.get("k", 10))
 
     total_loss = 0.0
     total_top1 = 0.0
@@ -156,7 +260,7 @@ def run_one_epoch(
     used_batches = 0
 
     with context:
-        for step, batch_idx in enumerate(batch_indices, start=1):
+        for step, batch_idx in enumerate(range(total_steps), start=1):
             batch_df = loader.get_batch(batch_idx)
             if batch_df is None or batch_df.empty:
                 print(f"Epoch {epoch} Step {step}/{total_steps} 空 batch，跳过。")
@@ -168,6 +272,9 @@ def run_one_epoch(
                     hpo_to_idx=static_graph["hpo_to_idx"],
                     disease_to_idx=static_graph["disease_to_idx"],
                     H_disease=static_graph["H_disease"],
+                    top_50_hpos=static_graph.get("top_50_hpos", []),
+                    hpo_dropout_prob=hpo_dropout_prob if is_train else 0.0,
+                    hpo_corruption_prob=hpo_corruption_prob if is_train else 0.0,
                     verbose=False,
                 )
             except ValueError as exc:
@@ -190,7 +297,17 @@ def run_one_epoch(
                 print(f"Epoch {epoch} Step {step}/{total_steps} 无有效病例或标签，跳过。")
                 continue
 
-            loss_output = loss_fn(scores, targets)
+            hard_neg_indices = None
+            if is_train and use_hard_negative and epoch >= hard_negative_start_epoch:
+                # 训练时在线挖 top-k 难负例。
+                with torch.no_grad():
+                    hard_neg_indices = mine_hard_negatives(
+                        scores=scores.detach(),
+                        targets=targets.detach(),
+                        k=hard_negative_k,
+                    )
+
+            loss_output = loss_fn(scores, targets, hard_neg_indices=hard_neg_indices)
             if "loss" not in loss_output:
                 raise KeyError("loss_fn 输出缺少 loss。")
 
@@ -296,21 +413,36 @@ def is_metric_improved(current: float, best: float | None, mode: str) -> bool:
 def build_model_config(config: dict[str, Any], num_hpo: int) -> dict[str, Any]:
     """组装 ModelPipeline 配置。"""
     hidden_dim = int(config["model"]["hidden_dim"])
-    return {
-        "model": {
-            "encoder": {
-                "type": "hgnn",
-                "num_hpo": num_hpo,
-                "hidden_dim": hidden_dim,
-            },
-            "readout": {"type": "hyperedge"},
-            "scorer": {"type": "cosine"},
-            "outputs": {
-                "include_metadata": True,
-                "include_global_scores": False,
-                "return_intermediate": False,
-            },
+    model_cfg = config.get("model", {})
+    readout_cfg = {"type": "hyperedge", **model_cfg.get("readout", {}), "hidden_dim": hidden_dim}
+
+    pipeline_model_cfg: dict[str, Any] = {
+        "encoder": {
+            "type": "hgnn",
+            "num_hpo": num_hpo,
+            "hidden_dim": hidden_dim,
+        },
+        "readout": readout_cfg,
+        "scorer": {"type": "cosine"},
+        "outputs": {
+            "include_metadata": True,
+            "include_global_scores": False,
+            "return_intermediate": False,
+        },
+    }
+
+    case_refiner_cfg = model_cfg.get("case_refiner", {})
+    if isinstance(case_refiner_cfg, dict):
+        pipeline_model_cfg["case_refiner"] = {
+            "type": "case_conditioned",
+            "enabled": bool(case_refiner_cfg.get("enabled", False)),
+            "hidden_dim": hidden_dim,
+            "mlp_hidden_dim": int(case_refiner_cfg.get("mlp_hidden_dim", hidden_dim)),
+            "residual": float(case_refiner_cfg.get("residual", 0.7)),
         }
+
+    return {
+        "model": pipeline_model_cfg
     }
 
 
@@ -340,7 +472,7 @@ def main() -> None:
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    case_files = list_case_files(paths_cfg["train_dir"])
+    case_files = resolve_train_files(paths_cfg)
     print(f"训练文件数: {len(case_files)}")
 
     all_df = load_case_files(
@@ -358,7 +490,14 @@ def main() -> None:
     )
 
     train_loader = CaseBatchLoader(df=train_df, batch_size=int(data_cfg["batch_size"]))
-    val_loader = CaseBatchLoader(df=val_df, batch_size=int(data_cfg["batch_size"]))
+    
+    if val_df.empty:
+        val_loader = None
+        train_cfg["eval_every"] = 0
+        train_cfg["early_stop"] = False
+        print("注意: val_ratio 设置为了 0，程序已自动临时关闭评估 (eval_every=0) 与早停机制，只保存最后的 last.pt。")
+    else:
+        val_loader = CaseBatchLoader(df=val_df, batch_size=int(data_cfg["batch_size"]))
 
     static_graph = load_static_graph(
         hpo_index_path=paths_cfg["hpo_index_path"],
@@ -367,9 +506,32 @@ def main() -> None:
     )
 
     model = ModelPipeline(build_model_config(config, static_graph["num_hpo"])).to(device)
+    init_checkpoint_path = load_init_checkpoint(
+        model=model,
+        checkpoint_path=train_cfg.get("init_checkpoint_path"),
+    )
+    if init_checkpoint_path is not None:
+        print(f"已加载初始 checkpoint: {init_checkpoint_path}")
+    hard_loss_cfg = loss_cfg.get("hard_negative", {})
+    hard_negative_cfg = {
+        "use_hard_negative": bool(
+            hard_loss_cfg.get("use_hard_negative", loss_cfg.get("use_hard_negative", True))
+        ),
+        "k": int(hard_loss_cfg.get("k", loss_cfg.get("hard_negative_k", 10))),
+        "top_m": int(hard_loss_cfg.get("top_m", loss_cfg.get("hard_negative_top_m", 3))),
+        "start_epoch": int(
+            hard_loss_cfg.get("start_epoch", loss_cfg.get("hard_negative_start_epoch", 2))
+        ),
+        "weight": float(hard_loss_cfg.get("weight", loss_cfg.get("hard_negative_weight", 0.5))),
+        "margin": float(hard_loss_cfg.get("margin", loss_cfg.get("hard_negative_margin", 0.1))),
+    }
     loss_fn = build_loss(
         loss_name=loss_cfg["loss_name"],
         temperature=float(loss_cfg["temperature"]),
+        hard_weight=hard_negative_cfg["weight"],
+        margin=hard_negative_cfg["margin"],
+        top_m=hard_negative_cfg["top_m"],
+        poly_epsilon=float(loss_cfg.get("poly_epsilon", 2.0)),
     )
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -392,6 +554,8 @@ def main() -> None:
     shuffle = bool(data_cfg["shuffle"])
     grad_clip_norm = train_cfg["grad_clip_norm"]
     log_every = max(1, int(train_cfg.get("log_every", 96)))
+    hpo_dropout_prob = float(train_cfg.get("hpo_dropout_prob", 0.0))
+    hpo_corruption_prob = float(train_cfg.get("hpo_corruption_prob", 0.0))
 
     if grad_clip_norm is not None:
         grad_clip_norm = float(grad_clip_norm)
@@ -409,6 +573,9 @@ def main() -> None:
             random_seed=random_seed,
             grad_clip_norm=grad_clip_norm,
             log_every=log_every,
+            hpo_dropout_prob=hpo_dropout_prob,
+            hpo_corruption_prob=hpo_corruption_prob,
+            hard_negative_cfg=hard_negative_cfg,
         )
 
         do_eval = eval_every > 0 and epoch % eval_every == 0
@@ -425,6 +592,9 @@ def main() -> None:
                 random_seed=random_seed,
                 grad_clip_norm=None,
                 log_every=log_every,
+                hpo_dropout_prob=0.0,
+                hpo_corruption_prob=0.0,
+                hard_negative_cfg=hard_negative_cfg,
             )
         else:
             val_metrics = None

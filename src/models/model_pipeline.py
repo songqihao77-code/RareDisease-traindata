@@ -15,18 +15,16 @@ from typing import Any
 import torch
 import torch.nn as nn
 
+from src.models.case_refiner import CaseConditionedRefiner
 from src.models.hgnn_encoder import HGNNEncoder
 from src.models.readout import HyperedgeReadout
-
-try:
-    from src.models.scorer import CosineScorer
-except ImportError:
-    from src.models.readout import CosineScorer
+from src.models.scorer import CosineScorer
 
 
 # 用最小 registry 管理当前项目实际会切换的模块类型。
 # 这样既保留配置驱动能力，也避免引入过重的工厂层。
 ENCODER_REGISTRY = {"hgnn": HGNNEncoder}
+CASE_REFINER_REGISTRY = {"case_conditioned": CaseConditionedRefiner}
 READOUT_REGISTRY = {"hyperedge": HyperedgeReadout}
 SCORER_REGISTRY = {"cosine": CosineScorer}
 
@@ -50,6 +48,7 @@ class ModelPipeline(nn.Module):
 
         # 优先使用外部注入的实例；未注入时再根据配置构造默认模块。
         self.encoder = encoder or self._build_module("encoder", ENCODER_REGISTRY, "hgnn")
+        self.case_refiner = self._build_optional_case_refiner()
         self.readout = readout or self._build_module("readout", READOUT_REGISTRY, "hyperedge")
         self.scorer = scorer or self._build_module("scorer", SCORER_REGISTRY, "cosine")
 
@@ -86,6 +85,32 @@ class ModelPipeline(nn.Module):
         params = {k: v for k, v in block.items() if k not in {"type", "params"}}
         params.update(block.get("params", {}))
         return registry[module_type](**params)
+
+    def _build_optional_case_refiner(self) -> nn.Module | None:
+        """按需构建病例侧 refiner，默认关闭以兼容旧配置。"""
+        block = self._get_block("case_refiner")
+        if not block:
+            return None
+
+        enabled = block.get("enabled")
+        if enabled is None:
+            enabled = block.get("use_case_refiner", False)
+        if not bool(enabled):
+            return None
+
+        module_type = block.get("type", "case_conditioned")
+        if module_type not in CASE_REFINER_REGISTRY:
+            raise ValueError(
+                f"未知的 case_refiner 类型 {module_type!r}，可选值: {list(CASE_REFINER_REGISTRY)}。"
+            )
+
+        params = {
+            k: v
+            for k, v in block.items()
+            if k not in {"type", "params", "enabled", "use_case_refiner"}
+        }
+        params.update(block.get("params", {}))
+        return CASE_REFINER_REGISTRY[module_type](**params)
 
     def _shape2(self, value: Any, field_name: str) -> tuple[int, int]:
         # H、H_case、H_disease 都必须是二维关联矩阵，因此这里统一做形状检查。
@@ -218,8 +243,27 @@ class ModelPipeline(nn.Module):
         if not isinstance(node_repr, torch.Tensor) or node_repr.ndim != 2 or node_repr.shape[0] != num_hpo:
             raise ValueError("encoder 必须返回形状为 [num_hpo, hidden_dim] 的张量。")
 
+        refined_case_node_repr = None
+        if self.case_refiner is not None:
+            refined_case_node_repr = self.case_refiner(node_repr, batch_graph["H_case"])
+            if (
+                not isinstance(refined_case_node_repr, torch.Tensor)
+                or refined_case_node_repr.ndim != 3
+                or refined_case_node_repr.shape[0] != num_hpo
+                or refined_case_node_repr.shape[1] != num_case
+                or refined_case_node_repr.shape[2] != node_repr.shape[1]
+            ):
+                raise ValueError(
+                    "case_refiner 必须返回形状为 [num_hpo, num_case, hidden_dim] 的张量。"
+                )
+
         # 第二步：分别按病例超边和疾病超边做 readout，得到两个表征空间。
-        readout_out = self.readout(node_repr, batch_graph["H_case"], batch_graph["H_disease"])
+        readout_out = self.readout(
+            node_repr,
+            batch_graph["H_case"],
+            batch_graph["H_disease"],
+            refined_case_node_repr=refined_case_node_repr,
+        )
         if not isinstance(readout_out, Mapping) or "case_repr" not in readout_out or "disease_repr" not in readout_out:
             raise ValueError("readout 必须返回包含 case_repr 和 disease_repr 的 dict。")
         case_repr = readout_out["case_repr"]
@@ -231,6 +275,16 @@ class ModelPipeline(nn.Module):
             raise ValueError("disease_repr 的形状应为 [num_disease, hidden_dim]。")
 
         # 第三步：在病例表示和疾病表示之间计算相似度分数。
+        gold_global = None
+        gold_local = None
+        if "gold_disease_cols_global" in batch_graph:
+            gold_global, gold_local = self._build_gold_local(
+                batch_graph=batch_graph,
+                device=case_repr.device,
+                num_case=num_case,
+                num_disease=num_disease,
+            )
+
         scorer_out = self.scorer(case_repr, disease_repr)
         if not isinstance(scorer_out, Mapping) or "scores" not in scorer_out:
             raise ValueError("scorer 必须返回包含 scores 的 dict。")
@@ -249,12 +303,13 @@ class ModelPipeline(nn.Module):
                 if key in batch_graph:
                     outputs[key] = batch_graph[key]
             if "gold_disease_cols_global" in batch_graph:
-                gold_global, gold_local = self._build_gold_local(
-                    batch_graph=batch_graph,
-                    device=scores.device,
-                    num_case=num_case,
-                    num_disease=num_disease,
-                )
+                if gold_global is None or gold_local is None:
+                    gold_global, gold_local = self._build_gold_local(
+                        batch_graph=batch_graph,
+                        device=scores.device,
+                        num_case=num_case,
+                        num_disease=num_disease,
+                    )
                 outputs["gold_disease_cols_global"] = gold_global
                 outputs["gold_disease_cols_local"] = gold_local
 
@@ -262,8 +317,13 @@ class ModelPipeline(nn.Module):
             # 中间结果默认不返回，避免训练时无谓增大输出；
             # 调试、可视化或误差分析时可以显式开启。
             outputs["node_repr"] = node_repr
+            if refined_case_node_repr is not None:
+                outputs["refined_case_node_repr"] = refined_case_node_repr
             outputs["case_repr"] = case_repr
             outputs["disease_repr"] = disease_repr
+            for key, val in readout_out.items():
+                if key not in {"case_repr", "disease_repr"}:
+                    outputs[key] = val
 
         return outputs
 

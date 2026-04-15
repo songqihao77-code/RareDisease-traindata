@@ -1,4 +1,4 @@
-﻿import json
+import json
 import random
 import sys
 from pathlib import Path
@@ -30,8 +30,14 @@ def set_seed(seed: int = SEED) -> None:
 
 
 def _prepare_batch(batch_size: int = SMOKE_BATCH_SIZE) -> dict:
-    cfg = load_config()
-    df = load_case_files([cfg["train_files"][0]])
+    import yaml
+    with open("configs/train.yaml", "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    train_files = cfg.get("paths", {}).get("train_files")
+    if train_files is None:
+        train_dir = Path(cfg["paths"]["train_dir"])
+        train_files = [str(file) for file in train_dir.glob("*.xlsx") if not file.name.startswith("~$")]
+    df = load_case_files([train_files[0]])
     loader = CaseBatchLoader(df, batch_size=batch_size)
     batch_df = loader.get_batch(0)
     static = load_static_graph()
@@ -66,6 +72,7 @@ def _prepare_compact_graph(batch_df, static: dict) -> dict:
         static["hpo_to_idx"],
         disease_to_idx_subset,
         H_disease_subset,
+        static.get("top_50_hpos", []),
     )
 
 
@@ -82,7 +89,14 @@ def _build_model_config(num_hpo: int, hidden_dim: int = HIDDEN_DIM) -> dict:
                 "hidden_dim": hidden_dim,
             },
         },
-        "readout": {"type": "hyperedge"},
+        "case_refiner": {
+            "type": "case_conditioned",
+            "enabled": True,
+            "hidden_dim": hidden_dim,
+            "mlp_hidden_dim": hidden_dim,
+            "residual": 0.7,
+        },
+        "readout": {"type": "hyperedge", "hidden_dim": hidden_dim, "attn_hidden_dim": hidden_dim},
         "scorer": {"type": "cosine"},
         "outputs": {
             "return_intermediate": True,
@@ -118,6 +132,7 @@ def run_full_chain_checks() -> dict:
         static["hpo_to_idx"],
         static["disease_to_idx"],
         static["H_disease"],
+        static.get("top_50_hpos", []),
     )
     pipeline = _build_pipeline(num_hpo=batch_graph["H"].shape[0], hidden_dim=HIDDEN_DIM)
     forward_out = _run_pipeline(pipeline, batch_graph)
@@ -172,12 +187,25 @@ def run_full_chain_checks() -> dict:
         },
         {
             "id": 4,
+            "name": "case_refiner 输出 refined_case_node_repr.shape == (num_hpo, batch_size, hidden_dim)",
+            "passed": (
+                "refined_case_node_repr" in forward_out
+                and forward_out["refined_case_node_repr"].shape
+                == (static["num_hpo"], batch_size, HIDDEN_DIM)
+            ),
+            "detail": (
+                "refined_case_node_repr_shape="
+                f"{None if 'refined_case_node_repr' not in forward_out else tuple(forward_out['refined_case_node_repr'].shape)}"
+            ),
+        },
+        {
+            "id": 5,
             "name": "readout.py 输出 case_repr.shape[0] == batch_size",
             "passed": forward_out["case_repr"].shape[0] == batch_size,
             "detail": f"case_repr_shape={tuple(forward_out['case_repr'].shape)}, batch_size={batch_size}",
         },
         {
-            "id": 5,
+            "id": 6,
             "name": "readout.py 输出 disease_repr.shape[0] == 疾病总数",
             "passed": forward_out["disease_repr"].shape[0] == disease_count,
             "detail": (
@@ -186,27 +214,30 @@ def run_full_chain_checks() -> dict:
             ),
         },
         {
-            "id": 6,
+            "id": 7,
             "name": "scorer.py 输出 scores.shape == (batch_size, disease_count)",
             "passed": tuple(forward_out["scores_local"].shape) == (batch_size, disease_count),
             "detail": f"scores_local_shape={tuple(forward_out['scores_local'].shape)}",
         },
         {
-            "id": 7,
+            "id": 8,
             "name": "scores、Z、loss 中都没有 nan / inf",
             "passed": bool(
                 torch.isfinite(forward_out["scores"]).all()
                 and torch.isfinite(forward_out["Z"]).all()
+                and torch.isfinite(forward_out["refined_case_node_repr"]).all()
                 and torch.isfinite(forward_out["loss"]).all()
             ),
             "detail": (
                 f"scores_finite={bool(torch.isfinite(forward_out['scores']).all())}, "
                 f"Z_finite={bool(torch.isfinite(forward_out['Z']).all())}, "
+                "refined_finite="
+                f"{bool(torch.isfinite(forward_out['refined_case_node_repr']).all())}, "
                 f"loss_finite={bool(torch.isfinite(forward_out['loss']).all())}"
             ),
         },
         {
-            "id": 8,
+            "id": 9,
             "name": "gold_disease_cols_global 全部落在 scores 的列范围内",
             "passed": all(
                 0 <= col < forward_out["scores"].shape[1]
@@ -219,7 +250,7 @@ def run_full_chain_checks() -> dict:
             ),
         },
         {
-            "id": 9,
+            "id": 10,
             "name": "loss.backward() 成功",
             "passed": False,
             "detail": "",
@@ -232,13 +263,15 @@ def run_full_chain_checks() -> dict:
         pipeline.encoder.X0.grad,
         pipeline.encoder.theta0.weight.grad,
         pipeline.encoder.theta1.weight.grad,
+        pipeline.case_refiner.gate_mlp[0].weight.grad,
     ]
     grads_ok = all(grad is not None and torch.isfinite(grad).all() for grad in grad_tensors)
-    check_results[8]["passed"] = grads_ok
-    check_results[8]["detail"] = (
+    check_results[9]["passed"] = grads_ok
+    check_results[9]["detail"] = (
         f"X0_grad={grad_tensors[0] is not None}, "
         f"theta0_grad={grad_tensors[1] is not None}, "
-        f"theta1_grad={grad_tensors[2] is not None}"
+        f"theta1_grad={grad_tensors[2] is not None}, "
+        f"case_refiner_grad={grad_tensors[3] is not None}"
     )
 
     for item in check_results:

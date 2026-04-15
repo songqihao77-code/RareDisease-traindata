@@ -1,25 +1,31 @@
 # 数据集配置
 # batch_size：每个 batch 包含的病例数（按 case_id 顺序切分）
-batch_size: 8
+batch_size: 16
 
 # 训练集文件列表
 train_files:
-  - D:/RareDisease/data/processed/train/DDD.xlsx
-  - D:/RareDisease/data/processed/train/HMS.xlsx
-  - D:/RareDisease/data/processed/train/LIRICA.xlsx
-  - D:/RareDisease/data/processed/train/MIMIC-Rare.xlsx
-  - D:/RareDisease/data/processed/train/MME.xlsx
-  - D:/RareDisease/data/processed/train/Mygene2.xlsx
-  - D:/RareDisease/data/processed/train/RAMEDIS.xlsx
+  # Real datasets are reserved for final evaluation and must not be used in finetuning.
+  # - D:/RareDisease-traindata/LLLdataset/dataset/processed/train/HMS.xlsx
+  # - D:/RareDisease-traindata/LLLdataset/dataset/processed/train/LIRICAL.xlsx
+  # - D:/RareDisease-traindata/LLLdataset/dataset/processed/train/MME.xlsx
+  # - D:/RareDisease-traindata/LLLdataset/dataset/processed/train/MyGene2.xlsx
+  # - D:/RareDisease-traindata/LLLdataset/dataset/processed/train/RAMEDIS.xlsx
+  #- D:/RareDisease-traindata/LLLdataset/dataset/processed/train/mimic-rare(law).xlsx
 # 测试集文件列表
 test_files:
-  - D:/RareDisease/data/processed/test/DDD.xlsx
-  - D:/RareDisease/data/processed/test/HMS.xlsx
-  - D:/RareDisease/data/processed/test/LIRICA.xlsx
-  - D:/RareDisease/data/processed/test/MIMIC-Rare.xlsx
-  - D:/RareDisease/data/processed/test/MME.xlsx
-  - D:/RareDisease/data/processed/test/Mygene2.xlsx
-  - D:/RareDisease/data/processed/test/RAMEDIS.xlsx
+#  - D:/RareDisease-traindata/LLLdataset/dataset/processed/HMS.xlsx
+#  - D:/RareDisease-traindata/LLLdataset/dataset/processed/LIRICAL.xlsx
+#  - D:/RareDisease-traindata/LLLdataset/dataset/processed/MME.xlsx
+#  - D:/RareDisease-traindata/LLLdataset/dataset/processed/MyGene2.xlsx
+#  - D:/RareDisease-traindata/LLLdataset/dataset/processed/RAMEDIS.xlsx
+#  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/mimic-rare(law).xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\DDD.csv
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\HMS.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\LIRICAL.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\mimic_test.csv
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\MME.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\MyGene2.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\test\RAMEDIS.xlsx
 
 # 病例文件列名（与实际列名不同时在这里改）
 case_id_col:    case_id

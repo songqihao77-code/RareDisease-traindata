@@ -117,15 +117,15 @@ def write_outputs(
 
 
 def parse_args() -> argparse.Namespace:
-    default_data_file = Path(r"D:\RareDisease\data\processed\knowledge\DiseaseHyperedge_data_v2.xlsx")
+    default_data_file = Path(r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\DiseaseHyperedge_data_v4.xlsx")
     default_disease_index_file = Path(
-        r"D:\RareDisease\data\processed\knowledge\Disease_index_v2.xlsx"
+        r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx"
     )
-    default_hpo_index_file = Path(r"D:\RareDisease\data\processed\knowledge\HPO_index_v2.xlsx")
-    default_output_dir = Path(r"D:\RareDisease\data\processed\knowledge")
+    default_hpo_index_file = Path(r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx")
+    default_output_dir = Path(r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed")
 
     parser = argparse.ArgumentParser(
-        description="将 DiseaseHyperedge_data_v2.xlsx 转成 sparse triplets npz/xlsx。"
+        description="将 DiseaseHyperedge_data_v4.xlsx 转成 sparse triplets npz/xlsx。"
     )
     parser.add_argument("--data-file", type=Path, default=default_data_file)
     parser.add_argument("--disease-index-file", type=Path, default=default_disease_index_file)
@@ -133,11 +133,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=default_output_dir)
     parser.add_argument(
         "--output-npz-name",
-        default="DiseaseHyperedge_sparse_triplets_v2.npz",
+        default="DiseaseHyperedge_sparse_triplets_v4.npz",
     )
     parser.add_argument(
         "--output-xlsx-name",
-        default="DiseaseHyperedge_sparse_triplets_v2.xlsx",
+        default="DiseaseHyperedge_sparse_triplets_v4.xlsx",
     )
     return parser.parse_args()
 

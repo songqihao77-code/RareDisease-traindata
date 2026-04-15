@@ -6,104 +6,100 @@ except ImportError:
 bootstrap_project(allow_omp_duplicate=True)
 
 import numpy as np
+import pytest
 import scipy.sparse
 import torch
+import torch.nn as nn
 
 from src.models.readout import HyperedgeReadout
 
-
 N_HPO = 6
-N_CASE = 3
+N_CASE = 2
 N_DISEASE = 4
 D = 8
 
 torch.manual_seed(42)
 
+def test_readout():
+    Z = torch.randn(N_HPO, D, requires_grad=True)
+    # case 0 and case 1 share the first symptom (HPO=0) but have different contexts
+    rows_c = [0, 1, 0, 2, 3]
+    cols_c = [0, 0, 1, 1, 1] 
+    vals_c = [1.0, 1.0, 1.0, 1.0, 1.0]
 
-def make_data():
-    Z = torch.randn(N_HPO, D)
-
-    rows_c = [0, 1, 2, 2, 3, 0, 4, 5]
-    cols_c = [0, 0, 0, 1, 1, 2, 2, 2]
     H_case = scipy.sparse.csr_matrix(
-        (np.ones(len(rows_c), dtype=np.float32), (rows_c, cols_c)),
+        (np.array(vals_c, dtype=np.float32), (rows_c, cols_c)),
         shape=(N_HPO, N_CASE),
     )
 
-    rows_d = [0, 1, 3, 2, 4, 5, 1, 3]
-    cols_d = [0, 0, 1, 1, 2, 2, 3, 3]
-    vals_d = [0.8, 0.6, 0.9, 0.5, 1.0, 0.7, 0.4, 0.3]
+    rows_d = [0, 1, 3]
+    cols_d = [0, 0, 1]
+    vals_d = [1.0, 1.0, 1.0]
     H_disease = scipy.sparse.csr_matrix(
         (np.array(vals_d, dtype=np.float32), (rows_d, cols_d)),
         shape=(N_HPO, N_DISEASE),
     )
 
-    return Z, H_case, H_disease
-
-
-def manual_case_repr(Z_np, H_case_dense):
-    out = H_case_dense.T @ Z_np
-    deg = H_case_dense.sum(axis=0, keepdims=True).T
-    return out / np.maximum(deg, 1e-6)
-
-
-def manual_disease_repr(Z_np, H_disease_dense):
-    return H_disease_dense.T @ Z_np
-
-
-def main() -> dict:
-    Z, H_case, H_disease = make_data()
-    model = HyperedgeReadout()
-    model.eval()
-
+    # 强制偏置使其产出固定区分度
+    model = HyperedgeReadout(hidden_dim=D, residual_uniform=0.0, return_attention=True)
     with torch.no_grad():
-        out = model(Z, H_case, H_disease)
+        for layer in model.attn_mlp:
+            if isinstance(layer, nn.Linear):
+                nn.init.constant_(layer.weight, 0.1)
+                if layer.bias is not None:
+                    nn.init.constant_(layer.bias, 0.1)
 
+    out = model(Z, torch.tensor(H_case.toarray(), dtype=torch.float32), torch.tensor(H_disease.toarray(), dtype=torch.float32))
+    
     case_repr = out["case_repr"]
     disease_repr = out["disease_repr"]
+    edge_attention = out["edge_attention"]
+    edge_index = out["edge_index"]
 
-    ref_case = manual_case_repr(Z.numpy(), H_case.toarray())
-    ref_disease = manual_disease_repr(Z.numpy(), H_disease.toarray())
+    # 检查 disease_repr
+    expected_disease = torch.tensor(H_disease.toarray().T, dtype=torch.float32) @ Z
+    assert torch.allclose(disease_repr, expected_disease, atol=1e-5)
 
-    diff_case = np.abs(case_repr.numpy() - ref_case).max()
-    diff_disease = np.abs(disease_repr.numpy() - ref_disease).max()
+    assert case_repr.shape == (N_CASE, D)
+    assert not torch.isnan(case_repr).any()
 
-    assert case_repr.shape == (N_CASE, D), f"case_repr shape 异常: {case_repr.shape}"
-    assert disease_repr.shape == (N_DISEASE, D), f"disease_repr shape 异常: {disease_repr.shape}"
-    assert diff_case < 1e-5, f"case_repr 数值不一致: {diff_case}"
-    assert diff_disease < 1e-5, f"disease_repr 数值不一致: {diff_disease}"
+    # 验证梯度
+    loss = case_repr.sum()
+    loss.backward()
+    assert Z.grad is not None
+    
+    # 验证同一个 HPO(0) 在不同 Case 下的注意力是有差异的
+    # HPO 0 在 case 0 (边索引 0) 和 case 1 (边索引 2)
+    alpha_0_case_0 = edge_attention[(edge_index[0] == 0) & (edge_index[1] == 0)][0]
+    alpha_0_case_1 = edge_attention[(edge_index[0] == 0) & (edge_index[1] == 1)][0]
+    assert torch.abs(alpha_0_case_0 - alpha_0_case_1) > 1e-5
 
-    H_case_t = torch.tensor(H_case.toarray(), dtype=torch.float32)
-    H_disease_t = torch.tensor(H_disease.toarray(), dtype=torch.float32)
-    with torch.no_grad():
-        out_dense = model(Z, H_case_t, H_disease_t)
 
-    diff_dense = max(
-        (out_dense["case_repr"] - case_repr).abs().max().item(),
-        (out_dense["disease_repr"] - disease_repr).abs().max().item(),
+def test_readout_rejects_unknown_context_mode() -> None:
+    with pytest.raises(ValueError, match="context_mode"):
+        HyperedgeReadout(hidden_dim=D, context_mode="global")
+
+
+def test_build_case_repr_from_refined_matches_base_when_inputs_same() -> None:
+    Z = torch.randn(N_HPO, D)
+    rows_c = [0, 1, 0, 2, 3]
+    cols_c = [0, 0, 1, 1, 1]
+    vals_c = [1.0, 1.0, 1.0, 1.0, 1.0]
+    H_case = scipy.sparse.csr_matrix(
+        (np.array(vals_c, dtype=np.float32), (rows_c, cols_c)),
+        shape=(N_HPO, N_CASE),
     )
-    assert diff_dense < 1e-5, f"dense 输入结果不一致: {diff_dense}"
 
-    print("test_readout.py passed")
-    print(f"case_repr_shape={tuple(case_repr.shape)}")
-    print(f"disease_repr_shape={tuple(disease_repr.shape)}")
-    print(f"max_case_diff={diff_case:.2e}")
-    print(f"max_disease_diff={diff_disease:.2e}")
+    model = HyperedgeReadout(hidden_dim=D, residual_uniform=0.0, return_attention=False)
+    refined = Z.unsqueeze(1).expand(-1, N_CASE, -1).clone()
 
-    return {
-        "case_repr_shape": tuple(case_repr.shape),
-        "disease_repr_shape": tuple(disease_repr.shape),
-        "max_case_diff": float(diff_case),
-        "max_disease_diff": float(diff_disease),
-        "max_dense_diff": diff_dense,
-    }
+    base_case_repr = model.build_case_repr(Z, H_case)
+    refined_case_repr = model.build_case_repr_from_refined(refined, H_case)
 
-
-def test_readout_smoke() -> None:
-    result = main()
-    assert result["case_repr_shape"] == (N_CASE, D)
-    assert result["disease_repr_shape"] == (N_DISEASE, D)
-
+    assert refined_case_repr.shape == (N_CASE, D)
+    assert torch.allclose(refined_case_repr, base_case_repr, atol=1e-5)
+    assert torch.isfinite(refined_case_repr).all()
 
 if __name__ == "__main__":
-    main()
+    test_readout()
+    print("test_readout.py passed")

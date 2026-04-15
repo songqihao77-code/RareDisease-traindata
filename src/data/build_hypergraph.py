@@ -5,13 +5,15 @@
 
 from __future__ import annotations
 
+import random
+
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix, hstack, load_npz
 
-_HPO_INDEX_PATH = r"D:\RareDisease\data\processed\knowledge\HPO_index_v2.xlsx"
-_DISEASE_INDEX_PATH = r"D:\RareDisease\data\processed\knowledge\Disease_index_v2.xlsx"
-_DISEASE_INC_PATH = r"D:\RareDisease\data\processed\knowledge\DiseaseHyperedge_sparse_triplets_v2.npz"
+_HPO_INDEX_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx"
+_DISEASE_INDEX_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx"
+_DISEASE_INC_PATH = r"D:\RareDisease-traindata\LLLdataset\dataset\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz"
 
 
 def load_index_file(path: str, id_col: str, idx_col: str) -> dict:
@@ -46,9 +48,20 @@ def build_case_incidence(
     case_id_col: str = "case_id",
     label_col: str = "mondo_label",
     hpo_col: str = "hpo_id",
+    hpo_dropout_prob: float = 0.0,
+    hpo_corruption_prob: float = 0.0,
+    top_50_hpos: list[str] | None = None,
+    rng: random.Random | None = None,
     verbose: bool = False,
 ) -> dict:
     """从病例表构建 H_case。"""
+    if not 0.0 <= hpo_dropout_prob <= 1.0:
+        raise ValueError("hpo_dropout_prob 必须在 0 到 1 之间。")
+    if not 0.0 <= hpo_corruption_prob <= 1.0:
+        raise ValueError("hpo_corruption_prob 必须在 0 到 1 之间。")
+
+    all_hpos_pool = list(hpo_to_idx.keys()) if hpo_corruption_prob > 0.0 else []
+
     num_hpo = len(hpo_to_idx)
     df = case_df.dropna(subset=[case_id_col, label_col, hpo_col])
 
@@ -70,6 +83,33 @@ def build_case_incidence(
         if not valid_hpos:
             skip_hpo += 1
             continue
+
+        # 训练时随机遮挡部分 HPO，但至少保留 1 个，避免整例被丢空。
+        if hpo_dropout_prob > 0.0:
+            dropout_rng = rng if rng is not None else random
+            kept_hpos = [
+                hpo_id for hpo_id in valid_hpos
+                if dropout_rng.random() > hpo_dropout_prob
+            ]
+            if kept_hpos:
+                valid_hpos = kept_hpos
+            else:
+                valid_hpos = [valid_hpos[dropout_rng.randrange(len(valid_hpos))]]
+
+        # 统一注入对抗噪音
+        if hpo_corruption_prob > 0.0:
+            corruption_rng = rng if rng is not None else random
+            if corruption_rng.random() < hpo_corruption_prob:
+                num_noise = corruption_rng.randint(1, 3)
+                if corruption_rng.random() < 0.5 and top_50_hpos:
+                    pool_to_use = top_50_hpos
+                else:
+                    pool_to_use = all_hpos_pool
+
+                noise_samples = corruption_rng.sample(pool_to_use, k=min(num_noise, len(pool_to_use)))
+                for nh in noise_samples:
+                    if nh not in valid_hpos:
+                        valid_hpos.append(nh)
 
         case_col = len(case_ids)
         for hpo_id in valid_hpos:
@@ -122,12 +162,19 @@ def load_static_graph(
             f"H_disease shape 异常: {h_disease.shape}，期望 ({num_hpo}, {num_disease})"
         )
 
+    # 预计算 HPO 节点度 (连接的疾病数量) 并选取最高频前 50
+    hpo_degrees = np.array(h_disease.sum(axis=1)).flatten()
+    top_50_indices = hpo_degrees.argsort()[-50:][::-1]
+    idx_to_hpo = {v: k for k, v in hpo_to_idx.items()}
+    top_50_hpos = [idx_to_hpo[i] for i in top_50_indices]
+
     return {
         "hpo_to_idx": hpo_to_idx,
         "disease_to_idx": disease_to_idx,
         "H_disease": h_disease,
         "num_hpo": num_hpo,
         "num_disease": num_disease,
+        "top_50_hpos": top_50_hpos,
     }
 
 
@@ -136,9 +183,13 @@ def build_batch_hypergraph(
     hpo_to_idx: dict,
     disease_to_idx: dict,
     H_disease: csr_matrix,
+    top_50_hpos: list[str],
     case_id_col: str = "case_id",
     label_col: str = "mondo_label",
     hpo_col: str = "hpo_id",
+    hpo_dropout_prob: float = 0.0,
+    hpo_corruption_prob: float = 0.0,
+    rng: random.Random | None = None,
     verbose: bool = False,
 ) -> dict:
     """为当前 batch 构建超图。"""
@@ -154,6 +205,10 @@ def build_batch_hypergraph(
         case_id_col=case_id_col,
         label_col=label_col,
         hpo_col=hpo_col,
+        hpo_dropout_prob=hpo_dropout_prob,
+        hpo_corruption_prob=hpo_corruption_prob,
+        top_50_hpos=top_50_hpos,
+        rng=rng,
         verbose=verbose,
     )
     h_case = result["H_case"]

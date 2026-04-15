@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.out
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build / cache
+build/
+dist/
+.cache/
+tmp/
+temp/
+
+# Training outputs
+outputs/
+checkpoints/
+runs/
+wandb/
+mlruns/
+lightning_logs/
+
+# Model files
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+
+# Data directories
+data/
+raw_data/
+LLLdataset/
+
+# Optional: if these also contain large generated artifacts
+**/processed/
+**/generation/
+**/generation_data/
+**/interim/
+**/raw/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key

@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/LLLdataset" />
+      <excludeFolder url="file://$MODULE_DIR$/LLLdataset/DiseaseHy/processed" />
+      <excludeFolder url="file://$MODULE_DIR$/LLLdataset/dataset/processed" />
+      <excludeFolder url="file://$MODULE_DIR$/data/generation" />
+      <excludeFolder url="file://$MODULE_DIR$/data/generation_data" />
+      <excludeFolder url="file://$MODULE_DIR$/data/interim" />
+      <excludeFolder url="file://$MODULE_DIR$/data/processed/train_finetune_filtered" />
+      <excludeFolder url="file://$MODULE_DIR$/data/raw" />
+      <excludeFolder url="file://$MODULE_DIR$/data/raw_data" />
+      <excludeFolder url="file://$MODULE_DIR$/outputs" />
+      <excludeFolder url="file://$MODULE_DIR$/raw_data" />
+      <excludeFolder url="file://$MODULE_DIR$/raw_data/data" />
+      <excludeFolder url="file://$MODULE_DIR$/论文数据集/DiseaseHy/raw" />
+    </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (RareDisease)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
