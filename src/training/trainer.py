@@ -275,13 +275,17 @@ def run_one_epoch(
                     top_50_hpos=static_graph.get("top_50_hpos", []),
                     hpo_dropout_prob=hpo_dropout_prob if is_train else 0.0,
                     hpo_corruption_prob=hpo_corruption_prob if is_train else 0.0,
+                    # 训练热路径只依赖 H_case 和 H_disease。
+                    # 这里跳过 H=[H_case|H_disease] 的冗余拼接，不改变任何前向数值。
+                    include_combined_h=False,
                     verbose=False,
                 )
             except ValueError as exc:
                 print(f"Epoch {epoch} Step {step}/{total_steps} {exc}，跳过。")
                 continue
 
-            if batch_graph["H_case"].shape[1] == 0 or batch_graph["H"].shape[1] == 0:
+            # H_case 为空表示当前 batch 没有有效病例；H_disease 是静态图，只需确认疾病列非空。
+            if batch_graph["H_case"].shape[1] == 0 or batch_graph["H_disease"].shape[1] == 0:
                 print(f"Epoch {epoch} Step {step}/{total_steps} 无有效图，跳过。")
                 continue
 

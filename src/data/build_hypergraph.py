@@ -1,6 +1,9 @@
-"""
-统一超图构建。
-只负责构建 H = [H_case | H_disease]，不处理训练和损失。
+"""统一超图构建。
+
+负责：
+- 加载静态 disease incidence
+- 从病例表构建 `H_case`
+- 按需构建 `H = [H_case | H_disease]`
 """
 
 from __future__ import annotations
@@ -54,14 +57,13 @@ def build_case_incidence(
     rng: random.Random | None = None,
     verbose: bool = False,
 ) -> dict:
-    """从病例表构建 H_case。"""
+    """从病例表构建 `H_case`。"""
     if not 0.0 <= hpo_dropout_prob <= 1.0:
-        raise ValueError("hpo_dropout_prob 必须在 0 到 1 之间。")
+        raise ValueError("hpo_dropout_prob 必须位于 [0, 1]。")
     if not 0.0 <= hpo_corruption_prob <= 1.0:
-        raise ValueError("hpo_corruption_prob 必须在 0 到 1 之间。")
+        raise ValueError("hpo_corruption_prob 必须位于 [0, 1]。")
 
     all_hpos_pool = list(hpo_to_idx.keys()) if hpo_corruption_prob > 0.0 else []
-
     num_hpo = len(hpo_to_idx)
     df = case_df.dropna(subset=[case_id_col, label_col, hpo_col])
 
@@ -84,19 +86,16 @@ def build_case_incidence(
             skip_hpo += 1
             continue
 
-        # 训练时随机遮挡部分 HPO，但至少保留 1 个，避免整例被丢空。
+        # 保持原始训练语义：随机丢弃部分 HPO，但至少保留一个。
         if hpo_dropout_prob > 0.0:
             dropout_rng = rng if rng is not None else random
-            kept_hpos = [
-                hpo_id for hpo_id in valid_hpos
-                if dropout_rng.random() > hpo_dropout_prob
-            ]
+            kept_hpos = [hpo_id for hpo_id in valid_hpos if dropout_rng.random() > hpo_dropout_prob]
             if kept_hpos:
                 valid_hpos = kept_hpos
             else:
                 valid_hpos = [valid_hpos[dropout_rng.randrange(len(valid_hpos))]]
 
-        # 统一注入对抗噪音
+        # 保持原始训练语义：按配置注入少量噪声 HPO。
         if hpo_corruption_prob > 0.0:
             corruption_rng = rng if rng is not None else random
             if corruption_rng.random() < hpo_corruption_prob:
@@ -125,7 +124,7 @@ def build_case_incidence(
         print(
             f"病例：保留 {num_case}，"
             f"丢弃（疾病不在索引）{skip_disease}，"
-            f"丢弃（无有效HPO）{skip_hpo}"
+            f"丢弃（无有效 HPO）{skip_hpo}"
         )
 
     h_case = csr_matrix(
@@ -162,7 +161,6 @@ def load_static_graph(
             f"H_disease shape 异常: {h_disease.shape}，期望 ({num_hpo}, {num_disease})"
         )
 
-    # 预计算 HPO 节点度 (连接的疾病数量) 并选取最高频前 50
     hpo_degrees = np.array(h_disease.sum(axis=1)).flatten()
     top_50_indices = hpo_degrees.argsort()[-50:][::-1]
     idx_to_hpo = {v: k for k, v in hpo_to_idx.items()}
@@ -183,7 +181,7 @@ def build_batch_hypergraph(
     hpo_to_idx: dict,
     disease_to_idx: dict,
     H_disease: csr_matrix,
-    top_50_hpos: list[str],
+    top_50_hpos: list[str] | None = None,
     case_id_col: str = "case_id",
     label_col: str = "mondo_label",
     hpo_col: str = "hpo_id",
@@ -191,8 +189,13 @@ def build_batch_hypergraph(
     hpo_corruption_prob: float = 0.0,
     rng: random.Random | None = None,
     verbose: bool = False,
+    include_combined_h: bool = True,
 ) -> dict:
-    """为当前 batch 构建超图。"""
+    """为当前 batch 构建超图。
+
+    默认仍返回 `H = [H_case | H_disease]` 以兼容测试和调试。
+    若热路径不需要 `H`，可传 `include_combined_h=False`，跳过昂贵的 `hstack`。
+    """
     num_disease = H_disease.shape[1]
     batch_before = case_df[case_id_col].nunique() if case_id_col in case_df.columns else len(case_df)
     if verbose:
@@ -217,16 +220,19 @@ def build_batch_hypergraph(
     if num_case == 0:
         raise ValueError("当前 batch 过滤后没有可用病例，请检查疾病索引或 HPO 映射。")
 
-    h_all = hstack([h_case, H_disease], format="csr")
-    if verbose:
-        print(f"[batch] H_case: {h_case.shape}  H_disease: {H_disease.shape}  H: {h_all.shape}")
+    h_all = None
+    if include_combined_h:
+        h_all = hstack([h_case, H_disease], format="csr")
+        if verbose:
+            print(f"[batch] H_case: {h_case.shape}  H_disease: {H_disease.shape}  H: {h_all.shape}")
+    elif verbose:
+        print(f"[batch] H_case: {h_case.shape}  H_disease: {H_disease.shape}  H: <skipped>")
 
     case_cols_global = list(range(num_case))
     disease_cols_global = list(range(num_case, num_case + num_disease))
     gold_disease_cols_global = [num_case + col for col in result["gold_disease_cols"]]
 
-    return {
-        "H": h_all,
+    batch_graph = {
         "H_case": h_case,
         "H_disease": H_disease,
         "case_ids": result["case_ids"],
@@ -235,3 +241,6 @@ def build_batch_hypergraph(
         "disease_cols_global": disease_cols_global,
         "gold_disease_cols_global": gold_disease_cols_global,
     }
+    if h_all is not None:
+        batch_graph["H"] = h_all
+    return batch_graph

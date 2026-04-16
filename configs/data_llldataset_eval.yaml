@@ -1,0 +1,14 @@
+batch_size: 16
+
+test_files:
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/DDD.csv
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/HMS.xlsx
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/LIRICAL.xlsx
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/mimic_test.csv
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/MME.xlsx
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/MyGene2.xlsx
+  - D:/RareDisease-traindata/LLLdataset/dataset/processed/test/RAMEDIS.xlsx
+
+case_id_col: case_id
+label_col: mondo_label
+hpo_col: hpo_id

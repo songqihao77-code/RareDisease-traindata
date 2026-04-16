@@ -575,6 +575,25 @@ def evaluate(
         num_hpo=resources["num_hpo"],
         device=device,
     )
+    # 评估阶段模型参数和 H_disease 都固定，因此 disease side 可以整轮复用。
+    # 这是严格等价缓存，不改变任何数学定义，只去掉重复计算。
+    disease_side_cache = model.precompute_disease_side(resources["H_disease"])
+    cached_node_repr = disease_side_cache["node_repr"]
+    cached_disease_repr = disease_side_cache["disease_repr"]
+    if not isinstance(cached_node_repr, torch.Tensor) or cached_node_repr.ndim != 2:
+        raise ValueError("预计算的 node_repr 必须是二维张量 [num_hpo, hidden_dim]。")
+    if cached_node_repr.shape[0] != resources["num_hpo"]:
+        raise ValueError(
+            "预计算的 node_repr HPO 维度不正确，"
+            f"得到 {tuple(cached_node_repr.shape)}，期望首维 {resources['num_hpo']}。"
+        )
+    if not isinstance(cached_disease_repr, torch.Tensor) or cached_disease_repr.ndim != 2:
+        raise ValueError("预计算的 disease_repr 必须是二维张量 [num_disease, hidden_dim]。")
+    if cached_disease_repr.shape[0] != resources["num_disease"]:
+        raise ValueError(
+            "预计算的 disease_repr 疾病维度不正确，"
+            f"得到 {tuple(cached_disease_repr.shape)}，期望首维 {resources['num_disease']}。"
+        )
     case_source_map = dict(zip(case_table["case_id"], case_table["source_file"], strict=True))
 
     detailed_results: list[dict[str, Any]] = []
@@ -599,6 +618,8 @@ def evaluate(
                 case_id_col=case_id_col,
                 label_col=label_col,
                 hpo_col=hpo_col,
+                # 评估热路径只需要 H_case 和 H_disease，不必重复拼接组合大图。
+                include_combined_h=False,
                 verbose=False,
             )
 
@@ -606,32 +627,12 @@ def evaluate(
             if num_case == 0:
                 continue
 
-            outputs = model(batch_graph, return_intermediate=True)
-            node_repr = outputs["node_repr"]
-            if not isinstance(node_repr, torch.Tensor) or node_repr.ndim != 2:
-                raise ValueError("encoder 输出必须是二维张量 [num_hpo, hidden_dim]。")
-            if node_repr.shape[0] != resources["num_hpo"]:
-                raise ValueError(
-                    "encoder 输出的 HPO 维度不正确，"
-                    f"得到 {tuple(node_repr.shape)}，期望首维 {resources['num_hpo']}。"
-                )
-
-            if model.case_refiner is not None and "refined_case_node_repr" not in outputs:
-                raise ValueError("评估路径未返回 refined_case_node_repr，说明未经过 refiner。")
-
-            case_repr = outputs["case_repr"]
-            if case_repr.ndim != 2 or case_repr.shape[0] != num_case:
-                raise ValueError(
-                    "case readout 输出维度不正确，"
-                    f"得到 {tuple(case_repr.shape)}，期望首维 {num_case}。"
-                )
-
-            disease_repr = outputs["disease_repr"]
-            if disease_repr.ndim != 2 or disease_repr.shape[0] != resources["num_disease"]:
-                raise ValueError(
-                    "disease readout 输出维度不正确，"
-                    f"得到 {tuple(disease_repr.shape)}，期望首维 {resources['num_disease']}。"
-                )
+            outputs = model(
+                batch_graph,
+                return_intermediate=False,
+                node_repr_override=cached_node_repr,
+                disease_repr_override=cached_disease_repr,
+            )
 
             scores = outputs["scores"]
             if not isinstance(scores, torch.Tensor):

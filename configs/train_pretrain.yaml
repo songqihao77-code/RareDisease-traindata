@@ -1,0 +1,57 @@
+paths:
+  train_files:
+    - D:\RareDisease-traindata\data\processed\train_finetune_filtered\PubCaseFinder_DiseaseHyperedge.xlsx
+    - D:\RareDisease-traindata\data\processed\train_finetune_filtered\unseen_training_unique_profiles.csv
+  hpo_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx
+  disease_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx
+  disease_incidence_path: D:\RareDisease-traindata\LLLdataset\dataset\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz
+  save_dir: D:/RareDisease-traindata/outputs/stage1_pretrain
+
+data:
+  batch_size: 16
+  val_ratio: 0.1
+  shuffle: true
+  random_seed: 42
+
+model:
+  hidden_dim: 128
+  readout:
+    type: hyperedge
+    attn_hidden_dim: 128
+    attn_dropout: 0.1
+    context_mode: leave_one_out
+    residual_uniform: 0.2
+    return_attention: false
+
+loss:
+  loss_name: full_pool_ce
+  poly_epsilon: 0.0
+  temperature: 0.18
+  hard_negative:
+    use_hard_negative: false
+    k: 10
+    top_m: 3
+    start_epoch: 2
+    weight: 0.5
+    margin: 0.1
+
+optimizer:
+  lr: 0.001
+  weight_decay: 0.0002
+
+train:
+  num_epochs: 100
+  device: cuda
+  hpo_dropout_prob: 0.15
+  hpo_corruption_prob: 0.0
+  eval_every: 1
+  log_every: 96
+  early_stop: true
+  early_stop_patience: 10
+  monitor: val_top1
+  monitor_mode: max
+  save_best: true
+  save_last: true
+  save_every_eval: false
+  grad_clip_norm: null
+  num_workers: 0
