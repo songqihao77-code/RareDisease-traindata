@@ -1,7 +1,8 @@
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
 
 # Virtual env
 .venv/
@@ -46,17 +47,14 @@ lightning_logs/
 *.safetensors
 *.onnx
 
-# Data directories
-data/
+# Data
 raw_data/
 LLLdataset/
-
-# Optional: if these also contain large generated artifacts
-**/processed/
-**/generation/
-**/generation_data/
-**/interim/
-**/raw/
+data/processed/
+data/raw/
+data/interim/
+data/generation/
+data/generation_data/
 
 # Secrets
 .env
