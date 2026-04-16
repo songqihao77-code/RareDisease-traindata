@@ -15,6 +15,10 @@ data:
 
 model:
   hidden_dim: 128
+  case_refiner:
+    enabled: true
+    mlp_hidden_dim: 128
+    residual: 0.1
   readout:
     type: hyperedge
     attn_hidden_dim: 128

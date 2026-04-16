@@ -1,7 +1,0 @@
-Columns: ['case_id', 'mondo_id', 'hpo_id', 'raw_weight', 'weight']
-  case_id       mondo_id      hpo_id  raw_weight  weight
-0  case_1  MONDO:0012173  HP:0000488         0.3   0.025
-1  case_1  MONDO:0012173  HP:0000512         0.6   0.050
-2  case_1  MONDO:0012173  HP:0000532         0.3   0.025
-3  case_1  MONDO:0012173  HP:0000533         0.3   0.025
-4  case_1  MONDO:0012173  HP:0000545         0.3   0.025

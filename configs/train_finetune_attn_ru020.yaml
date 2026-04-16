@@ -24,7 +24,7 @@ data:
 model:
   hidden_dim: 128
   case_refiner:
-    enabled: false
+    enabled: true
     mlp_hidden_dim: 128
     residual: 0.1
   readout:
