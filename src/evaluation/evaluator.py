@@ -253,6 +253,10 @@ def _build_model_config(train_config: dict[str, Any], num_hpo: int) -> dict[str,
             "residual": float(case_refiner_cfg.get("residual", 0.7)),
         }
 
+    case_weighting_cfg = model_cfg.get("case_weighting", {})
+    if isinstance(case_weighting_cfg, dict):
+        pipeline_model_cfg["case_weighting"] = dict(case_weighting_cfg)
+
     return {
         "model": pipeline_model_cfg
     }

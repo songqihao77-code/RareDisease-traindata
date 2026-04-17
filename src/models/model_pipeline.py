@@ -35,6 +35,7 @@ class ModelPipeline(nn.Module):
         super().__init__()
         self.config = self._normalize_config(config)
         self.output_config = self._get_block("outputs")
+        self.case_weighting_config = self._normalize_case_weighting_config()
 
         self.encoder = encoder or self._build_module("encoder", ENCODER_REGISTRY, "hgnn")
         self.case_refiner = self._build_optional_case_refiner()
@@ -46,6 +47,10 @@ class ModelPipeline(nn.Module):
         self._cached_h_disease_src_id: int | None = None
         self._cached_h_disease_device: torch.device | None = None
         self._cached_h_disease_sparse: torch.Tensor | None = None
+        self._cached_case_ic_src_id: int | None = None
+        self._cached_case_ic_device: torch.device | None = None
+        self._cached_case_ic_dtype: torch.dtype | None = None
+        self._cached_case_ic_weight: torch.Tensor | None = None
 
     def _normalize_config(self, config: Mapping[str, Any] | None) -> dict[str, Any]:
         if config is None:
@@ -63,6 +68,47 @@ class ModelPipeline(nn.Module):
         if not isinstance(block, Mapping):
             raise TypeError(f"config.{name} 必须是 Mapping，当前收到 {type(block).__name__}。")
         return dict(block)
+
+    def _normalize_case_weighting_config(self) -> dict[str, Any]:
+        block = self._get_block("case_weighting")
+        config = {
+            "enabled": bool(block.get("enabled", False)),
+            "mode": str(block.get("mode", "fixed_ic")),
+            "ic_source": str(block.get("ic_source", "h_disease_binary_df")),
+            "eps": float(block.get("eps", 1e-8)),
+            "clip_quantile_low": float(block.get("clip_quantile_low", 0.05)),
+            "clip_quantile_high": float(block.get("clip_quantile_high", 0.95)),
+            "weight_min": float(block.get("weight_min", 0.5)),
+            "weight_max": float(block.get("weight_max", 1.5)),
+            "zero_support_policy": str(block.get("zero_support_policy", "identity")),
+        }
+
+        if not config["enabled"]:
+            return config
+
+        if config["mode"] != "fixed_ic":
+            raise ValueError(f"case_weighting.mode 当前只支持 'fixed_ic'，收到 {config['mode']!r}。")
+        if config["ic_source"] != "h_disease_binary_df":
+            raise ValueError(
+                "case_weighting.ic_source 当前只支持 'h_disease_binary_df'，"
+                f"收到 {config['ic_source']!r}。"
+            )
+        if config["eps"] <= 0:
+            raise ValueError(f"case_weighting.eps 必须大于 0，当前为 {config['eps']}。")
+        if not 0.0 <= config["clip_quantile_low"] <= 1.0:
+            raise ValueError("case_weighting.clip_quantile_low 必须位于 [0, 1]。")
+        if not 0.0 <= config["clip_quantile_high"] <= 1.0:
+            raise ValueError("case_weighting.clip_quantile_high 必须位于 [0, 1]。")
+        if config["clip_quantile_low"] > config["clip_quantile_high"]:
+            raise ValueError("case_weighting.clip_quantile_low 不能大于 clip_quantile_high。")
+        if config["weight_min"] > config["weight_max"]:
+            raise ValueError("case_weighting.weight_min 不能大于 weight_max。")
+        if config["zero_support_policy"] != "identity":
+            raise ValueError(
+                "case_weighting.zero_support_policy 当前只支持 'identity'，"
+                f"收到 {config['zero_support_policy']!r}。"
+            )
+        return config
 
     def _build_module(
         self,
@@ -192,6 +238,128 @@ class ModelPipeline(nn.Module):
 
         raise TypeError(f"H_disease 只支持 scipy.sparse 或 torch.Tensor，当前为 {type(H_disease).__name__}。")
 
+    def _build_fixed_ic_weights(self, H_disease) -> np.ndarray:
+        """基于 H_disease 的二值 disease frequency 构造固定 IC 权重。"""
+        num_hpo, num_disease = self._shape2(H_disease, "H_disease")
+        if num_disease <= 0:
+            raise ValueError("H_disease 的列数必须大于 0。")
+
+        if scipy.sparse.issparse(H_disease):
+            H_coo = H_disease.tocoo()
+            positive_mask = H_coo.data > 0
+            positive_rows = H_coo.row[positive_mask]
+            df = np.bincount(positive_rows, minlength=num_hpo).astype(np.float64, copy=False)
+        elif isinstance(H_disease, torch.Tensor):
+            tensor = H_disease
+            if tensor.is_sparse:
+                tensor = tensor.coalesce()
+                rows = tensor.indices()[0][tensor.values() > 0]
+                df = (
+                    torch.bincount(rows, minlength=num_hpo)
+                    .to(dtype=torch.float64)
+                    .cpu()
+                    .numpy()
+                )
+            else:
+                df = (tensor > 0).sum(dim=1).to(dtype=torch.float64).cpu().numpy()
+        else:
+            raise TypeError(f"H_disease 只支持 scipy.sparse 或 torch.Tensor，当前为 {type(H_disease).__name__}。")
+
+        weights = np.ones(num_hpo, dtype=np.float32)
+        support_mask = df > 0
+        if not support_mask.any():
+            return weights
+
+        eps = float(self.case_weighting_config["eps"])
+        p = (df[support_mask] + eps) / (float(num_disease) + eps)
+        ic_raw = -np.log(p)
+
+        q_low = float(self.case_weighting_config["clip_quantile_low"])
+        q_high = float(self.case_weighting_config["clip_quantile_high"])
+        clip_low = float(np.quantile(ic_raw, q_low))
+        clip_high = float(np.quantile(ic_raw, q_high))
+        clipped = np.clip(ic_raw, clip_low, clip_high)
+
+        clipped_min = float(clipped.min())
+        clipped_max = float(clipped.max())
+        if clipped_max - clipped_min <= eps:
+            normalized = np.full_like(clipped, 0.5, dtype=np.float64)
+        else:
+            normalized = (clipped - clipped_min) / (clipped_max - clipped_min)
+
+        weight_min = float(self.case_weighting_config["weight_min"])
+        weight_max = float(self.case_weighting_config["weight_max"])
+        weights[support_mask] = (
+            weight_min + normalized * (weight_max - weight_min)
+        ).astype(np.float32, copy=False)
+
+        if self.case_weighting_config["zero_support_policy"] == "identity":
+            weights[~support_mask] = 1.0
+        return weights
+
+    def _get_case_ic_weight(
+        self,
+        H_disease,
+        device: torch.device,
+        dtype: torch.dtype,
+    ) -> torch.Tensor | None:
+        if not self.case_weighting_config["enabled"]:
+            return None
+
+        src_id = id(H_disease)
+        if (
+            self._cached_case_ic_weight is not None
+            and self._cached_case_ic_src_id == src_id
+            and self._cached_case_ic_device == device
+            and self._cached_case_ic_dtype == dtype
+        ):
+            return self._cached_case_ic_weight
+
+        weights_np = self._build_fixed_ic_weights(H_disease)
+        weights = torch.as_tensor(weights_np, dtype=dtype, device=device)
+        self._cached_case_ic_src_id = src_id
+        self._cached_case_ic_device = device
+        self._cached_case_ic_dtype = dtype
+        self._cached_case_ic_weight = weights
+        return weights
+
+    def _build_weighted_h_case(
+        self,
+        H_case,
+        ic_weight: torch.Tensor | None,
+        device: torch.device,
+    ):
+        """只在前向里临时缩放 H_case.active edge 的 values。"""
+        if ic_weight is None:
+            return H_case
+
+        if scipy.sparse.issparse(H_case):
+            H_coo = H_case.tocoo()
+            idx = torch.tensor(np.vstack([H_coo.row, H_coo.col]), dtype=torch.long, device=device)
+            val = torch.tensor(H_coo.data, dtype=ic_weight.dtype, device=device)
+            weighted_val = val * ic_weight.index_select(0, idx[0])
+            return torch.sparse_coo_tensor(idx, weighted_val, H_coo.shape, device=device).coalesce()
+
+        if isinstance(H_case, torch.Tensor):
+            tensor = H_case.to(device=device)
+            if tensor.is_sparse:
+                tensor = tensor.coalesce()
+                indices = tensor.indices()
+                values = tensor.values().to(dtype=ic_weight.dtype)
+                weighted_val = values * ic_weight.index_select(0, indices[0]).to(dtype=values.dtype)
+                return torch.sparse_coo_tensor(
+                    indices,
+                    weighted_val,
+                    tensor.shape,
+                    device=device,
+                ).coalesce()
+
+            tensor = tensor.to(dtype=ic_weight.dtype)
+            scale = ic_weight.unsqueeze(1)
+            return tensor * scale
+
+        raise TypeError(f"H_case 只支持 scipy.sparse 或 torch.Tensor，当前为 {type(H_case).__name__}。")
+
     def _resolve_disease_cols_global(
         self,
         batch_graph: Mapping[str, Any],
@@ -281,6 +449,7 @@ class ModelPipeline(nn.Module):
         """
         device = self._get_model_device()
         prepared_h_disease = self._prepare_h_disease(H_disease, device)
+        self._get_case_ic_weight(H_disease, device=device, dtype=prepared_h_disease.dtype)
         node_repr = self.encoder(prepared_h_disease)
         disease_repr = self.readout.build_disease_repr(node_repr, prepared_h_disease)
         return {
@@ -312,9 +481,19 @@ class ModelPipeline(nn.Module):
         if not isinstance(node_repr, torch.Tensor) or node_repr.ndim != 2 or node_repr.shape[0] != num_hpo:
             raise ValueError("encoder 必须返回形状为 [num_hpo, hidden_dim] 的张量。")
 
+        weighted_h_case = self._build_weighted_h_case(
+            batch_graph["H_case"],
+            ic_weight=self._get_case_ic_weight(
+                batch_graph["H_disease"],
+                device=device,
+                dtype=node_repr.dtype,
+            ),
+            device=device,
+        )
+
         refined_case_node_repr: torch.Tensor | RefinedCaseNodeState | None = None
         if self.case_refiner is not None:
-            refined_case_node_repr = self.case_refiner(node_repr, batch_graph["H_case"])
+            refined_case_node_repr = self.case_refiner(node_repr, weighted_h_case)
             self._validate_refined_case_node_repr(
                 refined_case_node_repr=refined_case_node_repr,
                 num_hpo=num_hpo,
@@ -324,7 +503,7 @@ class ModelPipeline(nn.Module):
 
         readout_out = self.readout(
             node_repr,
-            batch_graph["H_case"],
+            weighted_h_case,
             prepared_h_disease if prepared_h_disease is not None else batch_graph["H_disease"],
             refined_case_node_repr=refined_case_node_repr,
             disease_repr_override=disease_repr_override,
