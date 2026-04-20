@@ -1,6 +1,13 @@
 @echo off
 setlocal
 
+REM 当前唯一可信主线入口：
+REM   run_full_train.cmd
+REM     -> configs/train_pretrain.yaml
+REM     -> configs/train_finetune.yaml
+REM     -> configs/data_llldataset_eval.yaml
+REM 不要把 configs/train.yaml 当成与本脚本同语义的默认主配置。
+
 cd /d D:\RareDisease-traindata
 
 echo [1/3] Pretrain started...

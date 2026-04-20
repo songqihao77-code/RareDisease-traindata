@@ -16,11 +16,21 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.build_hypergraph import build_batch_hypergraph, load_static_graph
-from src.data.dataset import CaseBatchLoader, read_case_table_file
+from src.data.dataset import (
+    CaseBatchLoader,
+    build_namespaced_case_id,
+    load_namespaced_case_ids,
+    read_case_table_file,
+)
 from src.models.model_pipeline import ModelPipeline
-
-DEFAULT_DATA_CONFIG_PATH = PROJECT_ROOT / "configs" / "data.yaml"
-DEFAULT_TRAIN_CONFIG_PATH = PROJECT_ROOT / "configs" / "train.yaml"
+from src.runtime_config import (
+    TRUSTED_MAINLINE,
+    build_evaluation_effective_config,
+    build_model_pipeline_config,
+    print_effective_config,
+    resolve_loss_config,
+    save_yaml,
+)
 
 
 def load_yaml_config(config_path: str | Path) -> dict[str, Any]:
@@ -219,45 +229,6 @@ def _resolve_checkpoint_path(
     raise FileNotFoundError(f"未找到可用 checkpoint 文件: {checkpoint_dir}")
 
 
-def _build_model_config(train_config: dict[str, Any], num_hpo: int) -> dict[str, Any]:
-    """按训练配置组装模型配置。"""
-    model_cfg = train_config.get("model")
-    if not isinstance(model_cfg, dict):
-        raise KeyError("train.yaml 缺少 model 配置。")
-    if "hidden_dim" not in model_cfg:
-        raise KeyError("train.yaml 缺少 model.hidden_dim。")
-
-    hidden_dim = int(model_cfg["hidden_dim"])
-    pipeline_model_cfg: dict[str, Any] = {
-        "encoder": {
-            "type": "hgnn",
-            "num_hpo": int(num_hpo),
-            "hidden_dim": hidden_dim,
-        },
-        "readout": {"type": "hyperedge", **model_cfg.get("readout", {}), "hidden_dim": hidden_dim},
-        "scorer": {"type": "cosine"},
-        "outputs": {
-            "include_metadata": True,
-            "include_global_scores": False,
-            "return_intermediate": False,
-        },
-    }
-
-    case_refiner_cfg = model_cfg.get("case_refiner", {})
-    if isinstance(case_refiner_cfg, dict):
-        pipeline_model_cfg["case_refiner"] = {
-            "type": "case_conditioned",
-            "enabled": bool(case_refiner_cfg.get("enabled", False)),
-            "hidden_dim": hidden_dim,
-            "mlp_hidden_dim": int(case_refiner_cfg.get("mlp_hidden_dim", hidden_dim)),
-            "residual": float(case_refiner_cfg.get("residual", 0.7)),
-        }
-
-    return {
-        "model": pipeline_model_cfg
-    }
-
-
 def load_checkpoint_model(
     train_config: dict[str, Any],
     checkpoint_path: str | Path | None,
@@ -275,7 +246,7 @@ def load_checkpoint_model(
     else:
         raise ValueError(f"无法识别 checkpoint 结构: {resolved_path}")
 
-    model = ModelPipeline(_build_model_config(train_config, num_hpo)).to(device)
+    model = ModelPipeline(build_model_pipeline_config(train_config, num_hpo)).to(device)
     missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
     if missing_keys or unexpected_keys:
         raise ValueError(
@@ -418,7 +389,9 @@ def load_test_cases(
             raise ValueError(f"{path.name} 缺少必要列: {', '.join(sorted(missing_cols))}")
 
         df = df[[case_id_col, label_col, hpo_col]].copy()
-        df[case_id_col] = path.stem + "_" + df[case_id_col].astype(str)
+        df[case_id_col] = df[case_id_col].astype(str).apply(
+            lambda raw_case_id: build_namespaced_case_id(raw_case_id, path, "test")
+        )
         df["_source_file"] = path.name
         frames.append(df)
 
@@ -449,6 +422,39 @@ def load_test_cases(
         "label_col": label_col,
         "hpo_col": hpo_col,
         "test_files": [str(path) for path in file_paths],
+    }
+
+
+def _check_case_id_namespace_overlap(
+    train_config: dict[str, Any],
+    train_config_path: str | Path,
+    *,
+    case_id_col: str,
+    test_case_ids: set[str],
+) -> dict[str, Any]:
+    """检查 train/test 是否还存在 case_id 命名空间碰撞。"""
+    paths_cfg = train_config.get("paths")
+    if not isinstance(paths_cfg, dict):
+        raise KeyError("train 配置缺少 paths，无法检查 case_id overlap。")
+
+    train_files = _resolve_case_files_from_paths(
+        paths_cfg,
+        config_path=train_config_path,
+        files_key="train_files",
+        dir_key="train_dir",
+    )
+    train_case_ids = load_namespaced_case_ids(
+        [str(path) for path in train_files],
+        case_id_col=case_id_col,
+        split_namespace="train",
+    )
+    overlap = sorted(train_case_ids & test_case_ids)
+    return {
+        "train_case_count": int(len(train_case_ids)),
+        "test_case_count": int(len(test_case_ids)),
+        "overlap_count": int(len(overlap)),
+        "overlap_preview": overlap[:10],
+        "naming_scheme": "split::relative/path/to/file::raw_case_id",
     }
 
 
@@ -526,9 +532,22 @@ def evaluate(
     data_config = load_yaml_config(data_config_path)
     train_config = load_yaml_config(train_config_path)
     device = _resolve_device(train_config)
+    print(f"主线说明: {TRUSTED_MAINLINE['description']}")
 
     resources = load_static_resources(train_config)
     test_bundle = load_test_cases(data_config, data_config_path)
+    overlap_summary = _check_case_id_namespace_overlap(
+        train_config,
+        train_config_path,
+        case_id_col=test_bundle["case_id_col"],
+        test_case_ids=set(test_bundle["case_table"]["case_id"].astype(str).tolist()),
+    )
+    if overlap_summary["overlap_count"] > 0:
+        preview = ", ".join(overlap_summary["overlap_preview"])
+        raise RuntimeError(
+            "train/test 之间仍存在 case_id 命名空间碰撞风险，请检查 split 命名策略。"
+            f" overlap_preview={preview}"
+        )
 
     case_table = test_bundle["case_table"].copy()
     hpo_to_idx = resources["hpo_to_idx"]
@@ -569,12 +588,34 @@ def evaluate(
         batch_size=int(test_bundle["batch_size"]),
         case_id_col=case_id_col,
     )
+    model_pipeline_config = build_model_pipeline_config(train_config, resources["num_hpo"])
+    resolved_loss_cfg = resolve_loss_config(train_config["loss"])
+    for warning_text in resolved_loss_cfg["warnings"]:
+        print(f"[WARN] {warning_text}")
+
     model, resolved_checkpoint_path, checkpoint = load_checkpoint_model(
         train_config=train_config,
         checkpoint_path=checkpoint_path,
         num_hpo=resources["num_hpo"],
         device=device,
     )
+    effective_eval_config = build_evaluation_effective_config(
+        data_config_path=data_config_path,
+        train_config_path=train_config_path,
+        checkpoint_path=resolved_checkpoint_path,
+        resolved_train_files=_resolve_case_files_from_paths(
+            train_config["paths"],
+            config_path=train_config_path,
+            files_key="train_files",
+            dir_key="train_dir",
+        ),
+        resolved_test_files=[Path(path) for path in test_bundle["test_files"]],
+        model_pipeline_config=model_pipeline_config,
+        resolved_loss_config=resolved_loss_cfg,
+        overlap_summary=overlap_summary,
+    )
+    print_effective_config("Evaluation Effective Config", effective_eval_config)
+
     # 评估阶段模型参数和 H_disease 都固定，因此 disease side 可以整轮复用。
     # 这是严格等价缓存，不改变任何数学定义，只去掉重复计算。
     disease_side_cache = model.precompute_disease_side(resources["H_disease"])
@@ -649,7 +690,7 @@ def evaluate(
 
             case_ids = batch_graph["case_ids"]
             case_labels = batch_graph["case_labels"]
-            gold_indices = outputs["gold_disease_cols_local"].tolist()
+            gold_indices = outputs["gold_disease_idx_in_score_pool"].tolist()
             if not (len(case_ids) == len(case_labels) == len(gold_indices) == num_case):
                 raise ValueError("评估 batch 中的病例元信息长度不一致。")
 
@@ -718,6 +759,7 @@ def evaluate(
         "top3": float(metrics["top3"]),
         "top5": float(metrics["top5"]),
         "per_dataset": per_dataset_summary,
+        "case_id_overlap_check": overlap_summary,
         "run_manifest": run_manifest,
     }
 
@@ -741,6 +783,7 @@ def evaluate(
         "skipped_cases": skipped_cases[["case_id", "mondo_label", "skip_reason", "source_file"]]
         .copy()
         .to_dict(orient="records"),
+        "effective_config": effective_eval_config,
     }
 
 
@@ -759,6 +802,7 @@ def save_results(results: dict[str, Any], train_config: dict[str, Any]) -> dict[
     summary_path = eval_dir / f"{checkpoint_stem}_{timestamp}_summary.json"
     per_dataset_path = eval_dir / f"{checkpoint_stem}_{timestamp}_per_dataset.csv"
     skipped_path = eval_dir / f"{checkpoint_stem}_{timestamp}_skipped.csv"
+    effective_config_path = eval_dir / f"{checkpoint_stem}_{timestamp}_effective_config.yaml"
 
     details_df = pd.DataFrame(results["details"])
     if not details_df.empty:
@@ -796,17 +840,20 @@ def save_results(results: dict[str, Any], train_config: dict[str, Any]) -> dict[
 
     with summary_path.open("w", encoding="utf-8") as f:
         json.dump(results["summary"], f, ensure_ascii=False, indent=2)
+    save_yaml(results["effective_config"], effective_config_path)
 
     print(f"详细结果已保存: {details_path}")
     print(f"汇总结果已保存: {summary_path}")
     print(f"分测试集结果已保存: {per_dataset_path}")
     print(f"跳过病例已保存: {skipped_path}")
+    print(f"评估 effective config 已保存: {effective_config_path}")
 
     return {
         "details_path": str(details_path),
         "summary_path": str(summary_path),
         "per_dataset_path": str(per_dataset_path),
         "skipped_path": str(skipped_path),
+        "effective_config_path": str(effective_config_path),
     }
 
 
@@ -816,14 +863,14 @@ def main() -> None:
     parser.add_argument(
         "--data_config_path",
         type=str,
-        default=str(DEFAULT_DATA_CONFIG_PATH),
-        help="data.yaml 路径。",
+        required=True,
+        help="显式指定测试数据配置路径。",
     )
     parser.add_argument(
         "--train_config_path",
         type=str,
-        default=str(DEFAULT_TRAIN_CONFIG_PATH),
-        help="train.yaml 路径。",
+        required=True,
+        help="显式指定训练配置路径。",
     )
     parser.add_argument(
         "--checkpoint_path",

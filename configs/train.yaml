@@ -1,6 +1,14 @@
+# 非主线样例配置。
+# 当前唯一可信主线不是本文件，而是：
+#   run_full_train.cmd
+#     -> configs/train_pretrain.yaml
+#     -> configs/train_finetune.yaml
+#     -> configs/data_llldataset_eval.yaml
+# 本文件仅作为显式样例/实验模板保留，不应被视为默认主实验入口。
+
 paths:
   train_files:
-    # 当前主配置的直接拷贝，用于注意力参数消融。
+    # 非主线样例数据清单。
     - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\DDD.csv
     - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\HMS.xlsx
     - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\LIRICAL.xlsx
@@ -13,7 +21,7 @@ paths:
   hpo_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx
   disease_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx
   disease_incidence_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\v60\v60DiseaseHy.npz
-  save_dir: D:\RareDisease-traindata\outputs
+  save_dir: D:\RareDisease-traindata\outputs\non_mainline_sample
 
 data:
   batch_size: 16
@@ -37,7 +45,15 @@ model:
 
 loss:
   loss_name: full_pool_ce
+  poly_epsilon: 0.0
   temperature: 0.18
+  hard_negative:
+    use_hard_negative: false
+    k: 0
+    top_m: 0
+    start_epoch: 0
+    weight: 0.0
+    margin: 0.0
 
 optimizer:
   lr: 0.001

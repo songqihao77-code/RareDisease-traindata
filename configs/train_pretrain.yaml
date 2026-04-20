@@ -1,3 +1,6 @@
+# 当前可信主线的一部分：
+# run_full_train.cmd -> train_pretrain.yaml -> train_finetune.yaml -> data_llldataset_eval.yaml
+
 paths:
   train_files:
     - D:\RareDisease-traindata\data\processed\train_finetune_filtered\PubCaseFinder_DiseaseHyperedge.xlsx

@@ -91,9 +91,9 @@ def compute_loss(
     hard_neg_indices: torch.Tensor | None = None,
     tau: float = 1.0,
     margin: float = 0.1,
-    hard_weight: float = 0.5,
-    top_m: int = 3,
-    poly_epsilon: float = 2.0,
+    hard_weight: float = 0.0,
+    top_m: int = 0,
+    poly_epsilon: float = 0.0,
     reduction: str = "mean",
 ) -> dict[str, torch.Tensor]:
     """先算 full-pool CE，再按需叠加 hard loss。"""
@@ -156,10 +156,10 @@ class FullPoolCrossEntropyLoss(nn.Module):
         self,
         temperature: float = 1.0,
         reduction: str = "mean",
-        hard_weight: float = 0.5,
+        hard_weight: float = 0.0,
         margin: float = 0.1,
-        top_m: int = 3,
-        poly_epsilon: float = 2.0,
+        top_m: int = 0,
+        poly_epsilon: float = 0.0,
     ) -> None:
         super().__init__()
         if temperature <= 0:
@@ -199,10 +199,10 @@ def build_loss(
     loss_name: str = "full_pool_ce",
     temperature: float = 1.0,
     reduction: str = "mean",
-    hard_weight: float = 0.5,
+    hard_weight: float = 0.0,
     margin: float = 0.1,
-    top_m: int = 3,
-    poly_epsilon: float = 2.0,
+    top_m: int = 0,
+    poly_epsilon: float = 0.0,
 ) -> nn.Module:
     """构建当前项目使用的损失模块。"""
     if loss_name != "full_pool_ce":

@@ -149,12 +149,20 @@ class ModelPipeline(nn.Module):
             self._check_seq_len(batch_graph["case_ids"], num_case, "batch_graph['case_ids']")
         if "case_labels" in batch_graph:
             self._check_seq_len(batch_graph["case_labels"], num_case, "batch_graph['case_labels']")
-        if "gold_disease_cols_global" in batch_graph:
+        gold_col_field = None
+        if "gold_disease_col_in_combined_h" in batch_graph:
+            gold_col_field = "gold_disease_col_in_combined_h"
+        elif "gold_disease_cols_global" in batch_graph:
+            gold_col_field = "gold_disease_cols_global"
+
+        if gold_col_field is not None:
             self._check_seq_len(
-                batch_graph["gold_disease_cols_global"],
+                batch_graph[gold_col_field],
                 num_case,
-                "batch_graph['gold_disease_cols_global']",
+                f"batch_graph['{gold_col_field}']",
             )
+        if "gold_disease_idx" in batch_graph:
+            self._check_seq_len(batch_graph["gold_disease_idx"], num_case, "batch_graph['gold_disease_idx']")
         if "disease_cols_global" in batch_graph:
             self._check_seq_len(
                 batch_graph["disease_cols_global"],
@@ -235,7 +243,14 @@ class ModelPipeline(nn.Module):
         num_case: int,
         num_disease: int,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        gold_global = [int(i) for i in batch_graph["gold_disease_cols_global"]]
+        # 三套索引语义：
+        # - gold_disease_idx: 纯 disease index 空间
+        # - gold_disease_col_in_combined_h: 兼容 combined H 时的列号
+        # - gold_disease_idx_in_score_pool: 当前 scorer 空间中的目标索引
+        if "gold_disease_col_in_combined_h" in batch_graph:
+            gold_global = [int(i) for i in batch_graph["gold_disease_col_in_combined_h"]]
+        else:
+            gold_global = [int(i) for i in batch_graph["gold_disease_cols_global"]]
         disease_cols_global = self._resolve_disease_cols_global(batch_graph, num_case, num_disease)
         global_to_local = {col: idx for idx, col in enumerate(disease_cols_global)}
 
@@ -243,6 +258,18 @@ class ModelPipeline(nn.Module):
             gold_local = [global_to_local[col] for col in gold_global]
         except KeyError as exc:
             raise ValueError("gold_disease_cols_global 中存在不属于疾病列空间的索引。") from exc
+
+        if "gold_disease_idx" in batch_graph:
+            gold_idx = [int(i) for i in batch_graph["gold_disease_idx"]]
+            if len(gold_idx) != len(gold_global):
+                raise ValueError("gold_disease_idx 与 gold_disease_col_in_combined_h 长度不一致。")
+            for idx, col in zip(gold_idx, gold_global, strict=True):
+                expected_col = num_case + idx
+                if col != expected_col:
+                    raise ValueError(
+                        "gold_disease_idx 与 gold_disease_col_in_combined_h 语义不一致："
+                        f"期望列号 {expected_col}，实际得到 {col}。"
+                    )
 
         return (
             torch.as_tensor(gold_global, dtype=torch.long, device=device),
@@ -341,7 +368,7 @@ class ModelPipeline(nn.Module):
 
         gold_global = None
         gold_local = None
-        if "gold_disease_cols_global" in batch_graph:
+        if "gold_disease_col_in_combined_h" in batch_graph or "gold_disease_cols_global" in batch_graph:
             gold_global, gold_local = self._build_gold_local(
                 batch_graph=batch_graph,
                 device=case_repr.device,
@@ -365,7 +392,13 @@ class ModelPipeline(nn.Module):
             for key in ("case_ids", "case_labels", "case_cols_global", "disease_cols_global"):
                 if key in batch_graph:
                     outputs[key] = batch_graph[key]
-            if "gold_disease_cols_global" in batch_graph:
+            if "gold_disease_idx" in batch_graph:
+                outputs["gold_disease_idx"] = torch.as_tensor(
+                    [int(i) for i in batch_graph["gold_disease_idx"]],
+                    dtype=torch.long,
+                    device=scores.device,
+                )
+            if "gold_disease_col_in_combined_h" in batch_graph or "gold_disease_cols_global" in batch_graph:
                 if gold_global is None or gold_local is None:
                     gold_global, gold_local = self._build_gold_local(
                         batch_graph=batch_graph,
@@ -373,6 +406,9 @@ class ModelPipeline(nn.Module):
                         num_case=num_case,
                         num_disease=num_disease,
                     )
+                outputs["gold_disease_col_in_combined_h"] = gold_global
+                outputs["gold_disease_idx_in_score_pool"] = gold_local
+                # 兼容旧字段名，避免第一阶段修复破坏现有调用方。
                 outputs["gold_disease_cols_global"] = gold_global
                 outputs["gold_disease_cols_local"] = gold_local
 

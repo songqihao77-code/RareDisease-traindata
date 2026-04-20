@@ -1,9 +1,13 @@
-"""统一超图构建。
+"""超图构建。
 
 负责：
 - 加载静态 disease incidence
 - 从病例表构建 `H_case`
-- 按需构建 `H = [H_case | H_disease]`
+- 按需构建兼容字段 `H = [H_case | H_disease]`
+
+说明：
+- 当前训练/评估热路径默认是 disease-only encoder，不再依赖 `H=[H_case|H_disease]`
+- 这里保留 combined H 仅用于兼容旧调试接口
 """
 
 from __future__ import annotations
@@ -71,7 +75,7 @@ def build_case_incidence(
     cols: list[int] = []
     case_ids: list[str] = []
     case_labels: list[str] = []
-    gold_cols: list[int] = []
+    gold_disease_idx: list[int] = []
     skip_disease = 0
     skip_hpo = 0
 
@@ -117,7 +121,7 @@ def build_case_incidence(
 
         case_ids.append(case_id)
         case_labels.append(mondo_id)
-        gold_cols.append(disease_to_idx[mondo_id])
+        gold_disease_idx.append(disease_to_idx[mondo_id])
 
     num_case = len(case_ids)
     if verbose:
@@ -135,7 +139,8 @@ def build_case_incidence(
         "H_case": h_case,
         "case_ids": case_ids,
         "case_labels": case_labels,
-        "gold_disease_cols": gold_cols,
+        # 这里的 gold_disease_idx 是纯 disease index 空间，不带 num_case 偏移。
+        "gold_disease_idx": gold_disease_idx,
     }
 
 
@@ -230,7 +235,18 @@ def build_batch_hypergraph(
 
     case_cols_global = list(range(num_case))
     disease_cols_global = list(range(num_case, num_case + num_disease))
-    gold_disease_cols_global = [num_case + col for col in result["gold_disease_cols"]]
+
+    gold_disease_idx = [int(idx) for idx in result["gold_disease_idx"]]
+    if len(gold_disease_idx) != num_case:
+        raise ValueError("gold_disease_idx 长度必须与 num_case 一致。")
+    if any(idx < 0 or idx >= num_disease for idx in gold_disease_idx):
+        raise ValueError("gold_disease_idx 中存在越界 disease index。")
+
+    # 历史兼容说明：
+    # - gold_disease_idx: 疾病索引空间中的纯 disease_idx
+    # - gold_disease_col_in_combined_h: 若构造 H=[H_case|H_disease]，真实疾病所在列号
+    # - gold_disease_cols_global: 兼容旧字段名，语义等价于 gold_disease_col_in_combined_h
+    gold_disease_col_in_combined_h = [num_case + idx for idx in gold_disease_idx]
 
     batch_graph = {
         "H_case": h_case,
@@ -239,7 +255,9 @@ def build_batch_hypergraph(
         "case_labels": result["case_labels"],
         "case_cols_global": case_cols_global,
         "disease_cols_global": disease_cols_global,
-        "gold_disease_cols_global": gold_disease_cols_global,
+        "gold_disease_idx": gold_disease_idx,
+        "gold_disease_col_in_combined_h": gold_disease_col_in_combined_h,
+        "gold_disease_cols_global": gold_disease_col_in_combined_h,
     }
     if h_all is not None:
         batch_graph["H"] = h_all

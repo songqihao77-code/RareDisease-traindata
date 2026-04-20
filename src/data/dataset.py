@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "data.yaml"
 _DISEASE_INDEX_PATH = Path(
     r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx"
@@ -55,17 +56,59 @@ def read_case_table_file(path: str | Path) -> pd.DataFrame:
     raise ValueError(f"不支持的病例文件格式: {path}")
 
 
+def build_case_namespace(source_path: str | Path, split_namespace: str) -> str:
+    """构造带 split 与相对路径信息的 case 命名空间。"""
+    if not split_namespace:
+        raise ValueError("split_namespace 不能为空。")
+
+    path = Path(source_path).resolve()
+    try:
+        source_part = path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        source_part = path.as_posix()
+    return f"{split_namespace}::{source_part}"
+
+
+def build_namespaced_case_id(
+    raw_case_id: str | int,
+    source_path: str | Path,
+    split_namespace: str,
+) -> str:
+    """构造不会在 train/test 之间碰撞的 case_id。"""
+    raw_case_id_text = str(raw_case_id)
+    return f"{build_case_namespace(source_path, split_namespace)}::{raw_case_id_text}"
+
+
+def load_namespaced_case_ids(
+    file_paths: list[str | Path],
+    *,
+    case_id_col: str = "case_id",
+    split_namespace: str,
+) -> set[str]:
+    """只读取 case_id，并按统一命名空间规则返回集合。"""
+    case_ids: set[str] = set()
+    for path in file_paths:
+        df = read_case_table_file(path)
+        if case_id_col not in df.columns:
+            raise ValueError(f"{Path(path).name} 缺少必要列: {case_id_col}")
+        for raw_case_id in df[case_id_col].dropna().astype(str).unique().tolist():
+            case_ids.add(build_namespaced_case_id(raw_case_id, path, split_namespace))
+    return case_ids
+
+
 def load_case_files(
     file_paths: list,
     case_id_col: str = "case_id",
     label_col: str = "mondo_label",
     disease_index_path: str | Path = _DISEASE_INDEX_PATH,
+    split_namespace: str = "train",
 ) -> pd.DataFrame:
     """
     Load and merge case files.
 
-    Each case id is prefixed with the source filename stem so that ids from
-    different datasets do not collide after concatenation.
+    每个 case_id 都会被改写成带 split 与相对路径命名空间的形式，例如：
+    `train::LLLdataset/dataset/processed/train/DDD.csv::case_1`
+    这样不会再因为 train/test 同 stem 文件而发生命名碰撞。
     """
     dfs = []
     for path in file_paths:
@@ -78,8 +121,11 @@ def load_case_files(
             missing_text = ", ".join(missing_cols)
             raise ValueError(f"{Path(path).name} 缺少必要列: {missing_text}")
 
-        stem = Path(path).stem
-        df[case_id_col] = stem + "_" + df[case_id_col]
+        df[case_id_col] = df[case_id_col].astype(str).apply(
+            lambda raw_case_id: build_namespaced_case_id(raw_case_id, path, split_namespace)
+        )
+        df["_case_namespace"] = build_case_namespace(path, split_namespace)
+        df["_source_file"] = str(Path(path).resolve())
         dfs.append(df)
         print(f"  已加载: {Path(path).name}, 行数: {len(df)}")
 
@@ -89,6 +135,8 @@ def load_case_files(
         raise ValueError(f"合并后的病例表缺少必要列: {label_col}")
 
     disease2idx = load_disease_index_map(disease_index_path)
+    # 这里的 gold_disease_idx 仅表示“纯 disease index 空间中的标签索引”。
+    # 它不是 combined H 列号，也不是 scorer 空间中的局部索引。
     merged["gold_disease_idx"] = merged[label_col].map(disease2idx)
 
     missing_mask = merged["gold_disease_idx"].isna()

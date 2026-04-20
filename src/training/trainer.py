@@ -20,10 +20,16 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.data.build_hypergraph import build_batch_hypergraph, load_static_graph
 from src.data.dataset import CaseBatchLoader, load_case_files
 from src.models.model_pipeline import ModelPipeline
+from src.runtime_config import (
+    TRUSTED_MAINLINE,
+    build_model_pipeline_config,
+    build_training_effective_config,
+    print_effective_config,
+    resolve_loss_config,
+    save_yaml,
+)
 from src.training.hard_negative_miner import mine_hard_negatives
 from src.training.loss_builder import build_loss
-
-DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "train.yaml"
 
 
 def load_config(config_path: str | Path) -> dict[str, Any]:
@@ -292,11 +298,11 @@ def run_one_epoch(
             outputs = model(batch_graph)
             if "scores" not in outputs:
                 raise KeyError("model 输出缺少 scores。")
-            if "gold_disease_cols_local" not in outputs:
-                raise KeyError("model 输出缺少 gold_disease_cols_local。")
+            if "gold_disease_idx_in_score_pool" not in outputs:
+                raise KeyError("model 输出缺少 gold_disease_idx_in_score_pool。")
 
             scores = outputs["scores"]
-            targets = outputs["gold_disease_cols_local"]
+            targets = outputs["gold_disease_idx_in_score_pool"]
             if scores.shape[0] == 0 or scores.shape[1] == 0 or targets.numel() == 0:
                 print(f"Epoch {epoch} Step {step}/{total_steps} 无有效病例或标签，跳过。")
                 continue
@@ -414,45 +420,14 @@ def is_metric_improved(current: float, best: float | None, mode: str) -> bool:
     raise ValueError("monitor_mode 只能是 max 或 min。")
 
 
-def build_model_config(config: dict[str, Any], num_hpo: int) -> dict[str, Any]:
-    """组装 ModelPipeline 配置。"""
-    hidden_dim = int(config["model"]["hidden_dim"])
-    model_cfg = config.get("model", {})
-    readout_cfg = {"type": "hyperedge", **model_cfg.get("readout", {}), "hidden_dim": hidden_dim}
-
-    pipeline_model_cfg: dict[str, Any] = {
-        "encoder": {
-            "type": "hgnn",
-            "num_hpo": num_hpo,
-            "hidden_dim": hidden_dim,
-        },
-        "readout": readout_cfg,
-        "scorer": {"type": "cosine"},
-        "outputs": {
-            "include_metadata": True,
-            "include_global_scores": False,
-            "return_intermediate": False,
-        },
-    }
-
-    case_refiner_cfg = model_cfg.get("case_refiner", {})
-    if isinstance(case_refiner_cfg, dict):
-        pipeline_model_cfg["case_refiner"] = {
-            "type": "case_conditioned",
-            "enabled": bool(case_refiner_cfg.get("enabled", False)),
-            "hidden_dim": hidden_dim,
-            "mlp_hidden_dim": int(case_refiner_cfg.get("mlp_hidden_dim", hidden_dim)),
-            "residual": float(case_refiner_cfg.get("residual", 0.7)),
-        }
-
-    return {
-        "model": pipeline_model_cfg
-    }
-
-
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default=str(DEFAULT_CONFIG_PATH))
+    parser = argparse.ArgumentParser(
+        description=(
+            "训练 HGNN 模型。当前唯一可信主线不是隐式默认 train.yaml，"
+            "而是 run_full_train.cmd 显式串起的 staged pipeline。"
+        )
+    )
+    parser.add_argument("--config", type=str, required=True, help="显式指定训练配置路径。")
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -478,10 +453,12 @@ def main() -> None:
 
     case_files = resolve_train_files(paths_cfg)
     print(f"训练文件数: {len(case_files)}")
+    print(f"主线说明: {TRUSTED_MAINLINE['description']}")
 
     all_df = load_case_files(
         file_paths=[str(path) for path in case_files],
         disease_index_path=paths_cfg["disease_index_path"],
+        split_namespace="train",
     )
     train_df, val_df = split_train_val_by_case(
         df=all_df,
@@ -509,33 +486,37 @@ def main() -> None:
         disease_incidence_path=paths_cfg["disease_incidence_path"],
     )
 
-    model = ModelPipeline(build_model_config(config, static_graph["num_hpo"])).to(device)
+    model_pipeline_config = build_model_pipeline_config(config, static_graph["num_hpo"])
+    resolved_loss_cfg = resolve_loss_config(loss_cfg)
+    for warning_text in resolved_loss_cfg["warnings"]:
+        print(f"[WARN] {warning_text}")
+
+    effective_config = build_training_effective_config(
+        config_path=args.config,
+        raw_config=config,
+        resolved_train_files=case_files,
+        model_pipeline_config=model_pipeline_config,
+        resolved_loss_config=resolved_loss_cfg,
+    )
+    effective_config_path = save_yaml(effective_config, save_dir / "effective_config.yaml")
+    print_effective_config("Training Effective Config", effective_config)
+    print(f"训练 effective config 已保存: {effective_config_path}")
+
+    model = ModelPipeline(model_pipeline_config).to(device)
     init_checkpoint_path = load_init_checkpoint(
         model=model,
         checkpoint_path=train_cfg.get("init_checkpoint_path"),
     )
     if init_checkpoint_path is not None:
         print(f"已加载初始 checkpoint: {init_checkpoint_path}")
-    hard_loss_cfg = loss_cfg.get("hard_negative", {})
-    hard_negative_cfg = {
-        "use_hard_negative": bool(
-            hard_loss_cfg.get("use_hard_negative", loss_cfg.get("use_hard_negative", True))
-        ),
-        "k": int(hard_loss_cfg.get("k", loss_cfg.get("hard_negative_k", 10))),
-        "top_m": int(hard_loss_cfg.get("top_m", loss_cfg.get("hard_negative_top_m", 3))),
-        "start_epoch": int(
-            hard_loss_cfg.get("start_epoch", loss_cfg.get("hard_negative_start_epoch", 2))
-        ),
-        "weight": float(hard_loss_cfg.get("weight", loss_cfg.get("hard_negative_weight", 0.5))),
-        "margin": float(hard_loss_cfg.get("margin", loss_cfg.get("hard_negative_margin", 0.1))),
-    }
+    hard_negative_cfg = dict(resolved_loss_cfg["hard_negative"])
     loss_fn = build_loss(
-        loss_name=loss_cfg["loss_name"],
-        temperature=float(loss_cfg["temperature"]),
+        loss_name=resolved_loss_cfg["loss_name"],
+        temperature=float(resolved_loss_cfg["temperature"]),
         hard_weight=hard_negative_cfg["weight"],
         margin=hard_negative_cfg["margin"],
         top_m=hard_negative_cfg["top_m"],
-        poly_epsilon=float(loss_cfg.get("poly_epsilon", 2.0)),
+        poly_epsilon=float(resolved_loss_cfg["poly_epsilon"]),
     )
     optimizer = torch.optim.Adam(
         model.parameters(),

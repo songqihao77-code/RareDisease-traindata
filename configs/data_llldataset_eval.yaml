@@ -1,3 +1,6 @@
+# 当前可信主线评估配置：
+# run_full_train.cmd -> train_pretrain.yaml -> train_finetune.yaml -> data_llldataset_eval.yaml
+
 batch_size: 16
 
 test_files:
