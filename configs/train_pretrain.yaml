@@ -4,7 +4,7 @@ paths:
     - D:\RareDisease-traindata\data\processed\train_finetune_filtered\unseen_training_unique_profiles.csv
   hpo_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx
   disease_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx
-  disease_incidence_path: D:\RareDisease-traindata\LLLdataset\dataset\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz
+  disease_incidence_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\v60\v60DiseaseHy.npz
   save_dir: D:/RareDisease-traindata/outputs/stage1_pretrain
 
 data:
