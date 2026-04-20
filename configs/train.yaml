@@ -27,17 +27,6 @@ model:
     enabled: true
     mlp_hidden_dim: 128
     residual: 0.1
-  case_weighting:
-    enabled: true
-    mode: fixed_ic
-    apply_to: both
-    ic_source: h_disease_binary_df
-    eps: 1e-8
-    clip_quantile_low: 0.05
-    clip_quantile_high: 0.95
-    weight_min: 0.5
-    weight_max: 1.5
-    zero_support_policy: identity
   readout:
     type: hyperedge
     attn_hidden_dim: 128

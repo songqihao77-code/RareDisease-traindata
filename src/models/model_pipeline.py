@@ -1,4 +1,4 @@
-"""??????????"""
+"""统一模型前向流水线。"""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ SCORER_REGISTRY = {"cosine": CosineScorer}
 
 
 class ModelPipeline(nn.Module):
-    """???? encoder / readout / scorer?????????"""
+    """只负责组织 encoder / readout / scorer，不处理训练循环。"""
 
     def __init__(
         self,
@@ -35,28 +35,23 @@ class ModelPipeline(nn.Module):
         super().__init__()
         self.config = self._normalize_config(config)
         self.output_config = self._get_block("outputs")
-        self.case_weighting_config = self._normalize_case_weighting_config()
 
         self.encoder = encoder or self._build_module("encoder", ENCODER_REGISTRY, "hgnn")
         self.case_refiner = self._build_optional_case_refiner()
         self.readout = readout or self._build_module("readout", READOUT_REGISTRY, "hyperedge")
         self.scorer = scorer or self._build_module("scorer", SCORER_REGISTRY, "cosine")
 
-        # ?? H_disease ??????????????
-        # ???? torch sparse ??????? batch ?? scipy sparse ?????
+        # 静态 H_disease 在训练/评估中会被反复使用。
+        # 这里缓存其 torch sparse 形式，避免每个 batch 都从 scipy sparse 重新转换。
         self._cached_h_disease_src_id: int | None = None
         self._cached_h_disease_device: torch.device | None = None
         self._cached_h_disease_sparse: torch.Tensor | None = None
-        self._cached_case_ic_src_id: int | None = None
-        self._cached_case_ic_device: torch.device | None = None
-        self._cached_case_ic_dtype: torch.dtype | None = None
-        self._cached_case_ic_weight: torch.Tensor | None = None
 
     def _normalize_config(self, config: Mapping[str, Any] | None) -> dict[str, Any]:
         if config is None:
             return {}
         if not isinstance(config, Mapping):
-            raise TypeError(f"config ??? dict ? Mapping????? {type(config).__name__}?")
+            raise TypeError(f"config 必须是 dict 或 Mapping，当前收到 {type(config).__name__}。")
         if isinstance(config.get("model"), Mapping):
             return dict(config["model"])
         return dict(config)
@@ -66,55 +61,8 @@ class ModelPipeline(nn.Module):
         if block is None:
             return {}
         if not isinstance(block, Mapping):
-            raise TypeError(f"config.{name} ??? Mapping????? {type(block).__name__}?")
+            raise TypeError(f"config.{name} 必须是 Mapping，当前收到 {type(block).__name__}。")
         return dict(block)
-
-    def _normalize_case_weighting_config(self) -> dict[str, Any]:
-        block = self._get_block("case_weighting")
-        config = {
-            "enabled": bool(block.get("enabled", False)),
-            "mode": str(block.get("mode", "fixed_ic")),
-            "apply_to": str(block.get("apply_to", "both")),
-            "ic_source": str(block.get("ic_source", "h_disease_binary_df")),
-            "eps": float(block.get("eps", 1e-8)),
-            "clip_quantile_low": float(block.get("clip_quantile_low", 0.05)),
-            "clip_quantile_high": float(block.get("clip_quantile_high", 0.95)),
-            "weight_min": float(block.get("weight_min", 0.5)),
-            "weight_max": float(block.get("weight_max", 1.5)),
-            "zero_support_policy": str(block.get("zero_support_policy", "identity")),
-        }
-
-        if not config["enabled"]:
-            return config
-
-        if config["mode"] != "fixed_ic":
-            raise ValueError(f"case_weighting.mode ????? 'fixed_ic'??? {config['mode']!r}?")
-        if config["apply_to"] not in {"both", "readout_only", "case_refiner_only"}:
-            raise ValueError(
-                "case_weighting.apply_to ????? 'both' ? 'readout_only' ? 'case_refiner_only'?"
-                f"?? {config['apply_to']!r}?"
-            )
-        if config["ic_source"] != "h_disease_binary_df":
-            raise ValueError(
-                "case_weighting.ic_source ????? 'h_disease_binary_df'?"
-                f"?? {config['ic_source']!r}?"
-            )
-        if config["eps"] <= 0:
-            raise ValueError(f"case_weighting.eps ???? 0???? {config['eps']}?")
-        if not 0.0 <= config["clip_quantile_low"] <= 1.0:
-            raise ValueError("case_weighting.clip_quantile_low ???? [0, 1]?")
-        if not 0.0 <= config["clip_quantile_high"] <= 1.0:
-            raise ValueError("case_weighting.clip_quantile_high ???? [0, 1]?")
-        if config["clip_quantile_low"] > config["clip_quantile_high"]:
-            raise ValueError("case_weighting.clip_quantile_low ???? clip_quantile_high?")
-        if config["weight_min"] > config["weight_max"]:
-            raise ValueError("case_weighting.weight_min ???? weight_max?")
-        if config["zero_support_policy"] != "identity":
-            raise ValueError(
-                "case_weighting.zero_support_policy ????? 'identity'?"
-                f"?? {config['zero_support_policy']!r}?"
-            )
-        return config
 
     def _build_module(
         self,
@@ -125,7 +73,7 @@ class ModelPipeline(nn.Module):
         block = self._get_block(name)
         module_type = block.get("type", default_type)
         if module_type not in registry:
-            raise ValueError(f"??? {name} ?? {module_type!r}????: {list(registry)}?")
+            raise ValueError(f"未知的 {name} 类型 {module_type!r}，可选值: {list(registry)}。")
 
         params = {k: v for k, v in block.items() if k not in {"type", "params"}}
         params.update(block.get("params", {}))
@@ -145,7 +93,7 @@ class ModelPipeline(nn.Module):
         module_type = block.get("type", "case_conditioned")
         if module_type not in CASE_REFINER_REGISTRY:
             raise ValueError(
-                f"??? case_refiner ?? {module_type!r}????: {list(CASE_REFINER_REGISTRY)}?"
+                f"未知的 case_refiner 类型 {module_type!r}，可选值: {list(CASE_REFINER_REGISTRY)}。"
             )
 
         params = {
@@ -159,41 +107,41 @@ class ModelPipeline(nn.Module):
     def _shape2(self, value: Any, field_name: str) -> tuple[int, int]:
         shape = getattr(value, "shape", None)
         if shape is None or len(shape) != 2:
-            raise ValueError(f"{field_name} ???????????? {type(value).__name__}?")
+            raise ValueError(f"{field_name} 必须是二维矩阵，当前收到 {type(value).__name__}。")
         return int(shape[0]), int(shape[1])
 
     def _check_seq_len(self, values: Any, expected: int, field_name: str) -> None:
         if isinstance(values, (str, bytes)) or not hasattr(values, "__len__"):
-            raise ValueError(f"{field_name} ????????????")
+            raise ValueError(f"{field_name} 必须是可检查长度的序列。")
         if len(values) != expected:
-            raise ValueError(f"{field_name} ???? {expected}???? {len(values)}?")
+            raise ValueError(f"{field_name} 长度应为 {expected}，当前为 {len(values)}。")
 
     def _validate_batch_graph(self, batch_graph: Mapping[str, Any]) -> tuple[int, int, int]:
-        """???????????
+        """最小但必要的输入校验。
 
-        `H` ???????
-        - ??/??????????? `H = [H_case | H_disease]`
-        - ??????? `H`??????????
+        `H` 现在允许缺省：
+        - 训练/评估热路径可以不再构造 `H = [H_case | H_disease]`
+        - 若上游确实提供了 `H`，仍保留原有形状校验
         """
         if not isinstance(batch_graph, Mapping):
-            raise TypeError(f"batch_graph ??? dict ? Mapping????? {type(batch_graph).__name__}?")
+            raise TypeError(f"batch_graph 必须是 dict 或 Mapping，当前收到 {type(batch_graph).__name__}。")
 
         required = ("H_case", "H_disease")
         missing = [key for key in required if key not in batch_graph]
         if missing:
-            raise KeyError(f"batch_graph ??????: {', '.join(missing)}?")
+            raise KeyError(f"batch_graph 缺少必要字段: {', '.join(missing)}。")
 
         case_hpo, num_case = self._shape2(batch_graph["H_case"], "batch_graph['H_case']")
         disease_hpo, num_disease = self._shape2(batch_graph["H_disease"], "batch_graph['H_disease']")
         if case_hpo != disease_hpo:
-            raise ValueError("H_case ? H_disease ?????????? HPO ???")
+            raise ValueError("H_case 与 H_disease 的行数必须对应同一组 HPO 节点。")
 
         if "H" in batch_graph:
             num_hpo, total_cols = self._shape2(batch_graph["H"], "batch_graph['H']")
             if num_hpo != case_hpo:
-                raise ValueError("H?H_case?H_disease ????????")
+                raise ValueError("H、H_case、H_disease 的行数必须一致。")
             if total_cols != num_case + num_disease:
-                raise ValueError("??? H?????? H = [H_case | H_disease]?")
+                raise ValueError("若提供 H，则必须满足 H = [H_case | H_disease]。")
         else:
             num_hpo = case_hpo
 
@@ -220,7 +168,7 @@ class ModelPipeline(nn.Module):
         return next(self.parameters()).device
 
     def _prepare_h_disease(self, H_disease, device: torch.device) -> torch.Tensor:
-        """??? disease incidence ???? device ?? torch sparse??????"""
+        """把静态 disease incidence 转为当前 device 上的 torch sparse，并做缓存。"""
         if isinstance(H_disease, torch.Tensor):
             tensor = H_disease.float().to(device)
             return tensor.coalesce() if tensor.is_sparse else tensor.to_sparse().coalesce()
@@ -242,143 +190,7 @@ class ModelPipeline(nn.Module):
             self._cached_h_disease_sparse = tensor
             return tensor
 
-        raise TypeError(f"H_disease ??? scipy.sparse ? torch.Tensor???? {type(H_disease).__name__}?")
-
-    def _build_fixed_ic_weights(self, H_disease) -> np.ndarray:
-        """?? H_disease ??? disease frequency ???? IC ???"""
-        num_hpo, num_disease = self._shape2(H_disease, "H_disease")
-        if num_disease <= 0:
-            raise ValueError("H_disease ??????? 0?")
-
-        if scipy.sparse.issparse(H_disease):
-            H_coo = H_disease.tocoo()
-            positive_mask = H_coo.data > 0
-            positive_rows = H_coo.row[positive_mask]
-            df = np.bincount(positive_rows, minlength=num_hpo).astype(np.float64, copy=False)
-        elif isinstance(H_disease, torch.Tensor):
-            tensor = H_disease
-            if tensor.is_sparse:
-                tensor = tensor.coalesce()
-                rows = tensor.indices()[0][tensor.values() > 0]
-                df = (
-                    torch.bincount(rows, minlength=num_hpo)
-                    .to(dtype=torch.float64)
-                    .cpu()
-                    .numpy()
-                )
-            else:
-                df = (tensor > 0).sum(dim=1).to(dtype=torch.float64).cpu().numpy()
-        else:
-            raise TypeError(f"H_disease ??? scipy.sparse ? torch.Tensor???? {type(H_disease).__name__}?")
-
-        weights = np.ones(num_hpo, dtype=np.float32)
-        support_mask = df > 0
-        if not support_mask.any():
-            return weights
-
-        eps = float(self.case_weighting_config["eps"])
-        p = (df[support_mask] + eps) / (float(num_disease) + eps)
-        ic_raw = -np.log(p)
-
-        q_low = float(self.case_weighting_config["clip_quantile_low"])
-        q_high = float(self.case_weighting_config["clip_quantile_high"])
-        clip_low = float(np.quantile(ic_raw, q_low))
-        clip_high = float(np.quantile(ic_raw, q_high))
-        clipped = np.clip(ic_raw, clip_low, clip_high)
-
-        clipped_min = float(clipped.min())
-        clipped_max = float(clipped.max())
-        if clipped_max - clipped_min <= eps:
-            normalized = np.full_like(clipped, 0.5, dtype=np.float64)
-        else:
-            normalized = (clipped - clipped_min) / (clipped_max - clipped_min)
-
-        weight_min = float(self.case_weighting_config["weight_min"])
-        weight_max = float(self.case_weighting_config["weight_max"])
-        weights[support_mask] = (
-            weight_min + normalized * (weight_max - weight_min)
-        ).astype(np.float32, copy=False)
-
-        if self.case_weighting_config["zero_support_policy"] == "identity":
-            weights[~support_mask] = 1.0
-        return weights
-
-    def _get_case_ic_weight(
-        self,
-        H_disease,
-        device: torch.device,
-        dtype: torch.dtype,
-    ) -> torch.Tensor | None:
-        if not self.case_weighting_config["enabled"]:
-            return None
-
-        src_id = id(H_disease)
-        if (
-            self._cached_case_ic_weight is not None
-            and self._cached_case_ic_src_id == src_id
-            and self._cached_case_ic_device == device
-            and self._cached_case_ic_dtype == dtype
-        ):
-            return self._cached_case_ic_weight
-
-        weights_np = self._build_fixed_ic_weights(H_disease)
-        weights = torch.as_tensor(weights_np, dtype=dtype, device=device)
-        self._cached_case_ic_src_id = src_id
-        self._cached_case_ic_device = device
-        self._cached_case_ic_dtype = dtype
-        self._cached_case_ic_weight = weights
-        return weights
-
-    def _build_weighted_h_case(
-        self,
-        H_case,
-        ic_weight: torch.Tensor | None,
-        device: torch.device,
-    ):
-        """????????? H_case.active edge ? values?"""
-        if ic_weight is None:
-            return H_case
-
-        if scipy.sparse.issparse(H_case):
-            H_coo = H_case.tocoo()
-            idx = torch.tensor(np.vstack([H_coo.row, H_coo.col]), dtype=torch.long, device=device)
-            val = torch.tensor(H_coo.data, dtype=ic_weight.dtype, device=device)
-            weighted_val = val * ic_weight.index_select(0, idx[0])
-            return torch.sparse_coo_tensor(idx, weighted_val, H_coo.shape, device=device).coalesce()
-
-        if isinstance(H_case, torch.Tensor):
-            tensor = H_case.to(device=device)
-            if tensor.is_sparse:
-                tensor = tensor.coalesce()
-                indices = tensor.indices()
-                values = tensor.values().to(dtype=ic_weight.dtype)
-                weighted_val = values * ic_weight.index_select(0, indices[0]).to(dtype=values.dtype)
-                return torch.sparse_coo_tensor(
-                    indices,
-                    weighted_val,
-                    tensor.shape,
-                    device=device,
-                ).coalesce()
-
-            tensor = tensor.to(dtype=ic_weight.dtype)
-            scale = ic_weight.unsqueeze(1)
-            return tensor * scale
-
-        raise TypeError(f"H_case ??? scipy.sparse ? torch.Tensor???? {type(H_case).__name__}?")
-
-    def _resolve_case_inputs(self, H_case, weighted_h_case) -> tuple[Any, Any]:
-        """????? case_refiner ? readout ?????? H_case?"""
-        if weighted_h_case is H_case:
-            return H_case, H_case
-
-        apply_to = self.case_weighting_config.get("apply_to", "both")
-        if apply_to == "both":
-            return weighted_h_case, weighted_h_case
-        if apply_to == "readout_only":
-            return H_case, weighted_h_case
-        if apply_to == "case_refiner_only":
-            return weighted_h_case, H_case
-        raise ValueError(f"???? case_weighting.apply_to: {apply_to!r}")
+        raise TypeError(f"H_disease 只支持 scipy.sparse 或 torch.Tensor，当前为 {type(H_disease).__name__}。")
 
     def _resolve_disease_cols_global(
         self,
@@ -398,7 +210,7 @@ class ModelPipeline(nn.Module):
         num_case: int,
         num_disease: int,
     ) -> torch.Tensor:
-        # ???????? H????????????
+        # 如果上游没有构造 H，就退回到最小必要列数。
         if "H" in batch_graph:
             _, total_cols = self._shape2(batch_graph["H"], "batch_graph['H']")
         else:
@@ -406,7 +218,7 @@ class ModelPipeline(nn.Module):
 
         disease_cols_global = self._resolve_disease_cols_global(batch_graph, num_case, num_disease)
         if len(disease_cols_global) != num_disease:
-            raise ValueError("disease_cols_global ???????????")
+            raise ValueError("disease_cols_global 长度必须与疾病数一致。")
 
         padding_value = self.output_config.get("case_padding_value")
         if padding_value is None:
@@ -430,7 +242,7 @@ class ModelPipeline(nn.Module):
         try:
             gold_local = [global_to_local[col] for col in gold_global]
         except KeyError as exc:
-            raise ValueError("gold_disease_cols_global ???????????????") from exc
+            raise ValueError("gold_disease_cols_global 中存在不属于疾病列空间的索引。") from exc
 
         return (
             torch.as_tensor(gold_global, dtype=torch.long, device=device),
@@ -447,8 +259,8 @@ class ModelPipeline(nn.Module):
         if isinstance(refined_case_node_repr, RefinedCaseNodeState):
             if refined_case_node_repr.shape != (num_hpo, num_case, hidden_dim):
                 raise ValueError(
-                    "case_refiner ??? RefinedCaseNodeState ??????"
-                    f"?? {refined_case_node_repr.shape}??? {(num_hpo, num_case, hidden_dim)}?"
+                    "case_refiner 返回的 RefinedCaseNodeState 形状不正确，"
+                    f"得到 {refined_case_node_repr.shape}，期望 {(num_hpo, num_case, hidden_dim)}。"
                 )
             return
 
@@ -457,19 +269,18 @@ class ModelPipeline(nn.Module):
             or refined_case_node_repr.ndim != 3
             or refined_case_node_repr.shape != (num_hpo, num_case, hidden_dim)
         ):
-            raise ValueError("case_refiner ??????? [num_hpo, num_case, hidden_dim] ????")
+            raise ValueError("case_refiner 必须返回形状为 [num_hpo, num_case, hidden_dim] 的结果。")
 
     def precompute_disease_side(self, H_disease) -> dict[str, torch.Tensor]:
-        """?????????? disease side?
+        """在评估阶段预计算静态 disease side。
 
-        ??????????
-        - eval pass ???????
-        - H_disease ??
-        ?? `encoder(H_disease)` ? `build_disease_repr(H_disease^T @ Z)` ???????
+        这是严格等价的缓存：
+        - eval pass 内模型参数固定
+        - H_disease 固定
+        因此 `encoder(H_disease)` 与 `build_disease_repr(H_disease^T @ Z)` 只需算一次。
         """
         device = self._get_model_device()
         prepared_h_disease = self._prepare_h_disease(H_disease, device)
-        self._get_case_ic_weight(H_disease, device=device, dtype=prepared_h_disease.dtype)
         node_repr = self.encoder(prepared_h_disease)
         disease_repr = self.readout.build_disease_repr(node_repr, prepared_h_disease)
         return {
@@ -499,26 +310,11 @@ class ModelPipeline(nn.Module):
         else:
             node_repr = node_repr_override
         if not isinstance(node_repr, torch.Tensor) or node_repr.ndim != 2 or node_repr.shape[0] != num_hpo:
-            raise ValueError("encoder ??????? [num_hpo, hidden_dim] ????")
-
-        weighted_h_case = self._build_weighted_h_case(
-            batch_graph["H_case"],
-            ic_weight=self._get_case_ic_weight(
-                batch_graph["H_disease"],
-                device=device,
-                dtype=node_repr.dtype,
-            ),
-            device=device,
-        )
-
-        case_refiner_h_case, readout_h_case = self._resolve_case_inputs(
-            batch_graph["H_case"],
-            weighted_h_case,
-        )
+            raise ValueError("encoder 必须返回形状为 [num_hpo, hidden_dim] 的张量。")
 
         refined_case_node_repr: torch.Tensor | RefinedCaseNodeState | None = None
         if self.case_refiner is not None:
-            refined_case_node_repr = self.case_refiner(node_repr, case_refiner_h_case)
+            refined_case_node_repr = self.case_refiner(node_repr, batch_graph["H_case"])
             self._validate_refined_case_node_repr(
                 refined_case_node_repr=refined_case_node_repr,
                 num_hpo=num_hpo,
@@ -528,20 +324,20 @@ class ModelPipeline(nn.Module):
 
         readout_out = self.readout(
             node_repr,
-            readout_h_case,
+            batch_graph["H_case"],
             prepared_h_disease if prepared_h_disease is not None else batch_graph["H_disease"],
             refined_case_node_repr=refined_case_node_repr,
             disease_repr_override=disease_repr_override,
         )
         if not isinstance(readout_out, Mapping) or "case_repr" not in readout_out or "disease_repr" not in readout_out:
-            raise ValueError("readout ?????? case_repr ? disease_repr ? dict?")
+            raise ValueError("readout 必须返回包含 case_repr 和 disease_repr 的 dict。")
 
         case_repr = readout_out["case_repr"]
         disease_repr = readout_out["disease_repr"]
         if case_repr.ndim != 2 or case_repr.shape[0] != num_case:
-            raise ValueError("case_repr ????? [num_case, hidden_dim]?")
+            raise ValueError("case_repr 的形状应为 [num_case, hidden_dim]。")
         if disease_repr.ndim != 2 or disease_repr.shape[0] != num_disease:
-            raise ValueError("disease_repr ????? [num_disease, hidden_dim]?")
+            raise ValueError("disease_repr 的形状应为 [num_disease, hidden_dim]。")
 
         gold_global = None
         gold_local = None
@@ -555,10 +351,10 @@ class ModelPipeline(nn.Module):
 
         scorer_out = self.scorer(case_repr, disease_repr)
         if not isinstance(scorer_out, Mapping) or "scores" not in scorer_out:
-            raise ValueError("scorer ?????? scores ? dict?")
+            raise ValueError("scorer 必须返回包含 scores 的 dict。")
         scores = scorer_out["scores"]
         if not isinstance(scores, torch.Tensor) or scores.shape != (num_case, num_disease):
-            raise ValueError("scores ????? [num_case, num_disease]?")
+            raise ValueError("scores 的形状应为 [num_case, num_disease]。")
 
         outputs: dict[str, Any] = {"scores": scores}
 
