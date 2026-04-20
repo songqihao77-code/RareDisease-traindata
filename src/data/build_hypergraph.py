@@ -20,7 +20,10 @@ from scipy.sparse import csr_matrix, hstack, load_npz
 
 _HPO_INDEX_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx"
 _DISEASE_INDEX_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx"
-_DISEASE_INC_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\v60\v60DiseaseHy.npz"
+# Default to the current safe disease hyperedge base.
+# v60 mixed dataset-case statistics into disease hyperedges and must not be used
+# as the default train/eval incidence source.
+_DISEASE_INC_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz"
 
 
 def load_index_file(path: str, id_col: str, idx_col: str) -> dict:
