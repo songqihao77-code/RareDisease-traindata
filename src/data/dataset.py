@@ -202,6 +202,7 @@ class CaseBatchLoader:
         case_id_col: str = "case_id",
         sampler_mode: str = "natural",
         source_balanced_target_cases: int | None = None,
+        source_quota_weights: dict[str, float] | None = None,
         config_path: Path = _CONFIG_PATH,
     ):
         if batch_size is None:
@@ -226,6 +227,7 @@ class CaseBatchLoader:
         self._active_case_ids: list[str] = list(self.base_case_ids)
         self._case_source_map = self._build_case_source_map()
         self._source_case_ids = self._build_source_case_ids()
+        self.source_quota_weights = self._resolve_source_quota_weights(source_quota_weights)
         if self.sampler_mode == "source_balanced":
             self._active_case_ids = self._build_source_balanced_case_ids(
                 epoch=0,
@@ -281,6 +283,33 @@ class CaseBatchLoader:
             return 0
         return max(1, int(np.ceil(len(self.base_case_ids) / len(self._source_case_ids))))
 
+    def _resolve_source_quota_weights(
+        self,
+        source_quota_weights: dict[str, float] | None,
+    ) -> dict[str, float]:
+        """在 B 组均衡采样基础上，解析按 source 单独配额的权重配置。"""
+        if not source_quota_weights:
+            return {}
+
+        normalized_weights: dict[str, float] = {}
+        for raw_source_name, raw_weight in source_quota_weights.items():
+            source_name = normalize_source_name(str(raw_source_name))
+            weight = float(raw_weight)
+            if weight < 0:
+                raise ValueError("source_quota_weights 中的权重不能小于 0。")
+            normalized_weights[source_name] = weight
+        return normalized_weights
+
+    def _resolve_effective_target_cases_per_source(self) -> tuple[int, dict[str, int]]:
+        """在 base target 基础上乘以 quota 权重，得到每个 source 的有效 target。"""
+        base_target_cases = self._resolve_source_balanced_target_cases()
+        effective_target_cases: dict[str, int] = {}
+        for source_name in sorted(self._source_case_ids):
+            quota_weight = float(self.source_quota_weights.get(source_name, 1.0))
+            target_cases = int(round(base_target_cases * quota_weight))
+            effective_target_cases[source_name] = max(0, target_cases)
+        return base_target_cases, effective_target_cases
+
     def _sample_source_case_ids(
         self,
         case_ids: list[str],
@@ -316,11 +345,11 @@ class CaseBatchLoader:
         if shuffle and len(source_names) > 1:
             rng.shuffle(source_names)
 
-        target_count = self._resolve_source_balanced_target_cases()
+        _, effective_target_cases = self._resolve_effective_target_cases_per_source()
         sampled_by_source = {
             source_name: self._sample_source_case_ids(
                 self._source_case_ids[source_name],
-                target_count=target_count,
+                target_count=effective_target_cases[source_name],
                 rng=rng,
                 shuffle=shuffle,
             )
@@ -328,9 +357,13 @@ class CaseBatchLoader:
         }
 
         balanced_case_ids: list[str] = []
-        for offset in range(target_count):
+        max_target_count = max(effective_target_cases.values(), default=0)
+        for offset in range(max_target_count):
             for source_name in source_names:
-                balanced_case_ids.append(sampled_by_source[source_name][offset])
+                source_case_ids = sampled_by_source[source_name]
+                if offset >= len(source_case_ids):
+                    continue
+                balanced_case_ids.append(source_case_ids[offset])
         return balanced_case_ids
 
     def get_active_source_counts(self) -> dict[str, int]:
@@ -343,14 +376,23 @@ class CaseBatchLoader:
 
     def get_sampling_summary(self) -> dict[str, Any]:
         """返回当前采样模式和 source 分布摘要，便于训练日志审查。"""
+        base_target_cases_per_source: int | None = None
+        effective_target_cases_per_source: dict[str, int] = {}
+        if self.sampler_mode == "source_balanced":
+            (
+                base_target_cases_per_source,
+                effective_target_cases_per_source,
+            ) = self._resolve_effective_target_cases_per_source()
         return {
             "sampler_mode": self.sampler_mode,
             "num_cases": int(len(self._active_case_ids)),
-            "source_balanced_target_cases": (
-                None
-                if self.sampler_mode != "source_balanced"
-                else int(self._resolve_source_balanced_target_cases())
-            ),
+            "source_balanced_target_cases": base_target_cases_per_source,
+            "base_target_cases_per_source": base_target_cases_per_source,
+            "effective_target_cases_per_source": effective_target_cases_per_source,
+            "source_quota_weights": {
+                source_name: float(weight)
+                for source_name, weight in sorted(self.source_quota_weights.items())
+            },
             "source_counts": self.get_active_source_counts(),
         }
 

@@ -291,6 +291,40 @@ def format_source_counts(source_counts: dict[str, int]) -> str:
     )
 
 
+def format_source_weights(source_weights: dict[str, float]) -> str:
+    """把 source quota 权重摘要格式化成适合日志打印的文本。"""
+    if not source_weights:
+        return "<default>"
+    return " ".join(
+        f"{source_name}={float(source_weights[source_name]):.3f}"
+        for source_name in sorted(source_weights)
+    )
+
+
+def resolve_train_sampler_quota_weights(train_cfg: dict[str, Any]) -> dict[str, float]:
+    """解析训练阶段 source quota 权重，未配置时保持 B 组默认行为。"""
+    sampler_cfg = train_cfg.get("sampler", {})
+    if sampler_cfg is None:
+        return {}
+    if not isinstance(sampler_cfg, dict):
+        raise TypeError("train.sampler 配置必须是 dict。")
+
+    raw_source_quota_weights = sampler_cfg.get("source_quota_weights", {})
+    if raw_source_quota_weights is None:
+        return {}
+    if not isinstance(raw_source_quota_weights, dict):
+        raise TypeError("train.sampler.source_quota_weights 必须是 dict。")
+
+    source_quota_weights: dict[str, float] = {}
+    for raw_source_name, raw_weight in raw_source_quota_weights.items():
+        source_name = normalize_source_name(str(raw_source_name))
+        weight = float(raw_weight)
+        if weight < 0:
+            raise ValueError("train.sampler.source_quota_weights 中的权重不能小于 0。")
+        source_quota_weights[source_name] = weight
+    return source_quota_weights
+
+
 def _resolve_batch_source_names(
     batch_df: pd.DataFrame,
     case_ids: list[str],
@@ -442,7 +476,9 @@ def run_one_epoch(
             f"Epoch {epoch} Train Sampler "
             f"mode={sampling_summary['sampler_mode']} "
             f"num_cases={sampling_summary['num_cases']} "
-            f"target_cases_per_source={sampling_summary['source_balanced_target_cases']} "
+            f"base_target_cases_per_source={sampling_summary['base_target_cases_per_source']} "
+            f"effective_target_cases_per_source={format_source_counts(sampling_summary['effective_target_cases_per_source'])} "
+            f"source_quota_weights={format_source_weights(sampling_summary['source_quota_weights'])} "
             f"source_counts={format_source_counts(sampling_summary['source_counts'])}"
         )
     total_steps = len(loader)
@@ -685,6 +721,7 @@ def main() -> None:
     train_cfg = config["train"]
     validation_cfg = resolve_validation_config(config)
     train_sampler_cfg = resolve_train_sampler_config(train_cfg)
+    train_sampler_cfg["source_quota_weights"] = resolve_train_sampler_quota_weights(train_cfg)
 
     random_seed = int(data_cfg["random_seed"])
     random.seed(random_seed)
@@ -724,11 +761,13 @@ def main() -> None:
         batch_size=int(data_cfg["batch_size"]),
         sampler_mode=train_sampler_cfg["sampler_mode"],
         source_balanced_target_cases=train_sampler_cfg["source_balanced_target_cases"],
+        source_quota_weights=train_sampler_cfg["source_quota_weights"],
     )
     print(
         "Train sampler config: "
         f"mode={train_sampler_cfg['sampler_mode']}, "
-        f"source_balanced_target_cases={train_sampler_cfg['source_balanced_target_cases']}"
+        f"source_balanced_target_cases={train_sampler_cfg['source_balanced_target_cases']}, "
+        f"source_quota_weights={format_source_weights(train_sampler_cfg['source_quota_weights'])}"
     )
     
     if val_df.empty:
