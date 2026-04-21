@@ -1,0 +1,3169 @@
+{
+  "global": {
+    "dataset_count": 8,
+    "exact_match_dataset_count": 0,
+    "processed_cases": 12735,
+    "supported_processed_cases": 12734,
+    "raw_multi_label_cases": 1594,
+    "processed_multi_label_cases": 1304,
+    "processed_hpo_collision_signatures": 1379
+  },
+  "datasets": [
+    {
+      "name": "ddd_test",
+      "raw_cases": 2283,
+      "processed_cases": 2283,
+      "expected_retained_cases": 2283,
+      "signature_exact_match": false,
+      "supported_processed_cases": 2283,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 2142,
+      "subset_only_processed_cases": 141,
+      "raw_multi_label_cases": 187,
+      "processed_multi_label_cases": 46,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 0,
+      "route_counts": {
+        "input_mondo": 634,
+        "omim_exact": 801,
+        "orpha_exact": 1471,
+        "orpha_via_omim": 11
+      },
+      "raw_hpo_collision_signatures": 246,
+      "processed_hpo_collision_signatures": 118,
+      "missing_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0005508",
+            "MONDO:0007585"
+          ],
+          "hpo_count": 41,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000076",
+            "HP:0000252",
+            "HP:0000365",
+            "HP:0000400",
+            "HP:0000414",
+            "HP:0000431",
+            "HP:0000490"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009136",
+            "MONDO:0013519"
+          ],
+          "hpo_count": 15,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000029",
+            "HP:0001249",
+            "HP:0001394",
+            "HP:0001510",
+            "HP:0001873",
+            "HP:0001876",
+            "HP:0002164"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0030843",
+            "MONDO:0031219"
+          ],
+          "hpo_count": 26,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000707",
+            "HP:0000957",
+            "HP:0000997",
+            "HP:0001438",
+            "HP:0001574",
+            "HP:0001871",
+            "HP:0001909"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0001734",
+            "MONDO:0008612"
+          ],
+          "hpo_count": 36,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000107",
+            "HP:0000169",
+            "HP:0000717",
+            "HP:0000821",
+            "HP:0000826",
+            "HP:0000957",
+            "HP:0001249"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010584",
+            "MONDO:0018045"
+          ],
+          "hpo_count": 53,
+          "hpo_ids_preview": [
+            "HP:0000028",
+            "HP:0000047",
+            "HP:0000071",
+            "HP:0000085",
+            "HP:0000252",
+            "HP:0000486",
+            "HP:0000498",
+            "HP:0000509"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008278",
+            "MONDO:0019190"
+          ],
+          "hpo_count": 37,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000152",
+            "HP:0000421",
+            "HP:0000707",
+            "HP:0000924",
+            "HP:0001009",
+            "HP:0001217",
+            "HP:0001297"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007187",
+            "MONDO:0958174"
+          ],
+          "hpo_count": 60,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000119",
+            "HP:0000152",
+            "HP:0000175",
+            "HP:0000204",
+            "HP:0000238",
+            "HP:0000242",
+            "HP:0000256"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008679",
+            "MONDO:0019004"
+          ],
+          "hpo_count": 2,
+          "hpo_ids_preview": [
+            "HP:0000150",
+            "HP:0002667"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008975",
+            "MONDO:0044206"
+          ],
+          "hpo_count": 27,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000175",
+            "HP:0000201",
+            "HP:0000272",
+            "HP:0000347",
+            "HP:0000410",
+            "HP:0000414",
+            "HP:0000463"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0016647",
+            "MONDO:0031047"
+          ],
+          "hpo_count": 13,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000365",
+            "HP:0000407",
+            "HP:0000483",
+            "HP:0000494",
+            "HP:0000545",
+            "HP:0001249",
+            "HP:0001763"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007585"
+          ],
+          "hpo_count": 41,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000076",
+            "HP:0000252",
+            "HP:0000365",
+            "HP:0000400",
+            "HP:0000414",
+            "HP:0000431",
+            "HP:0000490"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009136"
+          ],
+          "hpo_count": 15,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000029",
+            "HP:0001249",
+            "HP:0001394",
+            "HP:0001510",
+            "HP:0001873",
+            "HP:0001876",
+            "HP:0002164"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0030843"
+          ],
+          "hpo_count": 26,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000707",
+            "HP:0000957",
+            "HP:0000997",
+            "HP:0001438",
+            "HP:0001574",
+            "HP:0001871",
+            "HP:0001909"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008612"
+          ],
+          "hpo_count": 36,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000107",
+            "HP:0000169",
+            "HP:0000717",
+            "HP:0000821",
+            "HP:0000826",
+            "HP:0000957",
+            "HP:0001249"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010584"
+          ],
+          "hpo_count": 53,
+          "hpo_ids_preview": [
+            "HP:0000028",
+            "HP:0000047",
+            "HP:0000071",
+            "HP:0000085",
+            "HP:0000252",
+            "HP:0000486",
+            "HP:0000498",
+            "HP:0000509"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008278"
+          ],
+          "hpo_count": 37,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000152",
+            "HP:0000421",
+            "HP:0000707",
+            "HP:0000924",
+            "HP:0001009",
+            "HP:0001217",
+            "HP:0001297"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0958174"
+          ],
+          "hpo_count": 60,
+          "hpo_ids_preview": [
+            "HP:0000006",
+            "HP:0000119",
+            "HP:0000152",
+            "HP:0000175",
+            "HP:0000204",
+            "HP:0000238",
+            "HP:0000242",
+            "HP:0000256"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008679"
+          ],
+          "hpo_count": 2,
+          "hpo_ids_preview": [
+            "HP:0000150",
+            "HP:0002667"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0044206"
+          ],
+          "hpo_count": 27,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000175",
+            "HP:0000201",
+            "HP:0000272",
+            "HP:0000347",
+            "HP:0000410",
+            "HP:0000414",
+            "HP:0000463"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0031047"
+          ],
+          "hpo_count": 13,
+          "hpo_ids_preview": [
+            "HP:0000007",
+            "HP:0000365",
+            "HP:0000407",
+            "HP:0000483",
+            "HP:0000494",
+            "HP:0000545",
+            "HP:0001249",
+            "HP:0001763"
+          ]
+        }
+      ],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": [
+        {
+          "hpo_ids": [
+            "HP:0000510",
+            "HP:0000556"
+          ],
+          "n_cases": 17,
+          "n_unique_mondo_ids": 18,
+          "n_unique_mondo_sets": 17,
+          "mondo_sets": [
+            [
+              "MONDO:0004580"
+            ],
+            [
+              "MONDO:0009319",
+              "MONDO:0016305"
+            ],
+            [
+              "MONDO:0010806"
+            ],
+            [
+              "MONDO:0011075"
+            ],
+            [
+              "MONDO:0011974"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0001249"
+          ],
+          "n_cases": 8,
+          "n_unique_mondo_ids": 8,
+          "n_unique_mondo_sets": 8,
+          "mondo_sets": [
+            [
+              "MONDO:0007634"
+            ],
+            [
+              "MONDO:0010451"
+            ],
+            [
+              "MONDO:0010501"
+            ],
+            [
+              "MONDO:0010508"
+            ],
+            [
+              "MONDO:0014764"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0001249",
+            "HP:0001250"
+          ],
+          "n_cases": 8,
+          "n_unique_mondo_ids": 8,
+          "n_unique_mondo_sets": 8,
+          "mondo_sets": [
+            [
+              "MONDO:0010250"
+            ],
+            [
+              "MONDO:0014995"
+            ],
+            [
+              "MONDO:0020631"
+            ],
+            [
+              "MONDO:0030909"
+            ],
+            [
+              "MONDO:0030921"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000007",
+            "HP:0000407",
+            "HP:0000486",
+            "HP:0000508",
+            "HP:0000543",
+            "HP:0000618",
+            "HP:0000639",
+            "HP:0001250",
+            "HP:0001251",
+            "HP:0001252",
+            "HP:0001254",
+            "HP:0001257",
+            "HP:0001259",
+            "HP:0001263",
+            "HP:0001265",
+            "HP:0001272",
+            "HP:0001324",
+            "HP:0001347",
+            "HP:0001399",
+            "HP:0001423",
+            "HP:0001427",
+            "HP:0001508",
+            "HP:0001510",
+            "HP:0001639",
+            "HP:0001943",
+            "HP:0002013",
+            "HP:0002093",
+            "HP:0002181",
+            "HP:0002376",
+            "HP:0002415",
+            "HP:0002490",
+            "HP:0003128",
+            "HP:0003202",
+            "HP:0003487",
+            "HP:0003546",
+            "HP:0003812",
+            "HP:0004481",
+            "HP:0006965",
+            "HP:0008316",
+            "HP:0008872"
+          ],
+          "n_cases": 7,
+          "n_unique_mondo_ids": 7,
+          "n_unique_mondo_sets": 7,
+          "mondo_sets": [
+            [
+              "MONDO:0014190"
+            ],
+            [
+              "MONDO:0026720"
+            ],
+            [
+              "MONDO:0032608"
+            ],
+            [
+              "MONDO:0032609"
+            ],
+            [
+              "MONDO:0032610"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000007"
+          ],
+          "n_cases": 8,
+          "n_unique_mondo_ids": 6,
+          "n_unique_mondo_sets": 6,
+          "mondo_sets": [
+            [
+              "MONDO:0005129"
+            ],
+            [
+              "MONDO:0007289"
+            ],
+            [
+              "MONDO:0013386"
+            ],
+            [
+              "MONDO:0013450"
+            ],
+            [
+              "MONDO:0013489"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0004808",
+            "HP:0012182",
+            "HP:0030438",
+            "HP:0030442"
+          ],
+          "n_cases": 7,
+          "n_unique_mondo_ids": 6,
+          "n_unique_mondo_sets": 6,
+          "mondo_sets": [
+            [
+              "MONDO:0013521"
+            ],
+            [
+              "MONDO:0013522"
+            ],
+            [
+              "MONDO:0014076"
+            ],
+            [
+              "MONDO:0014600"
+            ],
+            [
+              "MONDO:0015780"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000007",
+            "HP:0000407"
+          ],
+          "n_cases": 6,
+          "n_unique_mondo_ids": 6,
+          "n_unique_mondo_sets": 6,
+          "mondo_sets": [
+            [
+              "MONDO:0011351"
+            ],
+            [
+              "MONDO:0011762"
+            ],
+            [
+              "MONDO:0012060"
+            ],
+            [
+              "MONDO:0012333"
+            ],
+            [
+              "MONDO:0012445"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000007",
+            "HP:0000407",
+            "HP:0000580",
+            "HP:0000602",
+            "HP:0000639",
+            "HP:0000648",
+            "HP:0000712",
+            "HP:0000998",
+            "HP:0001249",
+            "HP:0001250",
+            "HP:0001251",
+            "HP:0001252",
+            "HP:0001257",
+            "HP:0001260",
+            "HP:0001263",
+            "HP:0001332",
+            "HP:0001347",
+            "HP:0001404",
+            "HP:0001425",
+            "HP:0001427",
+            "HP:0001508",
+            "HP:0002093",
+            "HP:0002151",
+            "HP:0002171",
+            "HP:0002490",
+            "HP:0002793",
+            "HP:0003128",
+            "HP:0003593",
+            "HP:0003676",
+            "HP:0003812",
+            "HP:0007305"
+          ],
+          "n_cases": 7,
+          "n_unique_mondo_ids": 5,
+          "n_unique_mondo_sets": 5,
+          "mondo_sets": [
+            [
+              "MONDO:0009723"
+            ],
+            [
+              "MONDO:0032606"
+            ],
+            [
+              "MONDO:0032626"
+            ],
+            [
+              "MONDO:0033638"
+            ],
+            [
+              "MONDO:0100294"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000007",
+            "HP:0000028",
+            "HP:0000047",
+            "HP:0000057",
+            "HP:0000126",
+            "HP:0000158",
+            "HP:0000218",
+            "HP:0000244",
+            "HP:0000256",
+            "HP:0000272",
+            "HP:0000286",
+            "HP:0000311",
+            "HP:0000316",
+            "HP:0000347",
+            "HP:0000348",
+            "HP:0000358",
+            "HP:0000407",
+            "HP:0000463",
+            "HP:0000501",
+            "HP:0000512",
+            "HP:0000518",
+            "HP:0000543",
+            "HP:0000580",
+            "HP:0000582",
+            "HP:0000639",
+            "HP:0000835",
+            "HP:0000954",
+            "HP:0001088",
+            "HP:0001193",
+            "HP:0001250",
+            "HP:0001252",
+            "HP:0001265",
+            "HP:0001284",
+            "HP:0001401",
+            "HP:0001425",
+            "HP:0001508",
+            "HP:0001591",
+            "HP:0001623",
+            "HP:0001629",
+            "HP:0001643",
+            "HP:0001762",
+            "HP:0001838",
+            "HP:0001840",
+            "HP:0002089",
+            "HP:0002126",
+            "HP:0002240",
+            "HP:0002282",
+            "HP:0002416",
+            "HP:0002750",
+            "HP:0002967",
+            "HP:0003355",
+            "HP:0003455",
+            "HP:0004492",
+            "HP:0004734",
+            "HP:0005469",
+            "HP:0005989",
+            "HP:0006579",
+            "HP:0006887",
+            "HP:0006894",
+            "HP:0007370",
+            "HP:0007759",
+            "HP:0010655",
+            "HP:0010808",
+            "HP:0010864",
+            "HP:0011039"
+          ],
+          "n_cases": 5,
+          "n_unique_mondo_ids": 5,
+          "n_unique_mondo_sets": 5,
+          "mondo_sets": [
+            [
+              "MONDO:0013927"
+            ],
+            [
+              "MONDO:0013930"
+            ],
+            [
+              "MONDO:0013942"
+            ],
+            [
+              "MONDO:0013948"
+            ],
+            [
+              "MONDO:0013952"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000007",
+            "HP:0000093",
+            "HP:0000124",
+            "HP:0000407",
+            "HP:0000508",
+            "HP:0000580",
+            "HP:0000648",
+            "HP:0001249",
+            "HP:0001250",
+            "HP:0001251",
+            "HP:0001252",
+            "HP:0001270",
+            "HP:0001410",
+            "HP:0001427",
+            "HP:0001508",
+            "HP:0001639",
+            "HP:0001903",
+            "HP:0001994",
+            "HP:0002151",
+            "HP:0002240",
+            "HP:0002490",
+            "HP:0002747",
+            "HP:0002875",
+            "HP:0002880",
+            "HP:0003076",
+            "HP:0003109",
+            "HP:0003128",
+            "HP:0003355",
+            "HP:0003546",
+            "HP:0003688",
+            "HP:0006565",
+            "HP:0012240"
+          ],
+          "n_cases": 5,
+          "n_unique_mondo_ids": 5,
+          "n_unique_mondo_sets": 5,
+          "mondo_sets": [
+            [
+              "MONDO:0014667"
+            ],
+            [
+              "MONDO:0033636"
+            ],
+            [
+              "MONDO:0033637"
+            ],
+            [
+              "MONDO:0033639"
+            ],
+            [
+              "MONDO:0033646"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mimic_test",
+      "raw_cases": 1875,
+      "processed_cases": 1873,
+      "expected_retained_cases": 1874,
+      "signature_exact_match": false,
+      "supported_processed_cases": 1873,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 1873,
+      "subset_only_processed_cases": 0,
+      "raw_multi_label_cases": 227,
+      "processed_multi_label_cases": 227,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 1,
+      "route_counts": {
+        "manual_orpha_to_mondo": 6,
+        "orpha_exact": 2109,
+        "orpha_name_unique": 5
+      },
+      "raw_hpo_collision_signatures": 227,
+      "processed_hpo_collision_signatures": 227,
+      "missing_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0043224"
+          ],
+          "hpo_count": 3,
+          "hpo_ids_preview": [
+            "HP:0000020",
+            "HP:0001269",
+            "HP:0033675"
+          ]
+        }
+      ],
+      "extra_signature_examples": [],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": [
+        {
+          "hpo_ids": [
+            "HP:0000010",
+            "HP:0000822",
+            "HP:0001653",
+            "HP:0001658",
+            "HP:0001677",
+            "HP:0001977",
+            "HP:0003737",
+            "HP:0005978",
+            "HP:0009125",
+            "HP:0030438"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0007108",
+              "MONDO:0009637",
+              "MONDO:0019194"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000020",
+            "HP:0000103",
+            "HP:0000505",
+            "HP:0001288",
+            "HP:0001289",
+            "HP:0001959",
+            "HP:0002094",
+            "HP:0002321",
+            "HP:0012378",
+            "HP:0033675"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0015128",
+              "MONDO:0016383",
+              "MONDO:0018907"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000112",
+            "HP:0000155",
+            "HP:0000518",
+            "HP:0000633",
+            "HP:0001438",
+            "HP:0002014",
+            "HP:0002027",
+            "HP:0002204",
+            "HP:0002239",
+            "HP:0002592",
+            "HP:0002625",
+            "HP:0003418",
+            "HP:0005202",
+            "HP:0005263",
+            "HP:0005625",
+            "HP:4000047"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0011996",
+              "MONDO:0020547",
+              "MONDO:0034150"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000164",
+            "HP:0000968",
+            "HP:0001595",
+            "HP:0001597",
+            "HP:0001891",
+            "HP:0002650",
+            "HP:0033031"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0003778",
+              "MONDO:0015134",
+              "MONDO:0019287"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000505",
+            "HP:0000822",
+            "HP:0002094",
+            "HP:0100749"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0010030",
+              "MONDO:0016358",
+              "MONDO:0019558"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000739",
+            "HP:0000870",
+            "HP:0000939",
+            "HP:0001370",
+            "HP:0001647",
+            "HP:0001650",
+            "HP:0001701",
+            "HP:0002020",
+            "HP:0002204",
+            "HP:0002578",
+            "HP:0003077",
+            "HP:0003326",
+            "HP:0004942",
+            "HP:0012532",
+            "HP:0033608",
+            "HP:0033631",
+            "HP:0033771",
+            "HP:0034705",
+            "HP:0100785"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0007194",
+              "MONDO:0017735",
+              "MONDO:0019821"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000787",
+            "HP:0000939",
+            "HP:0001081",
+            "HP:0001649",
+            "HP:0001873",
+            "HP:0001876",
+            "HP:0001945",
+            "HP:0002024",
+            "HP:0002094",
+            "HP:0002110",
+            "HP:0002151",
+            "HP:0002315",
+            "HP:0002383",
+            "HP:0002608",
+            "HP:0002749",
+            "HP:0002789",
+            "HP:0002860",
+            "HP:0003073",
+            "HP:0004432",
+            "HP:0011951",
+            "HP:0012735",
+            "HP:0032169",
+            "HP:0033181",
+            "HP:0033584",
+            "HP:0033608"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0015517",
+              "MONDO:0015977",
+              "MONDO:0016990"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000819",
+            "HP:0000821",
+            "HP:0000822",
+            "HP:0000939",
+            "HP:0001635",
+            "HP:0001638",
+            "HP:0001649",
+            "HP:0001653",
+            "HP:0001662",
+            "HP:0001903",
+            "HP:0001945",
+            "HP:0002090",
+            "HP:0002092",
+            "HP:0002098",
+            "HP:0002878",
+            "HP:0003077",
+            "HP:0003124",
+            "HP:0004757",
+            "HP:0006510",
+            "HP:0012622",
+            "HP:0100598"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0005854",
+              "MONDO:0011340",
+              "MONDO:0016343"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000819",
+            "HP:0000822",
+            "HP:0000979",
+            "HP:0001081",
+            "HP:0001513",
+            "HP:0001677",
+            "HP:0001876",
+            "HP:0001903",
+            "HP:0001919",
+            "HP:0002902",
+            "HP:0009830",
+            "HP:0012622",
+            "HP:0040223",
+            "HP:0100778"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0007407",
+              "MONDO:0016665",
+              "MONDO:0018904"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000819",
+            "HP:0000969",
+            "HP:0000989",
+            "HP:0001289",
+            "HP:0002480",
+            "HP:0002578",
+            "HP:0002613",
+            "HP:0002902",
+            "HP:0003270",
+            "HP:0030839",
+            "HP:0032255"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 3,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0005388",
+              "MONDO:0016264",
+              "MONDO:0034189"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mimic_rag_0425",
+      "raw_cases": 7313,
+      "processed_cases": 7311,
+      "expected_retained_cases": 7311,
+      "signature_exact_match": false,
+      "supported_processed_cases": 7310,
+      "unsupported_processed_cases": 1,
+      "exact_equal_processed_cases": 7308,
+      "subset_only_processed_cases": 2,
+      "raw_multi_label_cases": 1032,
+      "processed_multi_label_cases": 1031,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 2,
+      "route_counts": {
+        "manual_orpha_to_mondo": 20,
+        "orpha_exact": 8457,
+        "orpha_name_unique": 11
+      },
+      "raw_hpo_collision_signatures": 1032,
+      "processed_hpo_collision_signatures": 1031,
+      "missing_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011728",
+            "MONDO:0019338"
+          ],
+          "hpo_count": 19,
+          "hpo_ids_preview": [
+            "HP:0000554",
+            "HP:0000622",
+            "HP:0000643",
+            "HP:0000651",
+            "HP:0000716",
+            "HP:0000739",
+            "HP:0000975",
+            "HP:0001279"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0034872",
+            "MONDO:0859004"
+          ],
+          "hpo_count": 13,
+          "hpo_ids_preview": [
+            "HP:0001508",
+            "HP:0001742",
+            "HP:0001824",
+            "HP:0001875",
+            "HP:0002014",
+            "HP:0002090",
+            "HP:0002719",
+            "HP:0002829"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0020311"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0000969",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002097",
+            "HP:0005185",
+            "HP:0012325",
+            "HP:0012398",
+            "HP:0012418"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0019338"
+          ],
+          "hpo_count": 19,
+          "hpo_ids_preview": [
+            "HP:0000554",
+            "HP:0000622",
+            "HP:0000643",
+            "HP:0000651",
+            "HP:0000716",
+            "HP:0000739",
+            "HP:0000975",
+            "HP:0001279"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0859004"
+          ],
+          "hpo_count": 13,
+          "hpo_ids_preview": [
+            "HP:0001508",
+            "HP:0001742",
+            "HP:0001824",
+            "HP:0001875",
+            "HP:0002014",
+            "HP:0002090",
+            "HP:0002719",
+            "HP:0002829"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0020311",
+            "MONDO:0020520"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0000969",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002097",
+            "HP:0005185",
+            "HP:0012325",
+            "HP:0012398",
+            "HP:0012418"
+          ]
+        }
+      ],
+      "unsupported_examples": [
+        {
+          "case_id": "case_7206",
+          "mondo_labels": [
+            "MONDO:0020311",
+            "MONDO:0020520"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0000969",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002097",
+            "HP:0005185",
+            "HP:0012325",
+            "HP:0012398",
+            "HP:0012418"
+          ],
+          "raw_candidate_sets_preview": [
+            [
+              "MONDO:0020311"
+            ]
+          ]
+        }
+      ],
+      "processed_hpo_collision_examples": [
+        {
+          "hpo_ids": [
+            "HP:0000716",
+            "HP:0000739",
+            "HP:0000787",
+            "HP:0000821",
+            "HP:0000969",
+            "HP:0001279",
+            "HP:0001635",
+            "HP:0001638",
+            "HP:0001650",
+            "HP:0001659",
+            "HP:0001680",
+            "HP:0001962",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002758",
+            "HP:0005110",
+            "HP:0011718",
+            "HP:0100614",
+            "HP:0100749"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 6,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0007194",
+              "MONDO:0007345",
+              "MONDO:0015924",
+              "MONDO:0016343",
+              "MONDO:0019499",
+              "MONDO:0020295"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000846",
+            "HP:0001954",
+            "HP:0002017",
+            "HP:0002578",
+            "HP:0002719",
+            "HP:0004432",
+            "HP:0032064",
+            "HP:0034315"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 5,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0015128",
+              "MONDO:0015977",
+              "MONDO:0018015",
+              "MONDO:0018438",
+              "MONDO:0034150"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000083",
+            "HP:0000938",
+            "HP:0000969",
+            "HP:0001250",
+            "HP:0001653",
+            "HP:0001873",
+            "HP:0001903",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002099",
+            "HP:0002202",
+            "HP:0002204",
+            "HP:0002592",
+            "HP:0002725",
+            "HP:0002829",
+            "HP:0003077",
+            "HP:0012228",
+            "HP:0012622",
+            "HP:0012764",
+            "HP:0030149",
+            "HP:0032408",
+            "HP:0033726",
+            "HP:0040223",
+            "HP:0100665"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0007915",
+              "MONDO:0018896",
+              "MONDO:0019532",
+              "MONDO:8000010"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000103",
+            "HP:0000104",
+            "HP:0000821",
+            "HP:0001945",
+            "HP:0002013",
+            "HP:0002018",
+            "HP:0002837",
+            "HP:0003124",
+            "HP:0004743",
+            "HP:0030157",
+            "HP:0030828",
+            "HP:0100518"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0005342",
+              "MONDO:0015517",
+              "MONDO:0016428",
+              "MONDO:0018470"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000103",
+            "HP:0000135",
+            "HP:0000651",
+            "HP:0000855",
+            "HP:0000975",
+            "HP:0001959",
+            "HP:0002104",
+            "HP:0002315",
+            "HP:0002817",
+            "HP:0003074",
+            "HP:0003401",
+            "HP:0004324",
+            "HP:0033413",
+            "HP:0046504"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0015128",
+              "MONDO:0016383",
+              "MONDO:0017823",
+              "MONDO:0019933"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000618",
+            "HP:0000858",
+            "HP:0000982",
+            "HP:0001324",
+            "HP:0002066",
+            "HP:0002155",
+            "HP:0002578",
+            "HP:0002917",
+            "HP:0003737",
+            "HP:0005978",
+            "HP:0010535",
+            "HP:0012378",
+            "HP:0031467",
+            "HP:0033705",
+            "HP:0100646"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0004069",
+              "MONDO:0009637",
+              "MONDO:0017672",
+              "MONDO:0018992"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000618",
+            "HP:0001640",
+            "HP:0001962",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002110"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0005854",
+              "MONDO:0009637",
+              "MONDO:0020249",
+              "MONDO:0034150"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000622",
+            "HP:0000716",
+            "HP:0001279",
+            "HP:0001289",
+            "HP:0001394",
+            "HP:0001402",
+            "HP:0002315",
+            "HP:0005584",
+            "HP:0005978",
+            "HP:0006775",
+            "HP:0009830",
+            "HP:0012622",
+            "HP:0030242",
+            "HP:0100735"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0005086",
+              "MONDO:0007256",
+              "MONDO:0009693",
+              "MONDO:0018608"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000716",
+            "HP:0000739",
+            "HP:0000822",
+            "HP:0002014",
+            "HP:0002018",
+            "HP:0002020",
+            "HP:0002027",
+            "HP:0002076",
+            "HP:0012450",
+            "HP:0030880"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0013282",
+              "MONDO:0018896",
+              "MONDO:0019737",
+              "MONDO:8000010"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0000787",
+            "HP:0000821",
+            "HP:0001635",
+            "HP:0001638",
+            "HP:0001647",
+            "HP:0001659",
+            "HP:0001680",
+            "HP:0002092",
+            "HP:0002094",
+            "HP:0002758",
+            "HP:0005185",
+            "HP:0010772",
+            "HP:0100614",
+            "HP:0100749"
+          ],
+          "n_cases": 1,
+          "n_unique_mondo_ids": 4,
+          "n_unique_mondo_sets": 1,
+          "mondo_sets": [
+            [
+              "MONDO:0007194",
+              "MONDO:0007345",
+              "MONDO:0019499",
+              "MONDO:0020295"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HMS",
+      "raw_cases": 88,
+      "processed_cases": 88,
+      "expected_retained_cases": 88,
+      "signature_exact_match": false,
+      "supported_processed_cases": 88,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 52,
+      "subset_only_processed_cases": 36,
+      "raw_multi_label_cases": 36,
+      "processed_multi_label_cases": 0,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 0,
+      "route_counts": {
+        "omim_exact": 131,
+        "orpha_exact": 109
+      },
+      "raw_hpo_collision_signatures": 36,
+      "processed_hpo_collision_signatures": 0,
+      "missing_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007915",
+            "MONDO:0011684",
+            "MONDO:0012369",
+            "MONDO:0013743",
+            "MONDO:0019725"
+          ],
+          "hpo_count": 20,
+          "hpo_ids_preview": [
+            "HP:0000093",
+            "HP:0001541",
+            "HP:0001735",
+            "HP:0001744",
+            "HP:0001876",
+            "HP:0001945",
+            "HP:0002014",
+            "HP:0002027"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0003789",
+            "MONDO:0007763",
+            "MONDO:0007915",
+            "MONDO:0010456",
+            "MONDO:0011684",
+            "MONDO:0012369",
+            "MONDO:0013743",
+            "MONDO:0019725"
+          ],
+          "hpo_count": 15,
+          "hpo_ids_preview": [
+            "HP:0000083",
+            "HP:0000093",
+            "HP:0000099",
+            "HP:0000107",
+            "HP:0000554",
+            "HP:0001369",
+            "HP:0001888",
+            "HP:0002204"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007126",
+            "MONDO:0008468"
+          ],
+          "hpo_count": 9,
+          "hpo_ids_preview": [
+            "HP:0000540",
+            "HP:0000554",
+            "HP:0001097",
+            "HP:0001443",
+            "HP:0002808",
+            "HP:0002907",
+            "HP:0003418",
+            "HP:0005197"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010030",
+            "MONDO:0017376",
+            "MONDO:0019432",
+            "MONDO:0019434",
+            "MONDO:0019435"
+          ],
+          "hpo_count": 24,
+          "hpo_ids_preview": [
+            "HP:0000217",
+            "HP:0000633",
+            "HP:0001167",
+            "HP:0001225",
+            "HP:0001760",
+            "HP:0001935",
+            "HP:0002076",
+            "HP:0002815"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011303",
+            "MONDO:0011390",
+            "MONDO:0011917",
+            "MONDO:0012931",
+            "MONDO:0013191",
+            "MONDO:0013589",
+            "MONDO:0014451",
+            "MONDO:0014462",
+            "MONDO:0014539"
+          ],
+          "hpo_count": 21,
+          "hpo_ids_preview": [
+            "HP:0000097",
+            "HP:0001065",
+            "HP:0002149",
+            "HP:0002155",
+            "HP:0002907",
+            "HP:0002910",
+            "HP:0003073",
+            "HP:0003124"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008399",
+            "MONDO:0012888",
+            "MONDO:0019338"
+          ],
+          "hpo_count": 22,
+          "hpo_ids_preview": [
+            "HP:0000083",
+            "HP:0000107",
+            "HP:0000572",
+            "HP:0000822",
+            "HP:0000979",
+            "HP:0001397",
+            "HP:0001407",
+            "HP:0001970"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007798",
+            "MONDO:0018570"
+          ],
+          "hpo_count": 9,
+          "hpo_ids_preview": [
+            "HP:0000164",
+            "HP:0001596",
+            "HP:0002659",
+            "HP:0003282",
+            "HP:0004322",
+            "HP:0005268",
+            "HP:0012378",
+            "HP:0012514"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008399",
+            "MONDO:0012888",
+            "MONDO:0019338"
+          ],
+          "hpo_count": 14,
+          "hpo_ids_preview": [
+            "HP:0000265",
+            "HP:0000365",
+            "HP:0000666",
+            "HP:0000858",
+            "HP:0001649",
+            "HP:0001785",
+            "HP:0001824",
+            "HP:0001962"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009230",
+            "MONDO:0018848"
+          ],
+          "hpo_count": 17,
+          "hpo_ids_preview": [
+            "HP:0000246",
+            "HP:0000520",
+            "HP:0000651",
+            "HP:0000822",
+            "HP:0001144",
+            "HP:0001653",
+            "HP:0001659",
+            "HP:0001712"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007349",
+            "MONDO:0008633",
+            "MONDO:0011776",
+            "MONDO:0012724",
+            "MONDO:0013766",
+            "MONDO:0014498",
+            "MONDO:0018768"
+          ],
+          "hpo_count": 18,
+          "hpo_ids_preview": [
+            "HP:0000365",
+            "HP:0001649",
+            "HP:0001744",
+            "HP:0001945",
+            "HP:0002153",
+            "HP:0002321",
+            "HP:0002850",
+            "HP:0003072"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007915"
+          ],
+          "hpo_count": 20,
+          "hpo_ids_preview": [
+            "HP:0000093",
+            "HP:0001541",
+            "HP:0001735",
+            "HP:0001744",
+            "HP:0001876",
+            "HP:0001945",
+            "HP:0002014",
+            "HP:0002027"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007763"
+          ],
+          "hpo_count": 15,
+          "hpo_ids_preview": [
+            "HP:0000083",
+            "HP:0000093",
+            "HP:0000099",
+            "HP:0000107",
+            "HP:0000554",
+            "HP:0001369",
+            "HP:0001888",
+            "HP:0002204"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007126"
+          ],
+          "hpo_count": 9,
+          "hpo_ids_preview": [
+            "HP:0000540",
+            "HP:0000554",
+            "HP:0001097",
+            "HP:0001443",
+            "HP:0002808",
+            "HP:0002907",
+            "HP:0003418",
+            "HP:0005197"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010030"
+          ],
+          "hpo_count": 24,
+          "hpo_ids_preview": [
+            "HP:0000217",
+            "HP:0000633",
+            "HP:0001167",
+            "HP:0001225",
+            "HP:0001760",
+            "HP:0001935",
+            "HP:0002076",
+            "HP:0002815"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011303"
+          ],
+          "hpo_count": 21,
+          "hpo_ids_preview": [
+            "HP:0000097",
+            "HP:0001065",
+            "HP:0002149",
+            "HP:0002155",
+            "HP:0002907",
+            "HP:0002910",
+            "HP:0003073",
+            "HP:0003124"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008399"
+          ],
+          "hpo_count": 22,
+          "hpo_ids_preview": [
+            "HP:0000083",
+            "HP:0000107",
+            "HP:0000572",
+            "HP:0000822",
+            "HP:0000979",
+            "HP:0001397",
+            "HP:0001407",
+            "HP:0001970"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007798"
+          ],
+          "hpo_count": 9,
+          "hpo_ids_preview": [
+            "HP:0000164",
+            "HP:0001596",
+            "HP:0002659",
+            "HP:0003282",
+            "HP:0004322",
+            "HP:0005268",
+            "HP:0012378",
+            "HP:0012514"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008399"
+          ],
+          "hpo_count": 14,
+          "hpo_ids_preview": [
+            "HP:0000265",
+            "HP:0000365",
+            "HP:0000666",
+            "HP:0000858",
+            "HP:0001649",
+            "HP:0001785",
+            "HP:0001824",
+            "HP:0001962"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009230"
+          ],
+          "hpo_count": 17,
+          "hpo_ids_preview": [
+            "HP:0000246",
+            "HP:0000520",
+            "HP:0000651",
+            "HP:0000822",
+            "HP:0001144",
+            "HP:0001653",
+            "HP:0001659",
+            "HP:0001712"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007349"
+          ],
+          "hpo_count": 18,
+          "hpo_ids_preview": [
+            "HP:0000365",
+            "HP:0001649",
+            "HP:0001744",
+            "HP:0001945",
+            "HP:0002153",
+            "HP:0002321",
+            "HP:0002850",
+            "HP:0003072"
+          ]
+        }
+      ],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": []
+    },
+    {
+      "name": "LIRICAL",
+      "raw_cases": 370,
+      "processed_cases": 370,
+      "expected_retained_cases": 370,
+      "signature_exact_match": false,
+      "supported_processed_cases": 370,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 348,
+      "subset_only_processed_cases": 22,
+      "raw_multi_label_cases": 22,
+      "processed_multi_label_cases": 0,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 0,
+      "route_counts": {
+        "omim_exact": 370,
+        "orpha_exact": 227
+      },
+      "raw_hpo_collision_signatures": 22,
+      "processed_hpo_collision_signatures": 0,
+      "missing_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010075",
+            "MONDO:0019675"
+          ],
+          "hpo_count": 29,
+          "hpo_ids_preview": [
+            "HP:0000175",
+            "HP:0000347",
+            "HP:0000520",
+            "HP:0000592",
+            "HP:0000926",
+            "HP:0000973",
+            "HP:0001027",
+            "HP:0001239"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007868",
+            "MONDO:0021022"
+          ],
+          "hpo_count": 5,
+          "hpo_ids_preview": [
+            "HP:0001276",
+            "HP:0002011",
+            "HP:0002107",
+            "HP:0010946",
+            "HP:0100660"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007522",
+            "MONDO:0019567"
+          ],
+          "hpo_count": 9,
+          "hpo_ids_preview": [
+            "HP:0000974",
+            "HP:0000978",
+            "HP:0001065",
+            "HP:0001075",
+            "HP:0001373",
+            "HP:0001382",
+            "HP:0001763",
+            "HP:0002829"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008029",
+            "MONDO:0024530"
+          ],
+          "hpo_count": 21,
+          "hpo_ids_preview": [
+            "HP:0000010",
+            "HP:0000467",
+            "HP:0000969",
+            "HP:0000988",
+            "HP:0001263",
+            "HP:0001270",
+            "HP:0001284",
+            "HP:0001324"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009853",
+            "MONDO:0100156"
+          ],
+          "hpo_count": 3,
+          "hpo_ids_preview": [
+            "HP:0000093",
+            "HP:0001903",
+            "HP:0100502"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010589",
+            "MONDO:0021005"
+          ],
+          "hpo_count": 10,
+          "hpo_ids_preview": [
+            "HP:0000049",
+            "HP:0000218",
+            "HP:0000316",
+            "HP:0000347",
+            "HP:0000463",
+            "HP:0000508",
+            "HP:0001249",
+            "HP:0001388"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007387",
+            "MONDO:0016033"
+          ],
+          "hpo_count": 14,
+          "hpo_ids_preview": [
+            "HP:0000175",
+            "HP:0000219",
+            "HP:0000252",
+            "HP:0000294",
+            "HP:0000343",
+            "HP:0000369",
+            "HP:0000664",
+            "HP:0000750"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009105",
+            "MONDO:0024541"
+          ],
+          "hpo_count": 17,
+          "hpo_ids_preview": [
+            "HP:0000316",
+            "HP:0001019",
+            "HP:0001034",
+            "HP:0001508",
+            "HP:0002090",
+            "HP:0002240",
+            "HP:0003073",
+            "HP:0004315"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011158",
+            "MONDO:0017979"
+          ],
+          "hpo_count": 14,
+          "hpo_ids_preview": [
+            "HP:0001433",
+            "HP:0001903",
+            "HP:0001945",
+            "HP:0002113",
+            "HP:0002716",
+            "HP:0002788",
+            "HP:0002851",
+            "HP:0003237"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007318",
+            "MONDO:0016862"
+          ],
+          "hpo_count": 18,
+          "hpo_ids_preview": [
+            "HP:0000303",
+            "HP:0000325",
+            "HP:0000337",
+            "HP:0000411",
+            "HP:0000490",
+            "HP:0000627",
+            "HP:0000952",
+            "HP:0000958"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010075"
+          ],
+          "hpo_count": 29,
+          "hpo_ids_preview": [
+            "HP:0000175",
+            "HP:0000347",
+            "HP:0000520",
+            "HP:0000592",
+            "HP:0000926",
+            "HP:0000973",
+            "HP:0001027",
+            "HP:0001239"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007868"
+          ],
+          "hpo_count": 5,
+          "hpo_ids_preview": [
+            "HP:0001276",
+            "HP:0002011",
+            "HP:0002107",
+            "HP:0010946",
+            "HP:0100660"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0019567"
+          ],
+          "hpo_count": 9,
+          "hpo_ids_preview": [
+            "HP:0000974",
+            "HP:0000978",
+            "HP:0001065",
+            "HP:0001075",
+            "HP:0001373",
+            "HP:0001382",
+            "HP:0001763",
+            "HP:0002829"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0024530"
+          ],
+          "hpo_count": 21,
+          "hpo_ids_preview": [
+            "HP:0000010",
+            "HP:0000467",
+            "HP:0000969",
+            "HP:0000988",
+            "HP:0001263",
+            "HP:0001270",
+            "HP:0001284",
+            "HP:0001324"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0100156"
+          ],
+          "hpo_count": 3,
+          "hpo_ids_preview": [
+            "HP:0000093",
+            "HP:0001903",
+            "HP:0100502"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0010589"
+          ],
+          "hpo_count": 10,
+          "hpo_ids_preview": [
+            "HP:0000049",
+            "HP:0000218",
+            "HP:0000316",
+            "HP:0000347",
+            "HP:0000463",
+            "HP:0000508",
+            "HP:0001249",
+            "HP:0001388"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007387"
+          ],
+          "hpo_count": 14,
+          "hpo_ids_preview": [
+            "HP:0000175",
+            "HP:0000219",
+            "HP:0000252",
+            "HP:0000294",
+            "HP:0000343",
+            "HP:0000369",
+            "HP:0000664",
+            "HP:0000750"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0024541"
+          ],
+          "hpo_count": 17,
+          "hpo_ids_preview": [
+            "HP:0000316",
+            "HP:0001019",
+            "HP:0001034",
+            "HP:0001508",
+            "HP:0002090",
+            "HP:0002240",
+            "HP:0003073",
+            "HP:0004315"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011158"
+          ],
+          "hpo_count": 14,
+          "hpo_ids_preview": [
+            "HP:0001433",
+            "HP:0001903",
+            "HP:0001945",
+            "HP:0002113",
+            "HP:0002716",
+            "HP:0002788",
+            "HP:0002851",
+            "HP:0003237"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0016862"
+          ],
+          "hpo_count": 18,
+          "hpo_ids_preview": [
+            "HP:0000303",
+            "HP:0000325",
+            "HP:0000337",
+            "HP:0000411",
+            "HP:0000490",
+            "HP:0000627",
+            "HP:0000952",
+            "HP:0000958"
+          ]
+        }
+      ],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": []
+    },
+    {
+      "name": "MME",
+      "raw_cases": 40,
+      "processed_cases": 40,
+      "expected_retained_cases": 40,
+      "signature_exact_match": false,
+      "supported_processed_cases": 40,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 39,
+      "subset_only_processed_cases": 1,
+      "raw_multi_label_cases": 1,
+      "processed_multi_label_cases": 0,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 0,
+      "route_counts": {
+        "omim_exact": 40,
+        "orpha_exact": 28
+      },
+      "raw_hpo_collision_signatures": 1,
+      "processed_hpo_collision_signatures": 0,
+      "missing_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011435",
+            "MONDO:0016660"
+          ],
+          "hpo_count": 4,
+          "hpo_ids_preview": [
+            "HP:0000252",
+            "HP:0000718",
+            "HP:0001250",
+            "HP:0010864"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0011435"
+          ],
+          "hpo_count": 4,
+          "hpo_ids_preview": [
+            "HP:0000252",
+            "HP:0000718",
+            "HP:0001250",
+            "HP:0010864"
+          ]
+        }
+      ],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": []
+    },
+    {
+      "name": "RAMEDIS",
+      "raw_cases": 624,
+      "processed_cases": 624,
+      "expected_retained_cases": 624,
+      "signature_exact_match": false,
+      "supported_processed_cases": 624,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 583,
+      "subset_only_processed_cases": 41,
+      "raw_multi_label_cases": 41,
+      "processed_multi_label_cases": 0,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 0,
+      "route_counts": {
+        "omim_exact": 624,
+        "orpha_exact": 591
+      },
+      "raw_hpo_collision_signatures": 42,
+      "processed_hpo_collision_signatures": 2,
+      "missing_signature_examples": [
+        {
+          "count": 2,
+          "mondo_labels": [
+            "MONDO:0008861",
+            "MONDO:0018950"
+          ],
+          "hpo_count": 6,
+          "hpo_ids_preview": [
+            "HP:0001522",
+            "HP:0003355",
+            "HP:0003811",
+            "HP:0010895",
+            "HP:0010967",
+            "HP:0040156"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009563",
+            "MONDO:0023691"
+          ],
+          "hpo_count": 19,
+          "hpo_ids_preview": [
+            "HP:0000126",
+            "HP:0000750",
+            "HP:0001197",
+            "HP:0001249",
+            "HP:0001270",
+            "HP:0001290",
+            "HP:0001522",
+            "HP:0001945"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008861",
+            "MONDO:0018950"
+          ],
+          "hpo_count": 10,
+          "hpo_ids_preview": [
+            "HP:0001254",
+            "HP:0001522",
+            "HP:0002312",
+            "HP:0002329",
+            "HP:0002360",
+            "HP:0002370",
+            "HP:0003811",
+            "HP:0003819"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009563",
+            "MONDO:0023691"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0000741",
+            "HP:0001257",
+            "HP:0001290",
+            "HP:0001513",
+            "HP:0001522",
+            "HP:0001943",
+            "HP:0003811",
+            "HP:0010910"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008861",
+            "MONDO:0018950"
+          ],
+          "hpo_count": 4,
+          "hpo_ids_preview": [
+            "HP:0003355",
+            "HP:0010895",
+            "HP:0010967",
+            "HP:0040156"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009563",
+            "MONDO:0023691"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0001254",
+            "HP:0001290",
+            "HP:0001337",
+            "HP:0001522",
+            "HP:0002179",
+            "HP:0002329",
+            "HP:0002360",
+            "HP:0003811"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009563",
+            "MONDO:0023691"
+          ],
+          "hpo_count": 16,
+          "hpo_ids_preview": [
+            "HP:0001250",
+            "HP:0001264",
+            "HP:0001270",
+            "HP:0001290",
+            "HP:0001522",
+            "HP:0001942",
+            "HP:0002094",
+            "HP:0002104"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009563",
+            "MONDO:0023691"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0001251",
+            "HP:0001259",
+            "HP:0001315",
+            "HP:0001596",
+            "HP:0001942",
+            "HP:0002181",
+            "HP:0002500",
+            "HP:0003819"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0009563",
+            "MONDO:0023691"
+          ],
+          "hpo_count": 7,
+          "hpo_ids_preview": [
+            "HP:0001250",
+            "HP:0001522",
+            "HP:0003355",
+            "HP:0003811",
+            "HP:0004357",
+            "HP:0010912",
+            "HP:0010914"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007452",
+            "MONDO:0018911"
+          ],
+          "hpo_count": 3,
+          "hpo_ids_preview": [
+            "HP:0001943",
+            "HP:0003076",
+            "HP:0010472"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 2,
+          "mondo_labels": [
+            "MONDO:0008861"
+          ],
+          "hpo_count": 6,
+          "hpo_ids_preview": [
+            "HP:0001522",
+            "HP:0003355",
+            "HP:0003811",
+            "HP:0010895",
+            "HP:0010967",
+            "HP:0040156"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0023691"
+          ],
+          "hpo_count": 19,
+          "hpo_ids_preview": [
+            "HP:0000126",
+            "HP:0000750",
+            "HP:0001197",
+            "HP:0001249",
+            "HP:0001270",
+            "HP:0001290",
+            "HP:0001522",
+            "HP:0001945"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008861"
+          ],
+          "hpo_count": 10,
+          "hpo_ids_preview": [
+            "HP:0001254",
+            "HP:0001522",
+            "HP:0002312",
+            "HP:0002329",
+            "HP:0002360",
+            "HP:0002370",
+            "HP:0003811",
+            "HP:0003819"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0023691"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0000741",
+            "HP:0001257",
+            "HP:0001290",
+            "HP:0001513",
+            "HP:0001522",
+            "HP:0001943",
+            "HP:0003811",
+            "HP:0010910"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008861"
+          ],
+          "hpo_count": 4,
+          "hpo_ids_preview": [
+            "HP:0003355",
+            "HP:0010895",
+            "HP:0010967",
+            "HP:0040156"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0023691"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0001254",
+            "HP:0001290",
+            "HP:0001337",
+            "HP:0001522",
+            "HP:0002179",
+            "HP:0002329",
+            "HP:0002360",
+            "HP:0003811"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0023691"
+          ],
+          "hpo_count": 16,
+          "hpo_ids_preview": [
+            "HP:0001250",
+            "HP:0001264",
+            "HP:0001270",
+            "HP:0001290",
+            "HP:0001522",
+            "HP:0001942",
+            "HP:0002094",
+            "HP:0002104"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0023691"
+          ],
+          "hpo_count": 11,
+          "hpo_ids_preview": [
+            "HP:0001251",
+            "HP:0001259",
+            "HP:0001315",
+            "HP:0001596",
+            "HP:0001942",
+            "HP:0002181",
+            "HP:0002500",
+            "HP:0003819"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0023691"
+          ],
+          "hpo_count": 7,
+          "hpo_ids_preview": [
+            "HP:0001250",
+            "HP:0001522",
+            "HP:0003355",
+            "HP:0003811",
+            "HP:0004357",
+            "HP:0010912",
+            "HP:0010914"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0007452"
+          ],
+          "hpo_count": 3,
+          "hpo_ids_preview": [
+            "HP:0001943",
+            "HP:0003076",
+            "HP:0010472"
+          ]
+        }
+      ],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": [
+        {
+          "hpo_ids": [
+            "HP:0001197",
+            "HP:0001522",
+            "HP:0003231",
+            "HP:0003811",
+            "HP:0003819",
+            "HP:0004923"
+          ],
+          "n_cases": 11,
+          "n_unique_mondo_ids": 2,
+          "n_unique_mondo_sets": 2,
+          "mondo_sets": [
+            [
+              "MONDO:0009861"
+            ],
+            [
+              "MONDO:0010162"
+            ]
+          ]
+        },
+        {
+          "hpo_ids": [
+            "HP:0001197",
+            "HP:0001522",
+            "HP:0003811",
+            "HP:0010967"
+          ],
+          "n_cases": 7,
+          "n_unique_mondo_ids": 2,
+          "n_unique_mondo_sets": 2,
+          "mondo_sets": [
+            [
+              "MONDO:0008721"
+            ],
+            [
+              "MONDO:0008723"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MyGene2",
+      "raw_cases": 146,
+      "processed_cases": 146,
+      "expected_retained_cases": 146,
+      "signature_exact_match": false,
+      "supported_processed_cases": 146,
+      "unsupported_processed_cases": 0,
+      "exact_equal_processed_cases": 98,
+      "subset_only_processed_cases": 48,
+      "raw_multi_label_cases": 48,
+      "processed_multi_label_cases": 0,
+      "processed_blank_mondo_cases": 0,
+      "unresolved_raw_cases": 0,
+      "route_counts": {
+        "input_mondo": 176,
+        "omim_exact": 146,
+        "orpha_exact": 184
+      },
+      "raw_hpo_collision_signatures": 47,
+      "processed_hpo_collision_signatures": 1,
+      "missing_signature_examples": [
+        {
+          "count": 2,
+          "mondo_labels": [
+            "MONDO:0005260",
+            "MONDO:0020643",
+            "MONDO:0020836"
+          ],
+          "hpo_count": 1,
+          "hpo_ids_preview": [
+            "HP:0001249"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 23,
+          "hpo_ids_preview": [
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0001181",
+            "HP:0001250"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 32,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 21,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000782"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 26,
+          "hpo_ids_preview": [
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486",
+            "HP:0000750"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 22,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 25,
+          "hpo_ids_preview": [
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000486",
+            "HP:0000750",
+            "HP:0001181",
+            "HP:0001250"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 20,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486",
+            "HP:0000750"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 15,
+          "hpo_ids_preview": [
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000486",
+            "HP:0000750",
+            "HP:0001181",
+            "HP:0001252"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0008675",
+            "MONDO:0011128",
+            "MONDO:0014556"
+          ],
+          "hpo_count": 19,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000175",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000750"
+          ]
+        }
+      ],
+      "extra_signature_examples": [
+        {
+          "count": 2,
+          "mondo_labels": [
+            "MONDO:0005260"
+          ],
+          "hpo_count": 1,
+          "hpo_ids_preview": [
+            "HP:0001249"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 23,
+          "hpo_ids_preview": [
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0001181",
+            "HP:0001250"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 32,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 21,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000782"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 26,
+          "hpo_ids_preview": [
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486",
+            "HP:0000750"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 22,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 25,
+          "hpo_ids_preview": [
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000486",
+            "HP:0000750",
+            "HP:0001181",
+            "HP:0001250"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 20,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000205",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000486",
+            "HP:0000750"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 15,
+          "hpo_ids_preview": [
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000486",
+            "HP:0000750",
+            "HP:0001181",
+            "HP:0001252"
+          ]
+        },
+        {
+          "count": 1,
+          "mondo_labels": [
+            "MONDO:0014556"
+          ],
+          "hpo_count": 19,
+          "hpo_ids_preview": [
+            "HP:0000023",
+            "HP:0000175",
+            "HP:0000293",
+            "HP:0000343",
+            "HP:0000347",
+            "HP:0000431",
+            "HP:0000470",
+            "HP:0000750"
+          ]
+        }
+      ],
+      "unsupported_examples": [],
+      "processed_hpo_collision_examples": [
+        {
+          "hpo_ids": [
+            "HP:0002664"
+          ],
+          "n_cases": 2,
+          "n_unique_mondo_ids": 2,
+          "n_unique_mondo_sets": 2,
+          "mondo_sets": [
+            [
+              "MONDO:0011512"
+            ],
+            [
+              "MONDO:0014029"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
