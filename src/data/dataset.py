@@ -5,7 +5,7 @@ from __future__ import annotations
 import random
 import re
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 import numpy as np
 import pandas as pd
@@ -17,6 +17,21 @@ _DISEASE_INDEX_PATH = Path(
     r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx"
 )
 
+KNOWN_SOURCE_NAMES = {
+    "ddd": "DDD",
+    "hms": "HMS",
+    "lirical": "LIRICAL",
+    "mme": "MME",
+    "mygene2": "MyGene2",
+    "ramedis": "RAMEDIS",
+    "mimic_rag_0425": "mimic_rag_0425",
+    "fakedisease": "FakeDisease",
+    "mimic_test": "mimic_test",
+}
+
+REAL_SOURCE_NAMES = ("DDD", "HMS", "LIRICAL", "MME", "MyGene2", "RAMEDIS")
+SYNTHETIC_SOURCE_NAMES = ("FakeDisease", "mimic_rag_0425")
+
 
 def load_config(config_path: Path = _CONFIG_PATH) -> dict:
     """Load the shared data config."""
@@ -27,6 +42,19 @@ def load_config(config_path: Path = _CONFIG_PATH) -> dict:
 def _natural_key(value: str) -> list[int | str]:
     """Sort strings by natural order, e.g. case_2 before case_10."""
     return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", value)]
+
+
+def normalize_source_name(source_path: str | Path) -> str:
+    """把源文件路径稳定归一化成可统计的数据源名称。"""
+    stem = Path(source_path).stem.strip()
+    normalized_key = stem.lower()
+    return KNOWN_SOURCE_NAMES.get(normalized_key, stem)
+
+
+def is_real_source(source_name: str, real_sources: tuple[str, ...] | list[str] | None = None) -> bool:
+    """判断当前数据源是否属于真实数据源集合。"""
+    real_source_set = set(real_sources or REAL_SOURCE_NAMES)
+    return str(source_name) in real_source_set
 
 
 def load_disease_index_map(index_path: str | Path) -> dict[str, int]:
@@ -112,6 +140,8 @@ def load_case_files(
     """
     dfs = []
     for path in file_paths:
+        resolved_path = Path(path).resolve()
+        source_name = normalize_source_name(resolved_path)
         df = read_case_table_file(path)
         if label_col not in df.columns and "mondo_id" in df.columns:
             df = df.rename(columns={"mondo_id": label_col})
@@ -125,7 +155,9 @@ def load_case_files(
             lambda raw_case_id: build_namespaced_case_id(raw_case_id, path, split_namespace)
         )
         df["_case_namespace"] = build_case_namespace(path, split_namespace)
-        df["_source_file"] = str(Path(path).resolve())
+        df["_source_file"] = str(resolved_path)
+        df["_source_name"] = source_name
+        df["_is_real_source"] = bool(is_real_source(source_name))
         dfs.append(df)
         print(f"  已加载: {Path(path).name}, 行数: {len(df)}")
 
@@ -168,18 +200,38 @@ class CaseBatchLoader:
         df: pd.DataFrame,
         batch_size: int | None = None,
         case_id_col: str = "case_id",
+        sampler_mode: str = "natural",
+        source_balanced_target_cases: int | None = None,
         config_path: Path = _CONFIG_PATH,
     ):
         if batch_size is None:
             batch_size = load_config(config_path)["batch_size"]
 
         self.df = df
-        self.batch_size = batch_size
+        self.batch_size = int(batch_size)
         self.case_id_col = case_id_col
+        self.sampler_mode = str(sampler_mode)
+        if self.sampler_mode not in {"natural", "source_balanced"}:
+            raise ValueError(
+                f"sampler_mode 只支持 'natural' 或 'source_balanced'，当前为 {self.sampler_mode!r}"
+            )
+        self.source_balanced_target_cases = (
+            None if source_balanced_target_cases is None else int(source_balanced_target_cases)
+        )
+        if self.source_balanced_target_cases is not None and self.source_balanced_target_cases <= 0:
+            raise ValueError("source_balanced_target_cases 必须大于 0。")
 
         all_ids = df[case_id_col].dropna().unique().tolist()
         self.base_case_ids: list[str] = sorted(all_ids, key=_natural_key)
         self._active_case_ids: list[str] = list(self.base_case_ids)
+        self._case_source_map = self._build_case_source_map()
+        self._source_case_ids = self._build_source_case_ids()
+        if self.sampler_mode == "source_balanced":
+            self._active_case_ids = self._build_source_balanced_case_ids(
+                epoch=0,
+                shuffle=False,
+                random_seed=0,
+            )
 
         # 预先缓存每个 case 对应的行号，避免每个 step 都做 pandas.isin。
         self._case_row_indices: dict[str, np.ndarray] = {
@@ -197,6 +249,110 @@ class CaseBatchLoader:
     def case_ids(self) -> list[str]:
         """Return the case order for the current epoch."""
         return self._active_case_ids
+
+    def _build_case_source_map(self) -> dict[str, str]:
+        """构建 case_id 到 source_name 的稳定映射。"""
+        if "_source_name" in self.df.columns:
+            source_series = self.df.groupby(self.case_id_col, sort=False)["_source_name"].first()
+            return {str(case_id): str(source_name) for case_id, source_name in source_series.items()}
+
+        if "_source_file" in self.df.columns:
+            source_series = self.df.groupby(self.case_id_col, sort=False)["_source_file"].first()
+            return {
+                str(case_id): normalize_source_name(source_file)
+                for case_id, source_file in source_series.items()
+            }
+
+        return {str(case_id): "unknown_source" for case_id in self.base_case_ids}
+
+    def _build_source_case_ids(self) -> dict[str, list[str]]:
+        """按 source_name 把 case_id 分组，供 source-balanced 采样使用。"""
+        source_case_ids: dict[str, list[str]] = {}
+        for case_id in self.base_case_ids:
+            source_name = self._case_source_map.get(str(case_id), "unknown_source")
+            source_case_ids.setdefault(source_name, []).append(str(case_id))
+        return source_case_ids
+
+    def _resolve_source_balanced_target_cases(self) -> int:
+        """确定每个 source 在一个 epoch 中的目标 case 暴露量。"""
+        if self.source_balanced_target_cases is not None:
+            return self.source_balanced_target_cases
+        if not self._source_case_ids:
+            return 0
+        return max(1, int(np.ceil(len(self.base_case_ids) / len(self._source_case_ids))))
+
+    def _sample_source_case_ids(
+        self,
+        case_ids: list[str],
+        target_count: int,
+        rng: random.Random,
+        shuffle: bool,
+    ) -> list[str]:
+        """对单个 source 做下采样或循环补样，保证目标暴露量一致。"""
+        if target_count <= 0 or not case_ids:
+            return []
+
+        working_ids = list(case_ids)
+        if shuffle and len(working_ids) > 1:
+            rng.shuffle(working_ids)
+
+        sampled_ids: list[str] = []
+        while len(sampled_ids) < target_count:
+            cycle_ids = list(working_ids)
+            # 小 source 样本不足时按轮次重复采样，并在每轮重新打乱，避免固定重复顺序。
+            if shuffle and len(cycle_ids) > 1:
+                rng.shuffle(cycle_ids)
+            remaining = target_count - len(sampled_ids)
+            sampled_ids.extend(cycle_ids[:remaining])
+        return sampled_ids
+
+    def _build_source_balanced_case_ids(self, epoch: int, shuffle: bool, random_seed: int) -> list[str]:
+        """按 source 做近似轮转采样，降低大 source 对 epoch 的天然主导。"""
+        if not self._source_case_ids:
+            return []
+
+        rng = random.Random(random_seed + epoch)
+        source_names = sorted(self._source_case_ids)
+        if shuffle and len(source_names) > 1:
+            rng.shuffle(source_names)
+
+        target_count = self._resolve_source_balanced_target_cases()
+        sampled_by_source = {
+            source_name: self._sample_source_case_ids(
+                self._source_case_ids[source_name],
+                target_count=target_count,
+                rng=rng,
+                shuffle=shuffle,
+            )
+            for source_name in source_names
+        }
+
+        balanced_case_ids: list[str] = []
+        for offset in range(target_count):
+            for source_name in source_names:
+                balanced_case_ids.append(sampled_by_source[source_name][offset])
+        return balanced_case_ids
+
+    def get_active_source_counts(self) -> dict[str, int]:
+        """返回当前 epoch 顺序下各 source 的 case 数。"""
+        source_counts: dict[str, int] = {}
+        for case_id in self._active_case_ids:
+            source_name = self._case_source_map.get(str(case_id), "unknown_source")
+            source_counts[source_name] = source_counts.get(source_name, 0) + 1
+        return source_counts
+
+    def get_sampling_summary(self) -> dict[str, Any]:
+        """返回当前采样模式和 source 分布摘要，便于训练日志审查。"""
+        return {
+            "sampler_mode": self.sampler_mode,
+            "num_cases": int(len(self._active_case_ids)),
+            "source_balanced_target_cases": (
+                None
+                if self.sampler_mode != "source_balanced"
+                else int(self._resolve_source_balanced_target_cases())
+            ),
+            "source_counts": self.get_active_source_counts(),
+        }
 
     def _rebuild_active_batches(self) -> None:
         """按当前 epoch 的 case 顺序预构建每个 batch 的行号列表。
@@ -219,7 +375,13 @@ class CaseBatchLoader:
 
     def set_epoch(self, epoch: int, shuffle: bool, random_seed: int) -> None:
         """Update case order for the current epoch."""
-        if shuffle:
+        if self.sampler_mode == "source_balanced":
+            self._active_case_ids = self._build_source_balanced_case_ids(
+                epoch=epoch,
+                shuffle=shuffle,
+                random_seed=random_seed,
+            )
+        elif shuffle:
             rng = random.Random(random_seed + epoch)
             ids = list(self.base_case_ids)
             rng.shuffle(ids)

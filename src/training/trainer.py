@@ -18,7 +18,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.build_hypergraph import build_batch_hypergraph, load_static_graph
-from src.data.dataset import CaseBatchLoader, load_case_files
+from src.data.dataset import (
+    REAL_SOURCE_NAMES,
+    SYNTHETIC_SOURCE_NAMES,
+    CaseBatchLoader,
+    load_case_files,
+    normalize_source_name,
+)
 from src.models.model_pipeline import ModelPipeline
 from src.runtime_config import (
     TRUSTED_MAINLINE,
@@ -223,6 +229,183 @@ def compute_topk_metrics(
     return metrics
 
 
+def _parse_source_list(raw_sources: Any, default_sources: tuple[str, ...]) -> list[str]:
+    """解析 validation 配置里的数据源列表。"""
+    if raw_sources is None:
+        return list(default_sources)
+    if not isinstance(raw_sources, list):
+        raise TypeError("validation 数据源列表必须是 list。")
+    return [str(item) for item in raw_sources]
+
+
+def resolve_validation_config(config: dict[str, Any]) -> dict[str, list[str]]:
+    """解析训练期 source-aware 验证所需的配置。"""
+    validation_cfg = config.get("validation", {})
+    if validation_cfg is None:
+        validation_cfg = {}
+    if not isinstance(validation_cfg, dict):
+        raise TypeError("validation 配置必须是 dict。")
+
+    return {
+        "real_sources": _parse_source_list(validation_cfg.get("real_sources"), REAL_SOURCE_NAMES),
+        "synthetic_sources": _parse_source_list(
+            validation_cfg.get("synthetic_sources"),
+            SYNTHETIC_SOURCE_NAMES,
+        ),
+    }
+
+
+def resolve_train_sampler_config(train_cfg: dict[str, Any]) -> dict[str, Any]:
+    """解析训练阶段的 sampler 配置。"""
+    sampler_cfg = train_cfg.get("sampler", {})
+    if sampler_cfg is None:
+        sampler_cfg = {}
+    if not isinstance(sampler_cfg, dict):
+        raise TypeError("train.sampler 配置必须是 dict。")
+
+    sampler_mode = str(sampler_cfg.get("sampler_mode", "natural"))
+    if sampler_mode not in {"natural", "source_balanced"}:
+        raise ValueError(
+            f"train.sampler.sampler_mode 只支持 'natural' 或 'source_balanced'，当前为 {sampler_mode!r}"
+        )
+
+    source_balanced_target_cases = sampler_cfg.get("source_balanced_target_cases")
+    if source_balanced_target_cases is not None:
+        source_balanced_target_cases = int(source_balanced_target_cases)
+        if source_balanced_target_cases <= 0:
+            raise ValueError("train.sampler.source_balanced_target_cases 必须大于 0。")
+
+    return {
+        "sampler_mode": sampler_mode,
+        "source_balanced_target_cases": source_balanced_target_cases,
+    }
+
+
+def format_source_counts(source_counts: dict[str, int]) -> str:
+    """把 source 计数摘要格式化成适合日志打印的文本。"""
+    if not source_counts:
+        return "<empty>"
+    return " ".join(
+        f"{source_name}={int(source_counts[source_name])}"
+        for source_name in sorted(source_counts)
+    )
+
+
+def _resolve_batch_source_names(
+    batch_df: pd.DataFrame,
+    case_ids: list[str],
+    case_id_col: str,
+) -> list[str]:
+    """根据 batch 内的 case_id 解析与输出顺序对齐的数据源名称。"""
+    if "_source_name" in batch_df.columns:
+        source_series = batch_df.groupby(case_id_col, sort=False)["_source_name"].first()
+        case_source_map = {str(case_id): str(source_name) for case_id, source_name in source_series.items()}
+    elif "_source_file" in batch_df.columns:
+        source_series = batch_df.groupby(case_id_col, sort=False)["_source_file"].first()
+        case_source_map = {
+            str(case_id): normalize_source_name(source_file)
+            for case_id, source_file in source_series.items()
+        }
+    else:
+        case_source_map = {}
+
+    return [case_source_map.get(str(case_id), "unknown_source") for case_id in case_ids]
+
+
+def compute_grouped_topk_metrics(
+    scores: torch.Tensor,
+    targets: torch.Tensor,
+    source_names: list[str],
+    ks: tuple[int, ...] = (1, 3, 5),
+) -> dict[str, Any]:
+    """按数据源分组统计当前 batch 的 top-k 命中情况。"""
+    if scores.ndim != 2:
+        raise ValueError(f"scores 必须是二维张量，当前 shape={tuple(scores.shape)}")
+    if targets.ndim != 1:
+        raise ValueError(f"targets 必须是一维张量，当前 shape={tuple(targets.shape)}")
+    if scores.shape[0] != targets.shape[0]:
+        raise ValueError("scores 和 targets 的 batch 维度不一致。")
+    if len(source_names) != scores.shape[0]:
+        raise ValueError("source_names 长度必须与 batch 样本数一致。")
+
+    max_k = min(max(ks), scores.shape[1])
+    topk_indices = scores.topk(max_k, dim=1).indices
+    expanded_targets = targets.view(-1, 1)
+    hits_by_k = {
+        f"top{k}": (topk_indices[:, : min(k, scores.shape[1])] == expanded_targets).any(dim=1)
+        for k in ks
+    }
+
+    group_hits: dict[str, dict[str, int]] = {}
+    group_counts: dict[str, int] = {}
+    for row_idx, raw_source_name in enumerate(source_names):
+        source_name = str(raw_source_name or "unknown_source")
+        group_counts[source_name] = group_counts.get(source_name, 0) + 1
+        source_hit_store = group_hits.setdefault(
+            source_name,
+            {f"top{k}": 0 for k in ks},
+        )
+        for k in ks:
+            source_hit_store[f"top{k}"] += int(hits_by_k[f"top{k}"][row_idx].item())
+
+    group_metrics: dict[str, dict[str, float]] = {}
+    for source_name, count in group_counts.items():
+        group_metrics[source_name] = {
+            f"top{k}": group_hits[source_name][f"top{k}"] / float(count)
+            for k in ks
+        }
+
+    return {
+        "group_metrics": group_metrics,
+        "group_hits": group_hits,
+        "group_counts": group_counts,
+    }
+
+
+def build_source_metric_fields(
+    grouped_metrics: dict[str, dict[str, float]],
+    real_sources: list[str],
+    synthetic_sources: list[str],
+    prefix: str = "val",
+    ks: tuple[int, ...] = (1, 3, 5),
+) -> dict[str, float | None]:
+    """把分组指标摊平成 history 和日志可直接使用的字段。"""
+    fields: dict[str, float | None] = {}
+    ordered_sources: list[str] = []
+    for source_name in [*real_sources, *synthetic_sources]:
+        if source_name not in ordered_sources:
+            ordered_sources.append(source_name)
+    for source_name in sorted(grouped_metrics):
+        if source_name not in ordered_sources:
+            ordered_sources.append(source_name)
+
+    for source_name in ordered_sources:
+        metrics = grouped_metrics.get(source_name)
+        for k in ks:
+            field_name = f"{prefix}_{source_name}_top{k}"
+            fields[field_name] = None if metrics is None else float(metrics[f"top{k}"])
+
+    available_real_sources = [source_name for source_name in real_sources if source_name in grouped_metrics]
+    for k in ks:
+        macro_field_name = f"{prefix}_real_macro_top{k}"
+        if not available_real_sources:
+            fields[macro_field_name] = None
+            continue
+        fields[macro_field_name] = float(
+            sum(grouped_metrics[source_name][f"top{k}"] for source_name in available_real_sources)
+            / len(available_real_sources)
+        )
+
+    return fields
+
+
+def format_metric(value: float | None) -> str:
+    """把指标值格式化成适合控制台打印的文本。"""
+    if value is None:
+        return "None"
+    return f"{value:.4f}"
+
+
 def run_one_epoch(
     epoch: int,
     model: ModelPipeline,
@@ -238,7 +421,8 @@ def run_one_epoch(
     hpo_dropout_prob: float = 0.0,
     hpo_corruption_prob: float = 0.0,
     hard_negative_cfg: dict[str, Any] | None = None,
-) -> dict[str, float]:
+    real_sources: list[str] | None = None,
+) -> dict[str, Any]:
     """执行一轮训练或验证。"""
     if is_train:
         model.train()
@@ -252,11 +436,21 @@ def run_one_epoch(
         shuffle=(is_train and shuffle),
         random_seed=random_seed,
     )
+    if is_train:
+        sampling_summary = loader.get_sampling_summary()
+        print(
+            f"Epoch {epoch} Train Sampler "
+            f"mode={sampling_summary['sampler_mode']} "
+            f"num_cases={sampling_summary['num_cases']} "
+            f"target_cases_per_source={sampling_summary['source_balanced_target_cases']} "
+            f"source_counts={format_source_counts(sampling_summary['source_counts'])}"
+        )
     total_steps = len(loader)
     hard_negative_cfg = hard_negative_cfg or {}
     use_hard_negative = bool(hard_negative_cfg.get("use_hard_negative", True))
     hard_negative_start_epoch = int(hard_negative_cfg.get("start_epoch", 2))
     hard_negative_k = int(hard_negative_cfg.get("k", 10))
+    metric_ks = (1, 3, 5)
 
     total_loss = 0.0
     total_top1 = 0.0
@@ -264,6 +458,8 @@ def run_one_epoch(
     total_top5 = 0.0
     total_samples = 0
     used_batches = 0
+    grouped_hit_totals: dict[str, dict[str, int]] = {}
+    grouped_sample_counts: dict[str, int] = {}
 
     with context:
         for step, batch_idx in enumerate(range(total_steps), start=1):
@@ -335,7 +531,34 @@ def run_one_epoch(
                     print(f"Epoch {epoch} Step {step}/{total_steps} Loss {loss.detach().item():.6f}")
 
             batch_size = int(targets.shape[0])
-            batch_metrics = compute_topk_metrics(scores.detach(), targets.detach(), ks=(1, 3, 5))
+            detached_scores = scores.detach()
+            detached_targets = targets.detach()
+            batch_metrics = compute_topk_metrics(detached_scores, detached_targets, ks=metric_ks)
+
+            if not is_train:
+                batch_source_names = _resolve_batch_source_names(
+                    batch_df=batch_df,
+                    case_ids=[str(case_id) for case_id in batch_graph["case_ids"]],
+                    case_id_col=loader.case_id_col,
+                )
+                grouped_batch_metrics = compute_grouped_topk_metrics(
+                    detached_scores,
+                    detached_targets,
+                    batch_source_names,
+                    ks=metric_ks,
+                )
+                for source_name, sample_count in grouped_batch_metrics["group_counts"].items():
+                    grouped_sample_counts[source_name] = (
+                        grouped_sample_counts.get(source_name, 0) + int(sample_count)
+                    )
+                    source_hit_totals = grouped_hit_totals.setdefault(
+                        source_name,
+                        {f"top{k}": 0 for k in metric_ks},
+                    )
+                    for k in metric_ks:
+                        source_hit_totals[f"top{k}"] += int(
+                            grouped_batch_metrics["group_hits"][source_name][f"top{k}"]
+                        )
 
             total_loss += float(loss.detach().item()) * batch_size
             total_top1 += batch_metrics["top1"] * batch_size
@@ -348,7 +571,7 @@ def run_one_epoch(
         stage = "训练" if is_train else "验证"
         raise RuntimeError(f"{stage}阶段所有 batch 都被跳过，请检查数据或配置。")
 
-    return {
+    result: dict[str, Any] = {
         "loss": total_loss / total_samples,
         "top1": total_top1 / total_samples,
         "top3": total_top3 / total_samples,
@@ -356,6 +579,30 @@ def run_one_epoch(
         "num_samples": float(total_samples),
         "num_batches": float(used_batches),
     }
+    if not is_train:
+        grouped_metrics: dict[str, dict[str, float]] = {}
+        for source_name, sample_count in grouped_sample_counts.items():
+            grouped_metrics[source_name] = {
+                f"top{k}": grouped_hit_totals[source_name][f"top{k}"] / float(sample_count)
+                for k in metric_ks
+            }
+        result["group_metrics"] = grouped_metrics
+        result["group_counts"] = {source_name: int(count) for source_name, count in grouped_sample_counts.items()}
+
+        available_real_sources = [
+            source_name for source_name in (real_sources or list(REAL_SOURCE_NAMES)) if source_name in grouped_metrics
+        ]
+        for k in metric_ks:
+            metric_name = f"real_macro_top{k}"
+            if not available_real_sources:
+                result[metric_name] = None
+                continue
+            result[metric_name] = float(
+                sum(grouped_metrics[source_name][f"top{k}"] for source_name in available_real_sources)
+                / len(available_real_sources)
+            )
+
+    return result
 
 
 def save_history(
@@ -436,6 +683,8 @@ def main() -> None:
     loss_cfg = config["loss"]
     optimizer_cfg = config["optimizer"]
     train_cfg = config["train"]
+    validation_cfg = resolve_validation_config(config)
+    train_sampler_cfg = resolve_train_sampler_config(train_cfg)
 
     random_seed = int(data_cfg["random_seed"])
     random.seed(random_seed)
@@ -470,7 +719,17 @@ def main() -> None:
         f"val_case={val_df['case_id'].nunique()}"
     )
 
-    train_loader = CaseBatchLoader(df=train_df, batch_size=int(data_cfg["batch_size"]))
+    train_loader = CaseBatchLoader(
+        df=train_df,
+        batch_size=int(data_cfg["batch_size"]),
+        sampler_mode=train_sampler_cfg["sampler_mode"],
+        source_balanced_target_cases=train_sampler_cfg["source_balanced_target_cases"],
+    )
+    print(
+        "Train sampler config: "
+        f"mode={train_sampler_cfg['sampler_mode']}, "
+        f"source_balanced_target_cases={train_sampler_cfg['source_balanced_target_cases']}"
+    )
     
     if val_df.empty:
         val_loader = None
@@ -478,7 +737,11 @@ def main() -> None:
         train_cfg["early_stop"] = False
         print("注意: val_ratio 设置为了 0，程序已自动临时关闭评估 (eval_every=0) 与早停机制，只保存最后的 last.pt。")
     else:
-        val_loader = CaseBatchLoader(df=val_df, batch_size=int(data_cfg["batch_size"]))
+        val_loader = CaseBatchLoader(
+            df=val_df,
+            batch_size=int(data_cfg["batch_size"]),
+            sampler_mode="natural",
+        )
 
     static_graph = load_static_graph(
         hpo_index_path=paths_cfg["hpo_index_path"],
@@ -498,6 +761,8 @@ def main() -> None:
         model_pipeline_config=model_pipeline_config,
         resolved_loss_config=resolved_loss_cfg,
     )
+    effective_config["validation"] = validation_cfg
+    effective_config["train"]["sampler"] = train_sampler_cfg
     effective_config_path = save_yaml(effective_config, save_dir / "effective_config.yaml")
     print_effective_config("Training Effective Config", effective_config)
     print(f"训练 effective config 已保存: {effective_config_path}")
@@ -580,6 +845,7 @@ def main() -> None:
                 hpo_dropout_prob=0.0,
                 hpo_corruption_prob=0.0,
                 hard_negative_cfg=hard_negative_cfg,
+                real_sources=validation_cfg["real_sources"],
             )
         else:
             val_metrics = None
@@ -594,8 +860,20 @@ def main() -> None:
             "val_top1": None if val_metrics is None else val_metrics["top1"],
             "val_top3": None if val_metrics is None else val_metrics["top3"],
             "val_top5": None if val_metrics is None else val_metrics["top5"],
+            "val_real_macro_top1": None if val_metrics is None else val_metrics.get("real_macro_top1"),
+            "val_real_macro_top3": None if val_metrics is None else val_metrics.get("real_macro_top3"),
+            "val_real_macro_top5": None if val_metrics is None else val_metrics.get("real_macro_top5"),
             "lr": float(optimizer.param_groups[0]["lr"]),
         }
+        if val_metrics is not None:
+            record.update(
+                build_source_metric_fields(
+                    grouped_metrics=val_metrics.get("group_metrics", {}),
+                    real_sources=validation_cfg["real_sources"],
+                    synthetic_sources=validation_cfg["synthetic_sources"],
+                    prefix="val",
+                )
+            )
         history.append(record)
         save_history(history, log_dir, run_timestamp)
 
@@ -610,10 +888,27 @@ def main() -> None:
             print(
                 f"Epoch {epoch} Eval "
                 f"val_loss={record['val_loss']:.6f} "
-                f"val_top1={record['val_top1']:.4f} "
-                f"val_top3={record['val_top3']:.4f} "
-                f"val_top5={record['val_top5']:.4f}"
+                f"val_top1={format_metric(record['val_top1'])} "
+                f"val_top3={format_metric(record['val_top3'])} "
+                f"val_top5={format_metric(record['val_top5'])} "
+                f"val_real_macro_top1={format_metric(record['val_real_macro_top1'])} "
+                f"val_real_macro_top3={format_metric(record['val_real_macro_top3'])} "
+                f"val_real_macro_top5={format_metric(record['val_real_macro_top5'])}"
             )
+            present_sources = list(val_metrics.get("group_metrics", {}).keys())
+            if present_sources:
+                ordered_sources: list[str] = []
+                for source_name in [*validation_cfg["real_sources"], *validation_cfg["synthetic_sources"]]:
+                    if source_name in present_sources and source_name not in ordered_sources:
+                        ordered_sources.append(source_name)
+                for source_name in sorted(present_sources):
+                    if source_name not in ordered_sources:
+                        ordered_sources.append(source_name)
+                source_metric_text = " ".join(
+                    f"val_{source_name}_top1={format_metric(record.get(f'val_{source_name}_top1'))}"
+                    for source_name in ordered_sources
+                )
+                print(f"Epoch {epoch} Eval Sources {source_metric_text}")
 
         if do_eval and bool(train_cfg["save_every_eval"]):
             save_checkpoint(
