@@ -12,7 +12,7 @@ import pandas as pd
 import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "data.yaml"
+_CONFIG_PATH = PROJECT_ROOT / "configs" / "data.yaml"
 _DISEASE_INDEX_PATH = Path(
     r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx"
 )
@@ -33,7 +33,7 @@ REAL_SOURCE_NAMES = ("DDD", "HMS", "LIRICAL", "MME", "MyGene2", "RAMEDIS")
 SYNTHETIC_SOURCE_NAMES = ("FakeDisease", "mimic_rag_0425")
 
 
-def load_config(config_path: Path = _CONFIG_PATH) -> dict:
+def load_config(config_path: Path = _CONFIG_PATH) -> dict[str, Any]:
     """Load the shared data config."""
     with open(config_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -51,7 +51,10 @@ def normalize_source_name(source_path: str | Path) -> str:
     return KNOWN_SOURCE_NAMES.get(normalized_key, stem)
 
 
-def is_real_source(source_name: str, real_sources: tuple[str, ...] | list[str] | None = None) -> bool:
+def is_real_source(
+    source_name: str,
+    real_sources: tuple[str, ...] | list[str] | None = None,
+) -> bool:
     """判断当前数据源是否属于真实数据源集合。"""
     real_source_set = set(real_sources or REAL_SOURCE_NAMES)
     return str(source_name) in real_source_set
@@ -125,7 +128,7 @@ def load_namespaced_case_ids(
 
 
 def load_case_files(
-    file_paths: list,
+    file_paths: list[str | Path],
     case_id_col: str = "case_id",
     label_col: str = "mondo_label",
     disease_index_path: str | Path = _DISEASE_INDEX_PATH,
@@ -136,9 +139,9 @@ def load_case_files(
 
     每个 case_id 都会被改写成带 split 与相对路径命名空间的形式，例如：
     `train::LLLdataset/dataset/processed/train/DDD.csv::case_1`
-    这样不会再因为 train/test 同 stem 文件而发生命名碰撞。
+    这样不会再因 train/test 同 stem 文件而发生命名碰撞。
     """
-    dfs = []
+    dfs: list[pd.DataFrame] = []
     for path in file_paths:
         resolved_path = Path(path).resolve()
         source_name = normalize_source_name(resolved_path)
@@ -167,8 +170,7 @@ def load_case_files(
         raise ValueError(f"合并后的病例表缺少必要列: {label_col}")
 
     disease2idx = load_disease_index_map(disease_index_path)
-    # 这里的 gold_disease_idx 仅表示“纯 disease index 空间中的标签索引”。
-    # 它不是 combined H 列号，也不是 scorer 空间中的局部索引。
+    # 这里的 gold_disease_idx 仅表示纯 disease index 空间中的标签索引。
     merged["gold_disease_idx"] = merged[label_col].map(disease2idx)
 
     missing_mask = merged["gold_disease_idx"].isna()
@@ -202,7 +204,6 @@ class CaseBatchLoader:
         case_id_col: str = "case_id",
         sampler_mode: str = "natural",
         source_balanced_target_cases: int | None = None,
-        source_quota_weights: dict[str, float] | None = None,
         config_path: Path = _CONFIG_PATH,
     ):
         if batch_size is None:
@@ -227,7 +228,6 @@ class CaseBatchLoader:
         self._active_case_ids: list[str] = list(self.base_case_ids)
         self._case_source_map = self._build_case_source_map()
         self._source_case_ids = self._build_source_case_ids()
-        self.source_quota_weights = self._resolve_source_quota_weights(source_quota_weights)
         if self.sampler_mode == "source_balanced":
             self._active_case_ids = self._build_source_balanced_case_ids(
                 epoch=0,
@@ -283,33 +283,6 @@ class CaseBatchLoader:
             return 0
         return max(1, int(np.ceil(len(self.base_case_ids) / len(self._source_case_ids))))
 
-    def _resolve_source_quota_weights(
-        self,
-        source_quota_weights: dict[str, float] | None,
-    ) -> dict[str, float]:
-        """在 B 组均衡采样基础上，解析按 source 单独配额的权重配置。"""
-        if not source_quota_weights:
-            return {}
-
-        normalized_weights: dict[str, float] = {}
-        for raw_source_name, raw_weight in source_quota_weights.items():
-            source_name = normalize_source_name(str(raw_source_name))
-            weight = float(raw_weight)
-            if weight < 0:
-                raise ValueError("source_quota_weights 中的权重不能小于 0。")
-            normalized_weights[source_name] = weight
-        return normalized_weights
-
-    def _resolve_effective_target_cases_per_source(self) -> tuple[int, dict[str, int]]:
-        """在 base target 基础上乘以 quota 权重，得到每个 source 的有效 target。"""
-        base_target_cases = self._resolve_source_balanced_target_cases()
-        effective_target_cases: dict[str, int] = {}
-        for source_name in sorted(self._source_case_ids):
-            quota_weight = float(self.source_quota_weights.get(source_name, 1.0))
-            target_cases = int(round(base_target_cases * quota_weight))
-            effective_target_cases[source_name] = max(0, target_cases)
-        return base_target_cases, effective_target_cases
-
     def _sample_source_case_ids(
         self,
         case_ids: list[str],
@@ -345,11 +318,11 @@ class CaseBatchLoader:
         if shuffle and len(source_names) > 1:
             rng.shuffle(source_names)
 
-        _, effective_target_cases = self._resolve_effective_target_cases_per_source()
+        target_count = self._resolve_source_balanced_target_cases()
         sampled_by_source = {
             source_name: self._sample_source_case_ids(
                 self._source_case_ids[source_name],
-                target_count=effective_target_cases[source_name],
+                target_count=target_count,
                 rng=rng,
                 shuffle=shuffle,
             )
@@ -357,13 +330,9 @@ class CaseBatchLoader:
         }
 
         balanced_case_ids: list[str] = []
-        max_target_count = max(effective_target_cases.values(), default=0)
-        for offset in range(max_target_count):
+        for offset in range(target_count):
             for source_name in source_names:
-                source_case_ids = sampled_by_source[source_name]
-                if offset >= len(source_case_ids):
-                    continue
-                balanced_case_ids.append(source_case_ids[offset])
+                balanced_case_ids.append(sampled_by_source[source_name][offset])
         return balanced_case_ids
 
     def get_active_source_counts(self) -> dict[str, int]:
@@ -376,28 +345,20 @@ class CaseBatchLoader:
 
     def get_sampling_summary(self) -> dict[str, Any]:
         """返回当前采样模式和 source 分布摘要，便于训练日志审查。"""
-        base_target_cases_per_source: int | None = None
-        effective_target_cases_per_source: dict[str, int] = {}
-        if self.sampler_mode == "source_balanced":
-            (
-                base_target_cases_per_source,
-                effective_target_cases_per_source,
-            ) = self._resolve_effective_target_cases_per_source()
         return {
             "sampler_mode": self.sampler_mode,
             "num_cases": int(len(self._active_case_ids)),
-            "source_balanced_target_cases": base_target_cases_per_source,
-            "base_target_cases_per_source": base_target_cases_per_source,
-            "effective_target_cases_per_source": effective_target_cases_per_source,
-            "source_quota_weights": {
-                source_name: float(weight)
-                for source_name, weight in sorted(self.source_quota_weights.items())
-            },
+            "source_balanced_target_cases": (
+                None
+                if self.sampler_mode != "source_balanced"
+                else int(self._resolve_source_balanced_target_cases())
+            ),
             "source_counts": self.get_active_source_counts(),
         }
 
     def _rebuild_active_batches(self) -> None:
-        """按当前 epoch 的 case 顺序预构建每个 batch 的行号列表。
+        """
+        按当前 epoch 的 case 顺序预构建每个 batch 的行号列表。
 
         这里显式按原始行号排序，保持与旧实现
         `df[df[self.case_id_col].isin(batch_ids)]` 一样的行顺序，
