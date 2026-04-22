@@ -77,7 +77,7 @@ train:
   log_every: 96
   early_stop: true
   early_stop_patience: 5
-  monitor: val_real_macro_top1
+  monitor: val_real_macro_top5
   monitor_mode: max
   save_best: true
   save_last: true
