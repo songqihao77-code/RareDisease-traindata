@@ -1,0 +1,86 @@
+paths:
+  train_files:
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\DDD.csv
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\HMS.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\LIRICAL.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\MME.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\MyGene2.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\train\RAMEDIS.xlsx
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\mimic_rag_0425.csv
+  - D:\RareDisease-traindata\LLLdataset\dataset\processed\FakeDisease.xlsx
+  hpo_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx
+  disease_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx
+  disease_incidence_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz
+  save_dir: D:\RareDisease-traindata\outputs\case_noise_ablation\g6_prune_and_weight_df010
+data:
+  batch_size: 16
+  val_ratio: 0.1
+  shuffle: true
+  random_seed: 42
+validation:
+  real_sources:
+  - DDD
+  - HMS
+  - LIRICAL
+  - MME
+  - MyGene2
+  - RAMEDIS
+  synthetic_sources:
+  - FakeDisease
+  - mimic_rag_0425
+model:
+  hidden_dim: 128
+  case_refiner:
+    enabled: true
+    mlp_hidden_dim: 128
+    residual: 0.1
+  readout:
+    type: hyperedge
+    attn_hidden_dim: 128
+    attn_dropout: 0.1
+    context_mode: leave_one_out
+    residual_uniform: 0.2
+    return_attention: false
+case_noise_control:
+  enabled: true
+  mode: prune_and_weight
+  min_keep: 5
+  max_drop_ratio: 0.35
+  general_hpo_df_threshold: 0.10
+  weighting: sqrt_idf
+  normalize_weights: true
+  log_stats: true
+loss:
+  loss_name: full_pool_ce
+  poly_epsilon: 2.0
+  temperature: 0.18
+  hard_negative:
+    use_hard_negative: true
+    k: 10
+    top_m: 3
+    start_epoch: 2
+    weight: 2.8
+    margin: 0.08
+optimizer:
+  lr: 0.0001
+  weight_decay: 0.0002
+train:
+  num_epochs: 50
+  device: cuda
+  init_checkpoint_path: D:\RareDisease-traindata\outputs\stage1_pretrain_v59\checkpoints\best.pt
+  sampler:
+    sampler_mode: source_balanced
+    source_balanced_target_cases: null
+  hpo_dropout_prob: 0.2
+  hpo_corruption_prob: 0.0
+  eval_every: 1
+  log_every: 96
+  early_stop: true
+  early_stop_patience: 5
+  monitor: val_real_macro_top5
+  monitor_mode: max
+  save_best: true
+  save_last: true
+  save_every_eval: false
+  grad_clip_norm: null
+  num_workers: 0
