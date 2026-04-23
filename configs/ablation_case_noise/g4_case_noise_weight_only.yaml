@@ -45,6 +45,7 @@ case_noise_control:
   enabled: true
   mode: weight_only
   weighting: sqrt_idf
+  alpha: 0.5
   normalize_weights: true
   log_stats: true
 loss:

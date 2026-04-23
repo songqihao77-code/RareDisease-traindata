@@ -647,6 +647,7 @@ def evaluate(
         "log_stats": False,
         "mode": None,
         "weighting": None,
+        "alpha": None,
         "normalize_weights": None,
         "num_cases": 0,
         "pruned_case_count": 0,
@@ -702,6 +703,10 @@ def evaluate(
                 case_noise_aggregate["weighting"] = batch_case_noise_stats.get(
                     "weighting",
                     case_noise_aggregate["weighting"],
+                )
+                case_noise_aggregate["alpha"] = batch_case_noise_stats.get(
+                    "alpha",
+                    case_noise_aggregate["alpha"],
                 )
                 case_noise_aggregate["normalize_weights"] = batch_case_noise_stats.get(
                     "normalize_weights",
@@ -800,6 +805,7 @@ def evaluate(
             "log_stats": bool(case_noise_aggregate["log_stats"]),
             "mode": case_noise_aggregate["mode"],
             "weighting": case_noise_aggregate["weighting"],
+            "alpha": case_noise_aggregate["alpha"],
             "normalize_weights": case_noise_aggregate["normalize_weights"],
             "num_cases": aggregate_case_count,
             "pruned_case_count": int(case_noise_aggregate["pruned_case_count"]),
@@ -858,10 +864,14 @@ def evaluate(
     if case_noise_summary is not None and (
         case_noise_summary["enabled"] or case_noise_summary["log_stats"]
     ):
+        alpha_text = ""
+        if case_noise_summary.get("alpha") is not None:
+            alpha_text = f"alpha={float(case_noise_summary['alpha']):.4f} "
         print(
             "Eval CaseNoise "
             f"mode={case_noise_summary['mode']} "
             f"weighting={case_noise_summary['weighting']} "
+            f"{alpha_text}"
             f"raw_hpo={case_noise_summary['raw_hpo_total']} "
             f"kept_hpo={case_noise_summary['kept_hpo_total']} "
             f"drop_ratio={case_noise_summary['drop_ratio']:.4f} "

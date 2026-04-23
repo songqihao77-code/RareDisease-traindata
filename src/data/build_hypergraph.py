@@ -31,6 +31,7 @@ _DEFAULT_CASE_NOISE_CONTROL = {
     "enabled": False,
     "mode": "weight_only",
     "weighting": "sqrt_idf",
+    "alpha": 0.5,
     "normalize_weights": True,
     "log_stats": False,
 }
@@ -73,13 +74,18 @@ def resolve_case_noise_control(case_noise_control: Mapping[str, Any] | None) -> 
     cfg["enabled"] = bool(cfg["enabled"])
     cfg["mode"] = str(cfg["mode"])
     cfg["weighting"] = str(cfg["weighting"])
+    cfg["alpha"] = float(cfg["alpha"])
     cfg["normalize_weights"] = bool(cfg["normalize_weights"])
     cfg["log_stats"] = bool(cfg["log_stats"])
 
     if cfg["mode"] != "weight_only":
         raise ValueError("当前仅保留 case_noise_control.mode='weight_only'。")
-    if cfg["weighting"] not in {"binary", "idf", "sqrt_idf"}:
-        raise ValueError("case_noise_control.weighting 只支持 'binary'、'idf'、'sqrt_idf'。")
+    if cfg["weighting"] not in {"binary", "idf", "sqrt_idf", "power_idf"}:
+        raise ValueError(
+            "case_noise_control.weighting 只支持 'binary'、'idf'、'sqrt_idf'、'power_idf'。"
+        )
+    if cfg["alpha"] <= 0.0:
+        raise ValueError("case_noise_control.alpha 必须是正数。")
     return cfg
 
 
@@ -98,6 +104,7 @@ def _build_case_hpo_weights(
     *,
     hpo_specificity: np.ndarray,
     weighting: str,
+    alpha: float,
     normalize_weights: bool,
 ) -> np.ndarray:
     if not hpo_indices:
@@ -115,6 +122,8 @@ def _build_case_hpo_weights(
             weights = specificity
         elif weighting == "sqrt_idf":
             weights = np.sqrt(specificity).astype(np.float32, copy=False)
+        elif weighting == "power_idf":
+            weights = np.power(specificity, float(alpha)).astype(np.float32, copy=False)
         else:
             raise ValueError(f"未知 weighting 模式: {weighting}")
 
@@ -155,6 +164,7 @@ def _apply_case_noise_control(
                 "enabled": bool(cfg["enabled"]),
                 "mode": cfg["mode"],
                 "weighting": cfg["weighting"],
+                "alpha": float(cfg["alpha"]),
                 "normalize_weights": bool(cfg["normalize_weights"]),
                 "log_stats": bool(cfg["log_stats"]),
                 "raw_hpo_count": 0,
@@ -176,6 +186,7 @@ def _apply_case_noise_control(
                 hpo_specificity if hpo_specificity is not None else np.zeros((0,), dtype=np.float32)
             ),
             weighting=str(cfg["weighting"]),
+            alpha=float(cfg["alpha"]),
             normalize_weights=bool(cfg["normalize_weights"]),
         )
     else:
@@ -190,6 +201,7 @@ def _apply_case_noise_control(
             "enabled": bool(cfg["enabled"]),
             "mode": cfg["mode"],
             "weighting": cfg["weighting"],
+            "alpha": float(cfg["alpha"]),
             "normalize_weights": bool(cfg["normalize_weights"]),
             "log_stats": bool(cfg["log_stats"]),
             "raw_hpo_count": int(raw_hpo_count),
@@ -322,6 +334,7 @@ def build_case_incidence(
         "enabled": bool(noise_cfg["enabled"]),
         "mode": str(noise_cfg["mode"]),
         "weighting": str(noise_cfg["weighting"]),
+        "alpha": float(noise_cfg["alpha"]),
         "normalize_weights": bool(noise_cfg["normalize_weights"]),
         "log_stats": bool(noise_cfg["log_stats"]),
         "num_cases": int(num_case),

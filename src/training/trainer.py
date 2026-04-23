@@ -518,6 +518,7 @@ def _init_case_noise_aggregate() -> dict[str, Any]:
         "log_stats": False,
         "mode": None,
         "weighting": None,
+        "alpha": None,
         "normalize_weights": None,
         "num_cases": 0,
         "pruned_case_count": 0,
@@ -541,6 +542,7 @@ def _accumulate_case_noise_aggregate(
     aggregate["log_stats"] = bool(aggregate["log_stats"] or batch_stats.get("log_stats", False))
     aggregate["mode"] = batch_stats.get("mode", aggregate["mode"])
     aggregate["weighting"] = batch_stats.get("weighting", aggregate["weighting"])
+    aggregate["alpha"] = batch_stats.get("alpha", aggregate["alpha"])
     aggregate["normalize_weights"] = batch_stats.get(
         "normalize_weights",
         aggregate["normalize_weights"],
@@ -566,6 +568,7 @@ def _finalize_case_noise_aggregate(aggregate: dict[str, Any]) -> dict[str, Any] 
         "log_stats": bool(aggregate["log_stats"]),
         "mode": aggregate["mode"],
         "weighting": aggregate["weighting"],
+        "alpha": aggregate["alpha"],
         "normalize_weights": aggregate["normalize_weights"],
         "num_cases": num_cases,
         "pruned_case_count": int(aggregate["pruned_case_count"]),
@@ -582,9 +585,13 @@ def _finalize_case_noise_aggregate(aggregate: dict[str, Any]) -> dict[str, Any] 
 
 
 def _format_case_noise_summary(summary: dict[str, Any]) -> str:
+    alpha_text = ""
+    if summary.get("alpha") is not None:
+        alpha_text = f"alpha={float(summary['alpha']):.4f} "
     return (
         f"mode={summary.get('mode')} "
         f"weighting={summary.get('weighting')} "
+        f"{alpha_text}"
         f"raw_hpo={int(summary.get('raw_hpo_total', 0))} "
         f"kept_hpo={int(summary.get('kept_hpo_total', 0))} "
         f"drop_ratio={float(summary.get('drop_ratio', 0.0)):.4f} "
