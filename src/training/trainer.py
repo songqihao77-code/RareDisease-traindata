@@ -281,6 +281,111 @@ def resolve_train_sampler_config(train_cfg: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def resolve_phase2_real_heavy_config(train_cfg: dict[str, Any]) -> dict[str, Any]:
+    """解析 phase2 real-heavy finetune 配置。"""
+    phase2_cfg = train_cfg.get("phase2_real_heavy", {})
+    if phase2_cfg is None:
+        phase2_cfg = {}
+    if not isinstance(phase2_cfg, dict):
+        raise TypeError("train.phase2_real_heavy 配置必须是 dict。")
+
+    keep_sources_default = [*REAL_SOURCE_NAMES, "mimic_rag_0425"]
+    drop_sources_default = ["FakeDisease"]
+    keep_sources = _parse_source_list(phase2_cfg.get("keep_sources"), tuple(keep_sources_default))
+    drop_sources = _parse_source_list(phase2_cfg.get("drop_sources"), tuple(drop_sources_default))
+
+    overlap_sources = sorted(set(keep_sources) & set(drop_sources))
+    if overlap_sources:
+        raise ValueError(
+            "train.phase2_real_heavy.keep_sources 和 drop_sources 不能重叠: "
+            + ", ".join(overlap_sources)
+        )
+
+    start_epoch = int(phase2_cfg.get("start_epoch", 7))
+    if start_epoch < 1:
+        raise ValueError("train.phase2_real_heavy.start_epoch 必须大于等于 1。")
+
+    lr_scale = float(phase2_cfg.get("lr_scale", 0.5))
+    if lr_scale <= 0.0:
+        raise ValueError("train.phase2_real_heavy.lr_scale 必须大于 0。")
+
+    return {
+        "enabled": bool(phase2_cfg.get("enabled", False)),
+        "start_epoch": start_epoch,
+        "lr_scale": lr_scale,
+        "keep_sources": keep_sources,
+        "drop_sources": drop_sources,
+    }
+
+
+def build_case_source_counts(
+    df: pd.DataFrame,
+    case_id_col: str = "case_id",
+) -> dict[str, int]:
+    """按 case 级 source 统计当前数据集的病例数。"""
+    if case_id_col not in df.columns:
+        raise KeyError(f"数据中缺少列: {case_id_col}")
+
+    if "_source_name" in df.columns:
+        source_series = df.groupby(case_id_col, sort=False)["_source_name"].first()
+    elif "_source_file" in df.columns:
+        source_series = df.groupby(case_id_col, sort=False)["_source_file"].first().map(normalize_source_name)
+    else:
+        source_series = pd.Series(["unknown_source"] * df[case_id_col].nunique())
+
+    source_series = source_series.fillna("unknown_source").astype(str)
+    return {str(source_name): int(count) for source_name, count in source_series.value_counts().sort_index().items()}
+
+
+def build_phase2_real_heavy_train_df(
+    train_df: pd.DataFrame,
+    keep_sources: list[str],
+    drop_sources: list[str],
+    case_id_col: str = "case_id",
+) -> pd.DataFrame:
+    """基于 source_name 过滤出 phase2 real-heavy 子集。"""
+    if case_id_col not in train_df.columns:
+        raise KeyError(f"train_df 缺少列: {case_id_col}")
+
+    if "_source_name" in train_df.columns:
+        case_source_series = train_df.groupby(case_id_col, sort=False)["_source_name"].first()
+    elif "_source_file" in train_df.columns:
+        case_source_series = (
+            train_df.groupby(case_id_col, sort=False)["_source_file"].first().map(normalize_source_name)
+        )
+    else:
+        raise KeyError("train_df 缺少 _source_name/_source_file，无法构建 phase2 real-heavy 子集。")
+
+    keep_source_set = {str(source_name) for source_name in keep_sources}
+    drop_source_set = {str(source_name) for source_name in drop_sources}
+    selected_case_ids = [
+        str(case_id)
+        for case_id, source_name in case_source_series.fillna("unknown_source").astype(str).items()
+        if source_name in keep_source_set and source_name not in drop_source_set
+    ]
+    if not selected_case_ids:
+        raise ValueError("phase2 real-heavy 过滤后没有可用病例，请检查 keep_sources/drop_sources。")
+
+    phase2_train_df = train_df[train_df[case_id_col].isin(selected_case_ids)].reset_index(drop=True)
+    if phase2_train_df.empty:
+        raise ValueError("phase2 real-heavy 过滤后 train_df 为空，请检查配置。")
+    return phase2_train_df
+
+
+def build_train_loader(
+    train_df: pd.DataFrame,
+    batch_size: int,
+    train_sampler_cfg: dict[str, Any],
+) -> CaseBatchLoader:
+    """按当前主线 sampler 配置构建训练集 loader。"""
+    return CaseBatchLoader(
+        df=train_df,
+        batch_size=batch_size,
+        sampler_mode=train_sampler_cfg["sampler_mode"],
+        source_balanced_target_cases=train_sampler_cfg["source_balanced_target_cases"],
+    )
+
+
 def format_source_counts(source_counts: dict[str, int]) -> str:
     """把 source 计数摘要格式化成适合日志打印的文本。"""
     if not source_counts:
@@ -791,6 +896,7 @@ def main() -> None:
     train_cfg = config["train"]
     validation_cfg = resolve_validation_config(config)
     train_sampler_cfg = resolve_train_sampler_config(train_cfg)
+    phase2_real_heavy_cfg = resolve_phase2_real_heavy_config(train_cfg)
 
     random_seed = int(data_cfg["random_seed"])
     random.seed(random_seed)
@@ -825,11 +931,37 @@ def main() -> None:
         f"val_case={val_df['case_id'].nunique()}"
     )
 
-    train_loader = CaseBatchLoader(
-        df=train_df,
+    phase1_train_case_count = int(train_df["case_id"].nunique())
+    phase1_source_counts = build_case_source_counts(train_df)
+    phase2_train_df = None
+    phase2_train_case_count = None
+    phase2_source_counts: dict[str, int] | None = None
+    if phase2_real_heavy_cfg["enabled"]:
+        phase2_train_df = build_phase2_real_heavy_train_df(
+            train_df=train_df,
+            keep_sources=phase2_real_heavy_cfg["keep_sources"],
+            drop_sources=phase2_real_heavy_cfg["drop_sources"],
+        )
+        phase2_train_case_count = int(phase2_train_df["case_id"].nunique())
+        phase2_source_counts = build_case_source_counts(phase2_train_df)
+        print(
+            "Phase2 real-heavy prepared: "
+            f"start_epoch={phase2_real_heavy_cfg['start_epoch']} "
+            f"phase1_train_case={phase1_train_case_count} "
+            f"phase2_train_case={phase2_train_case_count} "
+            f"keep_sources={phase2_real_heavy_cfg['keep_sources']} "
+            f"drop_sources={phase2_real_heavy_cfg['drop_sources']}"
+        )
+        print(
+            "Phase2 source summary: "
+            f"phase1_source_counts={format_source_counts(phase1_source_counts)} "
+            f"phase2_source_counts={format_source_counts(phase2_source_counts)}"
+        )
+
+    train_loader = build_train_loader(
+        train_df=train_df,
         batch_size=int(data_cfg["batch_size"]),
-        sampler_mode=train_sampler_cfg["sampler_mode"],
-        source_balanced_target_cases=train_sampler_cfg["source_balanced_target_cases"],
+        train_sampler_cfg=train_sampler_cfg,
     )
     print(
         "Train sampler config: "
@@ -869,6 +1001,7 @@ def main() -> None:
     )
     effective_config["validation"] = validation_cfg
     effective_config["train"]["sampler"] = train_sampler_cfg
+    effective_config["train"]["phase2_real_heavy"] = phase2_real_heavy_cfg
     effective_config_path = save_yaml(effective_config, save_dir / "effective_config.yaml")
     print_effective_config("Training Effective Config", effective_config)
     print(f"训练 effective config 已保存: {effective_config_path}")
@@ -917,7 +1050,44 @@ def main() -> None:
     if grad_clip_norm is not None:
         grad_clip_norm = float(grad_clip_norm)
 
+    current_train_phase = "phase1"
+    phase2_switched = False
     for epoch in range(1, num_epochs + 1):
+        if (
+            phase2_real_heavy_cfg["enabled"]
+            and not phase2_switched
+            and epoch >= phase2_real_heavy_cfg["start_epoch"]
+        ):
+            if phase2_train_df is None or phase2_source_counts is None or phase2_train_case_count is None:
+                raise ValueError("phase2 real-heavy 已启用，但 phase2_train_df 未正确构建。")
+
+            old_lrs = [float(group["lr"]) for group in optimizer.param_groups]
+            for group in optimizer.param_groups:
+                group["lr"] = float(group["lr"]) * float(phase2_real_heavy_cfg["lr_scale"])
+            new_lrs = [float(group["lr"]) for group in optimizer.param_groups]
+
+            train_loader = build_train_loader(
+                train_df=phase2_train_df,
+                batch_size=int(data_cfg["batch_size"]),
+                train_sampler_cfg=train_sampler_cfg,
+            )
+            current_train_phase = "phase2_real_heavy"
+            phase2_switched = True
+            print(
+                "Phase2 real-heavy switch: "
+                f"epoch={epoch} "
+                f"keep_sources={phase2_real_heavy_cfg['keep_sources']} "
+                f"drop_sources={phase2_real_heavy_cfg['drop_sources']} "
+                f"phase1_train_case={phase1_train_case_count} "
+                f"phase2_train_case={phase2_train_case_count} "
+                f"lr_old={old_lrs} "
+                f"lr_new={new_lrs}"
+            )
+            print(
+                "Phase2 real-heavy source_counts: "
+                f"{format_source_counts(phase2_source_counts)}"
+            )
+
         train_metrics = run_one_epoch(
             epoch=epoch,
             model=model,
@@ -961,6 +1131,7 @@ def main() -> None:
 
         record = {
             "epoch": epoch,
+            "train_phase": current_train_phase,
             "train_loss": train_metrics["loss"],
             "train_top1": train_metrics["top1"],
             "train_top3": train_metrics["top3"],
@@ -988,6 +1159,7 @@ def main() -> None:
 
         print(
             f"Epoch {epoch} Train "
+            f"phase={record['train_phase']} "
             f"train_loss={record['train_loss']:.6f} "
             f"train_top1={record['train_top1']:.4f} "
             f"train_top3={record['train_top3']:.4f} "
