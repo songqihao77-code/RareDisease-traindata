@@ -667,7 +667,6 @@ def run_one_epoch(
                     hpo_dropout_prob=hpo_dropout_prob if is_train else 0.0,
                     hpo_corruption_prob=hpo_corruption_prob if is_train else 0.0,
                     case_noise_control=case_noise_control,
-                    hpo_df_ratio=static_graph.get("hpo_df_ratio"),
                     hpo_specificity=static_graph.get("hpo_specificity"),
                     # 训练热路径只依赖 H_case 和 H_disease。
                     # 这里跳过 H=[H_case|H_disease] 的冗余拼接，不改变任何前向数值。

@@ -675,7 +675,6 @@ def evaluate(
                 label_col=label_col,
                 hpo_col=hpo_col,
                 case_noise_control=case_noise_control_cfg,
-                hpo_df_ratio=resources.get("hpo_df_ratio"),
                 hpo_specificity=resources.get("hpo_specificity"),
                 # 评估热路径只需要 H_case 和 H_disease，不必重复拼接组合大图。
                 include_combined_h=False,

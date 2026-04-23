@@ -50,10 +50,7 @@ model:
 
 case_noise_control:
   enabled: true
-  mode: prune_and_weight
-  min_keep: 5
-  max_drop_ratio: 0.35
-  general_hpo_df_threshold: 0.20
+  mode: weight_only
   weighting: sqrt_idf
   normalize_weights: true
   log_stats: true
