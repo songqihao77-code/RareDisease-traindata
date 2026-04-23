@@ -13,6 +13,8 @@
 from __future__ import annotations
 
 import random
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -24,6 +26,17 @@ _DISEASE_INDEX_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\
 # v60 mixed dataset-case statistics into disease hyperedges and must not be used
 # as the default train/eval incidence source.
 _DISEASE_INC_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz"
+
+_DEFAULT_CASE_NOISE_CONTROL = {
+    "enabled": False,
+    "mode": "prune_and_weight",
+    "min_keep": 5,
+    "max_drop_ratio": 0.35,
+    "general_hpo_df_threshold": 0.20,
+    "weighting": "sqrt_idf",
+    "normalize_weights": True,
+    "log_stats": False,
+}
 
 
 def load_index_file(path: str, id_col: str, idx_col: str) -> dict:
@@ -51,6 +64,185 @@ def load_disease_incidence(path: str) -> csr_matrix:
     return csr_matrix((npz[value_key], (npz[row_key], npz[col_key])), shape=shape)
 
 
+def resolve_case_noise_control(case_noise_control: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Resolve and validate the case-side noise-control config."""
+    cfg = dict(_DEFAULT_CASE_NOISE_CONTROL)
+    if case_noise_control is None:
+        return cfg
+    if not isinstance(case_noise_control, Mapping):
+        raise TypeError("case_noise_control 必须是 Mapping/dict。")
+
+    cfg.update(dict(case_noise_control))
+    cfg["enabled"] = bool(cfg["enabled"])
+    cfg["mode"] = str(cfg["mode"])
+    cfg["min_keep"] = int(cfg["min_keep"])
+    cfg["max_drop_ratio"] = float(cfg["max_drop_ratio"])
+    cfg["general_hpo_df_threshold"] = float(cfg["general_hpo_df_threshold"])
+    cfg["weighting"] = str(cfg["weighting"])
+    cfg["normalize_weights"] = bool(cfg["normalize_weights"])
+    cfg["log_stats"] = bool(cfg["log_stats"])
+
+    if cfg["mode"] not in {"prune_and_weight", "prune_only", "weight_only"}:
+        raise ValueError(
+            "case_noise_control.mode 只支持 'prune_and_weight'、'prune_only'、'weight_only'。"
+        )
+    if cfg["min_keep"] <= 0:
+        raise ValueError("case_noise_control.min_keep 必须大于 0。")
+    if not 0.0 <= cfg["max_drop_ratio"] <= 1.0:
+        raise ValueError("case_noise_control.max_drop_ratio 必须位于 [0, 1]。")
+    if not 0.0 <= cfg["general_hpo_df_threshold"] <= 1.0:
+        raise ValueError("case_noise_control.general_hpo_df_threshold 必须位于 [0, 1]。")
+    if cfg["weighting"] not in {"binary", "idf", "sqrt_idf"}:
+        raise ValueError("case_noise_control.weighting 只支持 'binary'、'idf'、'sqrt_idf'。")
+    return cfg
+
+
+def _compute_hpo_global_statistics(H_disease: csr_matrix) -> dict[str, Any]:
+    """Precompute disease-side HPO frequency and specificity."""
+    h_disease_csr = H_disease.tocsr()
+    num_disease = int(h_disease_csr.shape[1])
+    hpo_df = np.diff(h_disease_csr.indptr).astype(np.int64, copy=False)
+    if num_disease <= 0:
+        hpo_df_ratio = np.zeros_like(hpo_df, dtype=np.float32)
+        hpo_specificity = np.zeros_like(hpo_df, dtype=np.float32)
+    else:
+        hpo_df_ratio = hpo_df.astype(np.float32) / float(num_disease)
+        hpo_specificity = np.log((float(num_disease) + 1.0) / (hpo_df.astype(np.float32) + 1.0))
+    return {
+        "hpo_df": hpo_df,
+        "hpo_df_ratio": hpo_df_ratio.astype(np.float32, copy=False),
+        "hpo_specificity": hpo_specificity.astype(np.float32, copy=False),
+    }
+
+
+def _build_case_hpo_weights(
+    hpo_indices: list[int],
+    *,
+    hpo_specificity: np.ndarray,
+    weighting: str,
+    normalize_weights: bool,
+) -> np.ndarray:
+    if not hpo_indices:
+        return np.zeros((0,), dtype=np.float32)
+
+    if weighting == "binary":
+        weights = np.ones((len(hpo_indices),), dtype=np.float32)
+    else:
+        specificity = np.clip(
+            hpo_specificity[np.asarray(hpo_indices, dtype=np.int64)],
+            a_min=0.0,
+            a_max=None,
+        ).astype(np.float32, copy=False)
+        if weighting == "idf":
+            weights = specificity
+        elif weighting == "sqrt_idf":
+            weights = np.sqrt(specificity).astype(np.float32, copy=False)
+        else:
+            raise ValueError(f"未知 weighting 模式: {weighting}")
+
+    if normalize_weights and weights.size > 0:
+        weight_sum = float(weights.sum())
+        if weight_sum <= 0.0:
+            weights = np.full((weights.size,), 1.0 / float(weights.size), dtype=np.float32)
+        else:
+            weights = weights / weight_sum
+    return weights.astype(np.float32, copy=False)
+
+
+def _compute_case_weight_entropy(weights: np.ndarray) -> float:
+    if weights.size == 0:
+        return 0.0
+    weight_sum = float(weights.sum())
+    if weight_sum <= 0.0:
+        probs = np.full((weights.size,), 1.0 / float(weights.size), dtype=np.float32)
+    else:
+        probs = weights / weight_sum
+    return float(-(probs * np.log(probs + 1e-12)).sum())
+
+
+def _apply_case_noise_control(
+    valid_hpos: list[str],
+    *,
+    hpo_to_idx: Mapping[str, int],
+    hpo_df_ratio: np.ndarray | None,
+    hpo_specificity: np.ndarray | None,
+    case_noise_control: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    cfg = resolve_case_noise_control(case_noise_control)
+    raw_hpo_count = len(valid_hpos)
+    if raw_hpo_count == 0:
+        return {
+            "hpo_ids": [],
+            "weights": np.zeros((0,), dtype=np.float32),
+            "stats": {
+                "enabled": bool(cfg["enabled"]),
+                "mode": cfg["mode"],
+                "weighting": cfg["weighting"],
+                "normalize_weights": bool(cfg["normalize_weights"]),
+                "log_stats": bool(cfg["log_stats"]),
+                "raw_hpo_count": 0,
+                "kept_hpo_count": 0,
+                "dropped_hpo_count": 0,
+                "drop_ratio": 0.0,
+                "weight_entropy": 0.0,
+            },
+        }
+
+    retained_positions = list(range(raw_hpo_count))
+    if cfg["enabled"]:
+        if hpo_df_ratio is None or hpo_specificity is None:
+            raise ValueError("启用 case_noise_control 时必须提供 hpo_df_ratio 与 hpo_specificity。")
+
+        if cfg["mode"] in {"prune_and_weight", "prune_only"} and raw_hpo_count > cfg["min_keep"]:
+            candidate_positions: list[tuple[float, float, int]] = []
+            for pos, hpo_id in enumerate(valid_hpos):
+                hpo_idx = int(hpo_to_idx[hpo_id])
+                df_ratio = float(hpo_df_ratio[hpo_idx])
+                if df_ratio > float(cfg["general_hpo_df_threshold"]):
+                    candidate_positions.append((df_ratio, float(hpo_specificity[hpo_idx]), pos))
+
+            max_drop_by_ratio = int(np.floor(raw_hpo_count * float(cfg["max_drop_ratio"])))
+            max_drop_by_min_keep = max(raw_hpo_count - int(cfg["min_keep"]), 0)
+            max_drop_count = min(max_drop_by_ratio, max_drop_by_min_keep, len(candidate_positions))
+            if max_drop_count > 0:
+                candidate_positions.sort(key=lambda item: (-item[0], item[1], item[2]))
+                drop_positions = {item[2] for item in candidate_positions[:max_drop_count]}
+                retained_positions = [pos for pos in retained_positions if pos not in drop_positions]
+
+    retained_hpos = [valid_hpos[pos] for pos in retained_positions]
+    if cfg["enabled"] and cfg["mode"] in {"prune_and_weight", "weight_only"}:
+        retained_indices = [int(hpo_to_idx[hpo_id]) for hpo_id in retained_hpos]
+        weights = _build_case_hpo_weights(
+            retained_indices,
+            hpo_specificity=(
+                hpo_specificity if hpo_specificity is not None else np.zeros((0,), dtype=np.float32)
+            ),
+            weighting=str(cfg["weighting"]),
+            normalize_weights=bool(cfg["normalize_weights"]),
+        )
+    else:
+        weights = np.ones((len(retained_hpos),), dtype=np.float32)
+
+    kept_hpo_count = len(retained_hpos)
+    dropped_hpo_count = raw_hpo_count - kept_hpo_count
+    return {
+        "hpo_ids": retained_hpos,
+        "weights": weights,
+        "stats": {
+            "enabled": bool(cfg["enabled"]),
+            "mode": cfg["mode"],
+            "weighting": cfg["weighting"],
+            "normalize_weights": bool(cfg["normalize_weights"]),
+            "log_stats": bool(cfg["log_stats"]),
+            "raw_hpo_count": int(raw_hpo_count),
+            "kept_hpo_count": int(kept_hpo_count),
+            "dropped_hpo_count": int(dropped_hpo_count),
+            "drop_ratio": float(dropped_hpo_count / float(raw_hpo_count)) if raw_hpo_count else 0.0,
+            "weight_entropy": _compute_case_weight_entropy(weights),
+        },
+    }
+
+
 def build_case_incidence(
     case_df: pd.DataFrame,
     hpo_to_idx: dict,
@@ -63,6 +255,9 @@ def build_case_incidence(
     top_50_hpos: list[str] | None = None,
     rng: random.Random | None = None,
     verbose: bool = False,
+    case_noise_control: Mapping[str, Any] | None = None,
+    hpo_df_ratio: np.ndarray | None = None,
+    hpo_specificity: np.ndarray | None = None,
 ) -> dict:
     """从病例表构建 `H_case`。"""
     if not 0.0 <= hpo_dropout_prob <= 1.0:
@@ -76,11 +271,18 @@ def build_case_incidence(
 
     rows: list[int] = []
     cols: list[int] = []
+    vals: list[float] = []
     case_ids: list[str] = []
     case_labels: list[str] = []
     gold_disease_idx: list[int] = []
     skip_disease = 0
     skip_hpo = 0
+    noise_cfg = resolve_case_noise_control(case_noise_control)
+    raw_hpo_total = 0
+    kept_hpo_total = 0
+    dropped_hpo_total = 0
+    weight_entropy_total = 0.0
+    pruned_case_count = 0
 
     for case_id, group_df in df.groupby(case_id_col, sort=False):
         mondo_id = group_df[label_col].iloc[0]
@@ -117,10 +319,32 @@ def build_case_incidence(
                     if nh not in valid_hpos:
                         valid_hpos.append(nh)
 
+        controlled_case = _apply_case_noise_control(
+            valid_hpos,
+            hpo_to_idx=hpo_to_idx,
+            hpo_df_ratio=hpo_df_ratio,
+            hpo_specificity=hpo_specificity,
+            case_noise_control=noise_cfg,
+        )
+        valid_hpos = controlled_case["hpo_ids"]
+        valid_weights = controlled_case["weights"]
+        case_noise_stats = controlled_case["stats"]
+        raw_hpo_total += int(case_noise_stats["raw_hpo_count"])
+        kept_hpo_total += int(case_noise_stats["kept_hpo_count"])
+        dropped_hpo_total += int(case_noise_stats["dropped_hpo_count"])
+        weight_entropy_total += float(case_noise_stats["weight_entropy"])
+        if int(case_noise_stats["dropped_hpo_count"]) > 0:
+            pruned_case_count += 1
+
+        if not valid_hpos:
+            skip_hpo += 1
+            continue
+
         case_col = len(case_ids)
-        for hpo_id in valid_hpos:
+        for hpo_id, edge_weight in zip(valid_hpos, valid_weights):
             rows.append(hpo_to_idx[hpo_id])
             cols.append(case_col)
+            vals.append(float(edge_weight))
 
         case_ids.append(case_id)
         case_labels.append(mondo_id)
@@ -135,15 +359,41 @@ def build_case_incidence(
         )
 
     h_case = csr_matrix(
-        (np.ones(len(rows), dtype=np.float32), (rows, cols)),
+        (np.asarray(vals, dtype=np.float32), (rows, cols)),
         shape=(num_hpo, num_case),
     )
+    aggregated_case_noise_stats = {
+        "enabled": bool(noise_cfg["enabled"]),
+        "mode": str(noise_cfg["mode"]),
+        "weighting": str(noise_cfg["weighting"]),
+        "normalize_weights": bool(noise_cfg["normalize_weights"]),
+        "log_stats": bool(noise_cfg["log_stats"]),
+        "num_cases": int(num_case),
+        "pruned_case_count": int(pruned_case_count),
+        "raw_hpo_total": int(raw_hpo_total),
+        "kept_hpo_total": int(kept_hpo_total),
+        "dropped_hpo_total": int(dropped_hpo_total),
+        "drop_ratio": float(dropped_hpo_total / float(raw_hpo_total)) if raw_hpo_total else 0.0,
+        "mean_raw_hpo_per_case": float(raw_hpo_total / float(num_case)) if num_case else 0.0,
+        "mean_kept_hpo_per_case": float(kept_hpo_total / float(num_case)) if num_case else 0.0,
+        "mean_case_weight_entropy": float(weight_entropy_total / float(num_case)) if num_case else 0.0,
+    }
+    if verbose and aggregated_case_noise_stats["enabled"] and aggregated_case_noise_stats["log_stats"]:
+        print(
+            "[batch] CaseNoise "
+            f"raw_hpo={aggregated_case_noise_stats['raw_hpo_total']} "
+            f"kept_hpo={aggregated_case_noise_stats['kept_hpo_total']} "
+            f"drop_ratio={aggregated_case_noise_stats['drop_ratio']:.4f} "
+            f"mean_kept_hpo={aggregated_case_noise_stats['mean_kept_hpo_per_case']:.2f} "
+            f"mean_weight_entropy={aggregated_case_noise_stats['mean_case_weight_entropy']:.4f}"
+        )
     return {
         "H_case": h_case,
         "case_ids": case_ids,
         "case_labels": case_labels,
         # 这里的 gold_disease_idx 是纯 disease index 空间，不带 num_case 偏移。
         "gold_disease_idx": gold_disease_idx,
+        "case_noise_stats": aggregated_case_noise_stats,
     }
 
 
@@ -169,6 +419,7 @@ def load_static_graph(
             f"H_disease shape 异常: {h_disease.shape}，期望 ({num_hpo}, {num_disease})"
         )
 
+    hpo_global_stats = _compute_hpo_global_statistics(h_disease)
     hpo_degrees = np.array(h_disease.sum(axis=1)).flatten()
     top_50_indices = hpo_degrees.argsort()[-50:][::-1]
     idx_to_hpo = {v: k for k, v in hpo_to_idx.items()}
@@ -181,6 +432,9 @@ def load_static_graph(
         "num_hpo": num_hpo,
         "num_disease": num_disease,
         "top_50_hpos": top_50_hpos,
+        "hpo_df": hpo_global_stats["hpo_df"],
+        "hpo_df_ratio": hpo_global_stats["hpo_df_ratio"],
+        "hpo_specificity": hpo_global_stats["hpo_specificity"],
     }
 
 
@@ -198,6 +452,9 @@ def build_batch_hypergraph(
     rng: random.Random | None = None,
     verbose: bool = False,
     include_combined_h: bool = True,
+    case_noise_control: Mapping[str, Any] | None = None,
+    hpo_df_ratio: np.ndarray | None = None,
+    hpo_specificity: np.ndarray | None = None,
 ) -> dict:
     """为当前 batch 构建超图。
 
@@ -221,6 +478,9 @@ def build_batch_hypergraph(
         top_50_hpos=top_50_hpos,
         rng=rng,
         verbose=verbose,
+        case_noise_control=case_noise_control,
+        hpo_df_ratio=hpo_df_ratio,
+        hpo_specificity=hpo_specificity,
     )
     h_case = result["H_case"]
     num_case = h_case.shape[1]
@@ -261,6 +521,7 @@ def build_batch_hypergraph(
         "gold_disease_idx": gold_disease_idx,
         "gold_disease_col_in_combined_h": gold_disease_col_in_combined_h,
         "gold_disease_cols_global": gold_disease_col_in_combined_h,
+        "case_noise_stats": result["case_noise_stats"],
     }
     if h_all is not None:
         batch_graph["H"] = h_all

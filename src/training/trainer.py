@@ -406,6 +406,88 @@ def format_metric(value: float | None) -> str:
     return f"{value:.4f}"
 
 
+def _init_case_noise_aggregate() -> dict[str, Any]:
+    return {
+        "present": False,
+        "enabled": False,
+        "log_stats": False,
+        "mode": None,
+        "weighting": None,
+        "normalize_weights": None,
+        "num_cases": 0,
+        "pruned_case_count": 0,
+        "raw_hpo_total": 0,
+        "kept_hpo_total": 0,
+        "dropped_hpo_total": 0,
+        "weight_entropy_total": 0.0,
+    }
+
+
+def _accumulate_case_noise_aggregate(
+    aggregate: dict[str, Any],
+    batch_stats: dict[str, Any] | None,
+) -> None:
+    if not isinstance(batch_stats, dict):
+        return
+
+    num_cases = int(batch_stats.get("num_cases", 0))
+    aggregate["present"] = True
+    aggregate["enabled"] = bool(aggregate["enabled"] or batch_stats.get("enabled", False))
+    aggregate["log_stats"] = bool(aggregate["log_stats"] or batch_stats.get("log_stats", False))
+    aggregate["mode"] = batch_stats.get("mode", aggregate["mode"])
+    aggregate["weighting"] = batch_stats.get("weighting", aggregate["weighting"])
+    aggregate["normalize_weights"] = batch_stats.get(
+        "normalize_weights",
+        aggregate["normalize_weights"],
+    )
+    aggregate["num_cases"] += num_cases
+    aggregate["pruned_case_count"] += int(batch_stats.get("pruned_case_count", 0))
+    aggregate["raw_hpo_total"] += int(batch_stats.get("raw_hpo_total", 0))
+    aggregate["kept_hpo_total"] += int(batch_stats.get("kept_hpo_total", 0))
+    aggregate["dropped_hpo_total"] += int(batch_stats.get("dropped_hpo_total", 0))
+    aggregate["weight_entropy_total"] += float(batch_stats.get("mean_case_weight_entropy", 0.0)) * num_cases
+
+
+def _finalize_case_noise_aggregate(aggregate: dict[str, Any]) -> dict[str, Any] | None:
+    if not bool(aggregate.get("present")):
+        return None
+
+    num_cases = int(aggregate["num_cases"])
+    raw_hpo_total = int(aggregate["raw_hpo_total"])
+    kept_hpo_total = int(aggregate["kept_hpo_total"])
+    dropped_hpo_total = int(aggregate["dropped_hpo_total"])
+    return {
+        "enabled": bool(aggregate["enabled"]),
+        "log_stats": bool(aggregate["log_stats"]),
+        "mode": aggregate["mode"],
+        "weighting": aggregate["weighting"],
+        "normalize_weights": aggregate["normalize_weights"],
+        "num_cases": num_cases,
+        "pruned_case_count": int(aggregate["pruned_case_count"]),
+        "raw_hpo_total": raw_hpo_total,
+        "kept_hpo_total": kept_hpo_total,
+        "dropped_hpo_total": dropped_hpo_total,
+        "drop_ratio": float(dropped_hpo_total / float(raw_hpo_total)) if raw_hpo_total else 0.0,
+        "mean_raw_hpo_per_case": float(raw_hpo_total / float(num_cases)) if num_cases else 0.0,
+        "mean_kept_hpo_per_case": float(kept_hpo_total / float(num_cases)) if num_cases else 0.0,
+        "mean_case_weight_entropy": (
+            float(aggregate["weight_entropy_total"] / float(num_cases)) if num_cases else 0.0
+        ),
+    }
+
+
+def _format_case_noise_summary(summary: dict[str, Any]) -> str:
+    return (
+        f"mode={summary.get('mode')} "
+        f"weighting={summary.get('weighting')} "
+        f"raw_hpo={int(summary.get('raw_hpo_total', 0))} "
+        f"kept_hpo={int(summary.get('kept_hpo_total', 0))} "
+        f"drop_ratio={float(summary.get('drop_ratio', 0.0)):.4f} "
+        f"mean_kept_hpo={float(summary.get('mean_kept_hpo_per_case', 0.0)):.2f} "
+        f"mean_weight_entropy={float(summary.get('mean_case_weight_entropy', 0.0)):.4f}"
+    )
+
+
 def run_one_epoch(
     epoch: int,
     model: ModelPipeline,
@@ -420,6 +502,7 @@ def run_one_epoch(
     log_every: int,
     hpo_dropout_prob: float = 0.0,
     hpo_corruption_prob: float = 0.0,
+    case_noise_control: dict[str, Any] | None = None,
     hard_negative_cfg: dict[str, Any] | None = None,
     real_sources: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -460,6 +543,7 @@ def run_one_epoch(
     used_batches = 0
     grouped_hit_totals: dict[str, dict[str, int]] = {}
     grouped_sample_counts: dict[str, int] = {}
+    case_noise_aggregate = _init_case_noise_aggregate()
 
     with context:
         for step, batch_idx in enumerate(range(total_steps), start=1):
@@ -477,6 +561,9 @@ def run_one_epoch(
                     top_50_hpos=static_graph.get("top_50_hpos", []),
                     hpo_dropout_prob=hpo_dropout_prob if is_train else 0.0,
                     hpo_corruption_prob=hpo_corruption_prob if is_train else 0.0,
+                    case_noise_control=case_noise_control,
+                    hpo_df_ratio=static_graph.get("hpo_df_ratio"),
+                    hpo_specificity=static_graph.get("hpo_specificity"),
                     # 训练热路径只依赖 H_case 和 H_disease。
                     # 这里跳过 H=[H_case|H_disease] 的冗余拼接，不改变任何前向数值。
                     include_combined_h=False,
@@ -490,6 +577,18 @@ def run_one_epoch(
             if batch_graph["H_case"].shape[1] == 0 or batch_graph["H_disease"].shape[1] == 0:
                 print(f"Epoch {epoch} Step {step}/{total_steps} 无有效图，跳过。")
                 continue
+
+            batch_case_noise_stats = batch_graph.get("case_noise_stats")
+            _accumulate_case_noise_aggregate(case_noise_aggregate, batch_case_noise_stats)
+            if (
+                isinstance(batch_case_noise_stats, dict)
+                and bool(batch_case_noise_stats.get("log_stats", False))
+                and (step % log_every == 0 or step == total_steps)
+            ):
+                print(
+                    f"Epoch {epoch} Step {step}/{total_steps} CaseNoise "
+                    f"{_format_case_noise_summary(batch_case_noise_stats)}"
+                )
 
             outputs = model(batch_graph)
             if "scores" not in outputs:
@@ -601,6 +700,13 @@ def run_one_epoch(
                 sum(grouped_metrics[source_name][f"top{k}"] for source_name in available_real_sources)
                 / len(available_real_sources)
             )
+
+    case_noise_summary = _finalize_case_noise_aggregate(case_noise_aggregate)
+    if case_noise_summary is not None:
+        result["case_noise_summary"] = case_noise_summary
+        if case_noise_summary["enabled"] or case_noise_summary["log_stats"]:
+            stage_name = "Train" if is_train else "Eval"
+            print(f"Epoch {epoch} {stage_name} CaseNoise {_format_case_noise_summary(case_noise_summary)}")
 
     return result
 
@@ -806,6 +912,7 @@ def main() -> None:
     log_every = max(1, int(train_cfg.get("log_every", 96)))
     hpo_dropout_prob = float(train_cfg.get("hpo_dropout_prob", 0.0))
     hpo_corruption_prob = float(train_cfg.get("hpo_corruption_prob", 0.0))
+    case_noise_control_cfg = config.get("case_noise_control")
 
     if grad_clip_norm is not None:
         grad_clip_norm = float(grad_clip_norm)
@@ -825,6 +932,7 @@ def main() -> None:
             log_every=log_every,
             hpo_dropout_prob=hpo_dropout_prob,
             hpo_corruption_prob=hpo_corruption_prob,
+            case_noise_control=case_noise_control_cfg,
             hard_negative_cfg=hard_negative_cfg,
         )
 
@@ -844,6 +952,7 @@ def main() -> None:
                 log_every=log_every,
                 hpo_dropout_prob=0.0,
                 hpo_corruption_prob=0.0,
+                case_noise_control=case_noise_control_cfg,
                 hard_negative_cfg=hard_negative_cfg,
                 real_sources=validation_cfg["real_sources"],
             )

@@ -590,6 +590,7 @@ def evaluate(
     )
     model_pipeline_config = build_model_pipeline_config(train_config, resources["num_hpo"])
     resolved_loss_cfg = resolve_loss_config(train_config["loss"])
+    case_noise_control_cfg = train_config.get("case_noise_control")
     for warning_text in resolved_loss_cfg["warnings"]:
         print(f"[WARN] {warning_text}")
 
@@ -640,6 +641,20 @@ def evaluate(
     detailed_results: list[dict[str, Any]] = []
     true_ranks: list[int] = []
     processed_case_ids: set[str] = set()
+    case_noise_aggregate: dict[str, Any] = {
+        "present": False,
+        "enabled": False,
+        "log_stats": False,
+        "mode": None,
+        "weighting": None,
+        "normalize_weights": None,
+        "num_cases": 0,
+        "pruned_case_count": 0,
+        "raw_hpo_total": 0,
+        "kept_hpo_total": 0,
+        "dropped_hpo_total": 0,
+        "weight_entropy_total": 0.0,
+    }
 
     print(f"测试文件数: {len(test_bundle['test_files'])}")
     print(f"测试病例数: {len(case_table)}")
@@ -659,6 +674,9 @@ def evaluate(
                 case_id_col=case_id_col,
                 label_col=label_col,
                 hpo_col=hpo_col,
+                case_noise_control=case_noise_control_cfg,
+                hpo_df_ratio=resources.get("hpo_df_ratio"),
+                hpo_specificity=resources.get("hpo_specificity"),
                 # 评估热路径只需要 H_case 和 H_disease，不必重复拼接组合大图。
                 include_combined_h=False,
                 verbose=False,
@@ -667,6 +685,45 @@ def evaluate(
             num_case = batch_graph["H_case"].shape[1]
             if num_case == 0:
                 continue
+
+            batch_case_noise_stats = batch_graph.get("case_noise_stats")
+            if isinstance(batch_case_noise_stats, dict):
+                batch_case_count = int(batch_case_noise_stats.get("num_cases", 0))
+                case_noise_aggregate["present"] = True
+                case_noise_aggregate["enabled"] = bool(
+                    case_noise_aggregate["enabled"] or batch_case_noise_stats.get("enabled", False)
+                )
+                case_noise_aggregate["log_stats"] = bool(
+                    case_noise_aggregate["log_stats"] or batch_case_noise_stats.get("log_stats", False)
+                )
+                case_noise_aggregate["mode"] = batch_case_noise_stats.get(
+                    "mode",
+                    case_noise_aggregate["mode"],
+                )
+                case_noise_aggregate["weighting"] = batch_case_noise_stats.get(
+                    "weighting",
+                    case_noise_aggregate["weighting"],
+                )
+                case_noise_aggregate["normalize_weights"] = batch_case_noise_stats.get(
+                    "normalize_weights",
+                    case_noise_aggregate["normalize_weights"],
+                )
+                case_noise_aggregate["num_cases"] += batch_case_count
+                case_noise_aggregate["pruned_case_count"] += int(
+                    batch_case_noise_stats.get("pruned_case_count", 0)
+                )
+                case_noise_aggregate["raw_hpo_total"] += int(
+                    batch_case_noise_stats.get("raw_hpo_total", 0)
+                )
+                case_noise_aggregate["kept_hpo_total"] += int(
+                    batch_case_noise_stats.get("kept_hpo_total", 0)
+                )
+                case_noise_aggregate["dropped_hpo_total"] += int(
+                    batch_case_noise_stats.get("dropped_hpo_total", 0)
+                )
+                case_noise_aggregate["weight_entropy_total"] += float(
+                    batch_case_noise_stats.get("mean_case_weight_entropy", 0.0)
+                ) * batch_case_count
 
             outputs = model(
                 batch_graph,
@@ -733,6 +790,36 @@ def evaluate(
 
     metrics = compute_topk_metrics(true_ranks, ks=(1, 3, 5))
     per_dataset_summary = _build_per_dataset_summary(case_table, detailed_results)
+    case_noise_summary: dict[str, Any] | None = None
+    if bool(case_noise_aggregate["present"]):
+        aggregate_case_count = int(case_noise_aggregate["num_cases"])
+        raw_hpo_total = int(case_noise_aggregate["raw_hpo_total"])
+        kept_hpo_total = int(case_noise_aggregate["kept_hpo_total"])
+        dropped_hpo_total = int(case_noise_aggregate["dropped_hpo_total"])
+        case_noise_summary = {
+            "enabled": bool(case_noise_aggregate["enabled"]),
+            "log_stats": bool(case_noise_aggregate["log_stats"]),
+            "mode": case_noise_aggregate["mode"],
+            "weighting": case_noise_aggregate["weighting"],
+            "normalize_weights": case_noise_aggregate["normalize_weights"],
+            "num_cases": aggregate_case_count,
+            "pruned_case_count": int(case_noise_aggregate["pruned_case_count"]),
+            "raw_hpo_total": raw_hpo_total,
+            "kept_hpo_total": kept_hpo_total,
+            "dropped_hpo_total": dropped_hpo_total,
+            "drop_ratio": float(dropped_hpo_total / float(raw_hpo_total)) if raw_hpo_total else 0.0,
+            "mean_raw_hpo_per_case": (
+                float(raw_hpo_total / float(aggregate_case_count)) if aggregate_case_count else 0.0
+            ),
+            "mean_kept_hpo_per_case": (
+                float(kept_hpo_total / float(aggregate_case_count)) if aggregate_case_count else 0.0
+            ),
+            "mean_case_weight_entropy": (
+                float(case_noise_aggregate["weight_entropy_total"] / float(aggregate_case_count))
+                if aggregate_case_count
+                else 0.0
+            ),
+        }
     run_manifest = _build_run_manifest(
         data_config=data_config,
         data_config_path=data_config_path,
@@ -762,11 +849,26 @@ def evaluate(
         "case_id_overlap_check": overlap_summary,
         "run_manifest": run_manifest,
     }
+    if case_noise_summary is not None:
+        summary["case_noise_summary"] = case_noise_summary
 
     print(
         f"评估完成: top1={summary['top1']:.4f}, "
         f"top3={summary['top3']:.4f}, top5={summary['top5']:.4f}"
     )
+    if case_noise_summary is not None and (
+        case_noise_summary["enabled"] or case_noise_summary["log_stats"]
+    ):
+        print(
+            "Eval CaseNoise "
+            f"mode={case_noise_summary['mode']} "
+            f"weighting={case_noise_summary['weighting']} "
+            f"raw_hpo={case_noise_summary['raw_hpo_total']} "
+            f"kept_hpo={case_noise_summary['kept_hpo_total']} "
+            f"drop_ratio={case_noise_summary['drop_ratio']:.4f} "
+            f"mean_kept_hpo={case_noise_summary['mean_kept_hpo_per_case']:.2f} "
+            f"mean_weight_entropy={case_noise_summary['mean_case_weight_entropy']:.4f}"
+        )
     for row in per_dataset_summary:
         if row["top1"] is None:
             print(f"{row['dataset_name']}: 无可评估病例")
