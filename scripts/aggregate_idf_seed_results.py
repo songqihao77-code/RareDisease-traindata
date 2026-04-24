@@ -30,18 +30,25 @@ def _std(values: list[float]) -> float:
     return math.sqrt(sum((value - mean) ** 2 for value in values) / float(len(values) - 1))
 
 
-def _latest_summary_path(run_dir: Path) -> Path:
+def _summary_path(run_dir: Path, checkpoint_kind: str) -> Path:
     evaluation_dir = run_dir / "evaluation"
     if not evaluation_dir.is_dir():
         raise FileNotFoundError(f"evaluation 目录不存在: {evaluation_dir}")
 
+    if checkpoint_kind == "latest":
+        pattern = "*_summary.json"
+    elif checkpoint_kind in {"best", "last"}:
+        pattern = f"{checkpoint_kind}_*_summary.json"
+    else:
+        raise ValueError(f"checkpoint_kind 只支持 latest/best/last: {checkpoint_kind}")
+
     summary_files = sorted(
-        evaluation_dir.glob("*_summary.json"),
+        evaluation_dir.glob(pattern),
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
     if not summary_files:
-        raise FileNotFoundError(f"未找到 summary JSON: {evaluation_dir}")
+        raise FileNotFoundError(f"未找到 {checkpoint_kind} summary JSON: {evaluation_dir}")
     return summary_files[0]
 
 
@@ -67,7 +74,7 @@ def _get_mimic_metrics(summary: dict[str, Any], summary_path: Path) -> dict[str,
     raise ValueError(f"per_dataset 中未找到 dataset_name='mimic_test': {summary_path}")
 
 
-def aggregate(run_dirs: list[Path]) -> dict[str, Any]:
+def aggregate(run_dirs: list[Path], checkpoint_kind: str) -> dict[str, Any]:
     runs: list[dict[str, Any]] = []
     overall_top1: list[float] = []
     overall_top3: list[float] = []
@@ -77,7 +84,7 @@ def aggregate(run_dirs: list[Path]) -> dict[str, Any]:
     mimic_top5: list[float] = []
 
     for run_dir in run_dirs:
-        summary_path = _latest_summary_path(run_dir)
+        summary_path = _summary_path(run_dir, checkpoint_kind)
         summary = _load_summary(summary_path)
         mimic_metrics = _get_mimic_metrics(summary, summary_path)
 
@@ -90,6 +97,7 @@ def aggregate(run_dirs: list[Path]) -> dict[str, Any]:
         run_record = {
             "run_dir": str(run_dir.resolve()),
             "summary_path": str(summary_path.resolve()),
+            "checkpoint_path": summary.get("checkpoint_path"),
             "checkpoint_epoch": None if checkpoint_epoch is None else int(checkpoint_epoch),
             "overall": overall,
             "mimic_test": mimic_metrics,
@@ -105,6 +113,7 @@ def aggregate(run_dirs: list[Path]) -> dict[str, Any]:
 
     return {
         "num_runs": len(runs),
+        "checkpoint_kind": checkpoint_kind,
         "runs": runs,
         "aggregate": {
             "overall": {
@@ -138,11 +147,17 @@ def main() -> None:
         default=str(DEFAULT_OUTPUT),
         help="聚合 JSON 输出路径。",
     )
+    parser.add_argument(
+        "--checkpoint-kind",
+        choices=("latest", "best", "last"),
+        default="latest",
+        help="选择读取 latest、best 或 last summary，默认 latest 保持历史兼容。",
+    )
     args = parser.parse_args()
 
     run_dirs = [Path(path).resolve() for path in (args.run_dirs or [str(path) for path in DEFAULT_RUN_DIRS])]
     try:
-        result = aggregate(run_dirs)
+        result = aggregate(run_dirs, checkpoint_kind=args.checkpoint_kind)
     except (FileNotFoundError, ValueError, KeyError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         raise SystemExit(1) from exc

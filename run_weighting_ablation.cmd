@@ -20,6 +20,14 @@ if /I "%EXPERIMENT%"=="g4b_seed3407" set "EXPERIMENT=g4b_weighting_idf_seed3407"
 if /I "%EXPERIMENT%"=="g4b_seed42_fixed15" set "EXPERIMENT=g4b_weighting_idf_seed42_fixed15"
 if /I "%EXPERIMENT%"=="g4b_seed123_fixed15" set "EXPERIMENT=g4b_weighting_idf_seed123_fixed15"
 if /I "%EXPERIMENT%"=="g4b_seed3407_fixed15" set "EXPERIMENT=g4b_weighting_idf_seed3407_fixed15"
+if /I "%EXPERIMENT%"=="g4b_seed42_fixed15_last" set "EXPERIMENT=g4b_weighting_idf_seed42_fixed15_last"
+if /I "%EXPERIMENT%"=="g4b_seed123_fixed15_last" set "EXPERIMENT=g4b_weighting_idf_seed123_fixed15_last"
+if /I "%EXPERIMENT%"=="g4b_seed3407_fixed15_last" set "EXPERIMENT=g4b_weighting_idf_seed3407_fixed15_last"
+if /I "%EXPERIMENT%"=="temp014" set "EXPERIMENT=g4b_idf_seed42_fixed15_last_temp014"
+if /I "%EXPERIMENT%"=="temp022" set "EXPERIMENT=g4b_idf_seed42_fixed15_last_temp022"
+if /I "%EXPERIMENT%"=="hn_weight20" set "EXPERIMENT=g4b_idf_seed42_fixed15_last_hn_weight20"
+if /I "%EXPERIMENT%"=="hn_weight35" set "EXPERIMENT=g4b_idf_seed42_fixed15_last_hn_weight35"
+if /I "%EXPERIMENT%"=="hn_start4" set "EXPERIMENT=g4b_idf_seed42_fixed15_last_hn_start4"
 
 if /I "%EXPERIMENT%"=="g4a_weighting_sqrt_idf" (
     set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4a_weighting_sqrt_idf.yaml"
@@ -75,6 +83,54 @@ if /I "%EXPERIMENT%"=="g4b_weighting_idf_seed3407_fixed15" (
     goto :run
 )
 
+if /I "%EXPERIMENT%"=="g4b_weighting_idf_seed42_fixed15_last" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_weighting_idf_seed42_fixed15.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_weighting_idf_seed42_fixed15\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_weighting_idf_seed123_fixed15_last" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_weighting_idf_seed123_fixed15.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_weighting_idf_seed123_fixed15\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_weighting_idf_seed3407_fixed15_last" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_weighting_idf_seed3407_fixed15.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_weighting_idf_seed3407_fixed15\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_idf_seed42_fixed15_last_temp014" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_idf_seed42_fixed15_last_temp014.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_idf_seed42_fixed15_last_temp014\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_idf_seed42_fixed15_last_temp022" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_idf_seed42_fixed15_last_temp022.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_idf_seed42_fixed15_last_temp022\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_idf_seed42_fixed15_last_hn_weight20" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_idf_seed42_fixed15_last_hn_weight20.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_idf_seed42_fixed15_last_hn_weight20\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_idf_seed42_fixed15_last_hn_weight35" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_idf_seed42_fixed15_last_hn_weight35.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_idf_seed42_fixed15_last_hn_weight35\checkpoints\last.pt"
+    goto :run
+)
+
+if /I "%EXPERIMENT%"=="g4b_idf_seed42_fixed15_last_hn_start4" (
+    set "FINETUNE_CFG=D:\RareDisease-traindata\configs\ablation_case_noise\g4b_idf_seed42_fixed15_last_hn_start4.yaml"
+    set "CHECKPOINT_PATH=D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_idf_seed42_fixed15_last_hn_start4\checkpoints\last.pt"
+    goto :run
+)
+
 echo [ERROR] Unknown experiment: %EXPERIMENT%
 goto :usage
 
@@ -119,7 +175,7 @@ echo [DONE] weighting finetune and evaluation completed successfully.
 exit /b 0
 
 :usage
-echo Usage: run_weighting_ablation.cmd ^<g4a^|g4b^|g4c^|g4b_seed42^|g4b_seed123^|g4b_seed3407^|g4b_seed42_fixed15^|g4b_seed123_fixed15^|g4b_seed3407_fixed15^|g4a_weighting_sqrt_idf^|g4b_weighting_idf^|g4c_weighting_power_idf_alpha075^|g4b_weighting_idf_seed42^|g4b_weighting_idf_seed123^|g4b_weighting_idf_seed3407^|g4b_weighting_idf_seed42_fixed15^|g4b_weighting_idf_seed123_fixed15^|g4b_weighting_idf_seed3407_fixed15^> [--dry-run]
+echo Usage: run_weighting_ablation.cmd ^<g4a^|g4b^|g4c^|g4b_seed42^|g4b_seed123^|g4b_seed3407^|g4b_seed42_fixed15^|g4b_seed123_fixed15^|g4b_seed3407_fixed15^|g4b_seed42_fixed15_last^|g4b_seed123_fixed15_last^|g4b_seed3407_fixed15_last^|temp014^|temp022^|hn_weight20^|hn_weight35^|hn_start4^|full_experiment_name^> [--dry-run]
 exit /b 1
 
 :fail
