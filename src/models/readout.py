@@ -46,6 +46,11 @@ class HyperedgeReadout(nn.Module):
         context_mode: str = "leave_one_out",
         residual_uniform: float = 0.2,
         return_attention: bool = False,
+        attn_prior_mode: str = "none",
+        attn_prior_beta: float = 0.0,
+        attn_prior_learnable: bool = False,
+        attn_prior_normalize: str = "center",
+        attn_prior_eps: float = 1e-8,
         **kwargs,
     ):
         super().__init__()
@@ -54,11 +59,34 @@ class HyperedgeReadout(nn.Module):
                 f"context_mode 当前只支持 'leave_one_out'，当前为 {context_mode!r}"
             )
 
+        attn_prior_mode = str(attn_prior_mode)
+        attn_prior_normalize = str(attn_prior_normalize)
+        attn_prior_eps = float(attn_prior_eps)
+        if attn_prior_mode not in {"none", "edge_weight_log"}:
+            raise ValueError(
+                f"attn_prior_mode 只支持 'none' 或 'edge_weight_log'，当前为 {attn_prior_mode!r}"
+            )
+        if attn_prior_normalize not in {"none", "center", "zscore"}:
+            raise ValueError(
+                "attn_prior_normalize 只支持 'none'、'center' 或 'zscore'，"
+                f"当前为 {attn_prior_normalize!r}"
+            )
+        if attn_prior_eps <= 0.0:
+            raise ValueError(f"attn_prior_eps 必须大于 0，当前为 {attn_prior_eps}")
+
         self.hidden_dim = hidden_dim
         self.attn_hidden_dim = attn_hidden_dim if attn_hidden_dim is not None else hidden_dim
         self.context_mode = context_mode
         self.residual_uniform = residual_uniform
         self.return_attention = return_attention
+        self.attn_prior_mode = attn_prior_mode
+        self.attn_prior_learnable = bool(attn_prior_learnable)
+        self.attn_prior_normalize = attn_prior_normalize
+        self.attn_prior_eps = float(attn_prior_eps)
+        if self.attn_prior_learnable:
+            self.attn_prior_beta = nn.Parameter(torch.tensor(float(attn_prior_beta), dtype=torch.float32))
+        else:
+            self.attn_prior_beta = float(attn_prior_beta)
 
         self.attn_mlp = nn.Sequential(
             nn.Linear(4 * self.hidden_dim, self.attn_hidden_dim),
@@ -66,6 +94,48 @@ class HyperedgeReadout(nn.Module):
             nn.Dropout(attn_dropout),
             nn.Linear(self.attn_hidden_dim, 1),
         )
+
+    def _apply_attention_prior(
+        self,
+        logits_1d: torch.Tensor,
+        edge_weight: torch.Tensor,
+        case_idx: torch.Tensor,
+        num_case: int,
+    ) -> torch.Tensor:
+        if self.attn_prior_mode == "none":
+            return logits_1d
+        if self.attn_prior_mode == "edge_weight_log":
+            if not self.attn_prior_learnable and float(self.attn_prior_beta) == 0.0:
+                return logits_1d
+
+            prior = torch.log(
+                edge_weight.to(device=logits_1d.device, dtype=logits_1d.dtype).clamp_min(0.0)
+                + float(self.attn_prior_eps)
+            )
+            if self.attn_prior_normalize in {"center", "zscore"}:
+                counts = logits_1d.new_zeros((num_case,))
+                counts.scatter_add_(0, case_idx, logits_1d.new_ones(logits_1d.shape))
+                counts = counts.clamp_min(1.0)
+
+                prior_sum = logits_1d.new_zeros((num_case,))
+                prior_sum.scatter_add_(0, case_idx, prior)
+                prior_mean = prior_sum / counts
+                prior = prior - prior_mean.index_select(0, case_idx)
+
+                if self.attn_prior_normalize == "zscore":
+                    sq_sum = logits_1d.new_zeros((num_case,))
+                    sq_sum.scatter_add_(0, case_idx, prior.square())
+                    std = torch.sqrt(sq_sum / counts + float(self.attn_prior_eps))
+                    prior = prior / std.index_select(0, case_idx)
+
+            beta = self.attn_prior_beta
+            if isinstance(beta, torch.Tensor):
+                beta_value = beta.to(device=logits_1d.device, dtype=logits_1d.dtype)
+            else:
+                beta_value = logits_1d.new_tensor(float(beta))
+            return logits_1d + beta_value * prior
+
+        raise ValueError(f"未知 attn_prior_mode: {self.attn_prior_mode!r}")
 
     def _build_case_repr_from_edges(
         self,
@@ -129,6 +199,12 @@ class HyperedgeReadout(nn.Module):
             dim=-1,
         )
         logits_1d = self.attn_mlp(feat_edge).squeeze(-1)
+        logits_1d = self._apply_attention_prior(
+            logits_1d=logits_1d,
+            edge_weight=edge_weight,
+            case_idx=case_idx,
+            num_case=num_case,
+        )
 
         group_max = logits_1d.new_full((num_case,), float("-inf"))
         group_max.scatter_reduce_(0, case_idx, logits_1d, reduce="amax", include_self=False)

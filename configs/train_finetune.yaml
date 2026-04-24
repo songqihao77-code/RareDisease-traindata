@@ -47,6 +47,11 @@ model:
     context_mode: leave_one_out
     residual_uniform: 0.2
     return_attention: false
+    attn_prior_mode: none
+    attn_prior_beta: 0.0
+    attn_prior_learnable: false
+    attn_prior_normalize: center
+    attn_prior_eps: 1.0e-8
 
 case_noise_control:
   enabled: true
@@ -65,7 +70,7 @@ loss:
     k: 10
     top_m: 3
     start_epoch: 2
-    weight: 2.8
+    weight: 2.0
     margin: 0.08
 
 optimizer:
@@ -73,9 +78,9 @@ optimizer:
   weight_decay: 0.0002
 
 train:
-  num_epochs: 50
+  num_epochs: 15
   device: cuda
-  init_checkpoint_path: D:\RareDisease-traindata\outputs\stage1_pretrain_v59\checkpoints\best.pt
+  init_checkpoint_path: D:\RareDisease-traindata\outputs\stage1_pretrain_v59\checkpoints\best_fixed_for_weighting_ablation.pt
   sampler:
     sampler_mode: source_balanced
     source_balanced_target_cases: null
@@ -83,7 +88,7 @@ train:
   hpo_corruption_prob: 0.0
   eval_every: 1
   log_every: 96
-  early_stop: true
+  early_stop: false
   early_stop_patience: 5
   monitor: val_real_macro_top5
   monitor_mode: max

@@ -30,8 +30,8 @@ _DISEASE_INC_PATH = r"D:\RareDisease-traindata\LLLdataset\DiseaseHy\rare_disease
 _DEFAULT_CASE_NOISE_CONTROL = {
     "enabled": False,
     "mode": "weight_only",
-    "weighting": "sqrt_idf",
-    "alpha": 0.5,
+    "weighting": "idf",
+    "alpha": 1.0,
     "normalize_weights": True,
     "log_stats": False,
 }
@@ -80,12 +80,10 @@ def resolve_case_noise_control(case_noise_control: Mapping[str, Any] | None) -> 
 
     if cfg["mode"] != "weight_only":
         raise ValueError("当前仅保留 case_noise_control.mode='weight_only'。")
-    if cfg["weighting"] not in {"binary", "idf", "sqrt_idf", "power_idf"}:
-        raise ValueError(
-            "case_noise_control.weighting 只支持 'binary'、'idf'、'sqrt_idf'、'power_idf'。"
-        )
-    if cfg["alpha"] <= 0.0:
-        raise ValueError("case_noise_control.alpha 必须是正数。")
+    if cfg["weighting"] != "idf":
+        raise ValueError("当前正式主线仅保留 case_noise_control.weighting='idf'。")
+    if cfg["alpha"] != 1.0:
+        raise ValueError("当前正式主线仅保留 case_noise_control.alpha=1.0。")
     return cfg
 
 
@@ -110,22 +108,13 @@ def _build_case_hpo_weights(
     if not hpo_indices:
         return np.zeros((0,), dtype=np.float32)
 
-    if weighting == "binary":
-        weights = np.ones((len(hpo_indices),), dtype=np.float32)
-    else:
-        specificity = np.clip(
-            hpo_specificity[np.asarray(hpo_indices, dtype=np.int64)],
-            a_min=0.0,
-            a_max=None,
-        ).astype(np.float32, copy=False)
-        if weighting == "idf":
-            weights = specificity
-        elif weighting == "sqrt_idf":
-            weights = np.sqrt(specificity).astype(np.float32, copy=False)
-        elif weighting == "power_idf":
-            weights = np.power(specificity, float(alpha)).astype(np.float32, copy=False)
-        else:
-            raise ValueError(f"未知 weighting 模式: {weighting}")
+    if weighting != "idf" or float(alpha) != 1.0:
+        raise ValueError("当前正式主线仅支持 idf weighting 且 alpha=1.0。")
+    weights = np.clip(
+        hpo_specificity[np.asarray(hpo_indices, dtype=np.int64)],
+        a_min=0.0,
+        a_max=None,
+    ).astype(np.float32, copy=False)
 
     if normalize_weights and weights.size > 0:
         weight_sum = float(weights.sum())

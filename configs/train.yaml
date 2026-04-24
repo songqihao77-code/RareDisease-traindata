@@ -42,6 +42,11 @@ model:
     context_mode: leave_one_out
     residual_uniform: 0.2
     return_attention: false
+    attn_prior_mode: none
+    attn_prior_beta: 0.0
+    attn_prior_learnable: false
+    attn_prior_normalize: center
+    attn_prior_eps: 1.0e-8
 
 loss:
   loss_name: full_pool_ce
