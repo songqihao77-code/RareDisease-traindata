@@ -51,8 +51,8 @@ model:
 case_noise_control:
   enabled: true
   mode: weight_only
-  weighting: sqrt_idf
-  alpha: 0.5
+  weighting: idf
+  alpha: 1.0
   normalize_weights: true
   log_stats: true
 

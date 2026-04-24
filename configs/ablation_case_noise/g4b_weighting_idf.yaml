@@ -11,7 +11,7 @@ paths:
   hpo_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx
   disease_index_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx
   disease_incidence_path: D:\RareDisease-traindata\LLLdataset\DiseaseHy\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz
-  save_dir: D:\RareDisease-traindata\outputs\case_noise_ablation\g4_case_noise_weight_only
+  save_dir: D:\RareDisease-traindata\outputs\case_noise_ablation\g4b_weighting_idf
 data:
   batch_size: 16
   val_ratio: 0.1
@@ -65,7 +65,7 @@ optimizer:
 train:
   num_epochs: 50
   device: cuda
-  init_checkpoint_path: D:\RareDisease-traindata\outputs\stage1_pretrain_v59\checkpoints\best.pt
+  init_checkpoint_path: D:\RareDisease-traindata\outputs\stage1_pretrain_v59\checkpoints\best_fixed_for_weighting_ablation.pt
   sampler:
     sampler_mode: source_balanced
     source_balanced_target_cases: null

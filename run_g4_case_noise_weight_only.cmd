@@ -14,6 +14,8 @@ if not exist "%PYTHON_EXE%" (
     exit /b 1
 )
 
+echo [INFO] Current g4 case-noise weight_only mainline uses idf weighting.
+
 echo [1/3] g4 pretrain started...
 "%PYTHON_EXE%" -m src.training.trainer --config "%PRETRAIN_CFG%"
 if errorlevel 1 (
