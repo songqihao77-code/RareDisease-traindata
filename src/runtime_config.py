@@ -11,12 +11,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TRUSTED_MAINLINE = {
     "description": (
         "当前唯一可信主线是 run_full_train.cmd 串起的 staged pipeline："
-        "train_pretrain.yaml -> train_finetune.yaml -> data_llldataset_eval.yaml。"
+        "train_pretrain.yaml -> train_finetune_attn_idf_main.yaml -> data_llldataset_eval.yaml。"
     ),
     "entry_script": "run_full_train.cmd",
     "train_configs": [
         "configs/train_pretrain.yaml",
-        "configs/train_finetune.yaml",
+        "configs/train_finetune_attn_idf_main.yaml",
     ],
     "eval_config": "configs/data_llldataset_eval.yaml",
 }
@@ -87,6 +87,7 @@ def build_model_pipeline_config(config: Mapping[str, Any], num_hpo: int) -> dict
         **dict(model_cfg.get("readout", {})),
         "hidden_dim": hidden_dim,
     }
+
 
     pipeline_model_cfg: dict[str, Any] = {
         "encoder": {
@@ -318,4 +319,3 @@ def build_evaluation_effective_config(
         "loss": to_serializable(resolved_loss_config),
         "case_id_overlap_check": to_serializable(overlap_summary),
     }
-

@@ -462,14 +462,23 @@ def compute_topk_metrics(
     true_ranks: list[int],
     ks: tuple[int, ...] = (1, 3, 5),
 ) -> dict[str, float]:
-    """根据真实排名计算 top-k。"""
+    """根据 1-indexed 真实排名计算 top-k 和 rank 汇总。"""
     if not true_ranks:
-        raise ValueError("没有可评估病例，无法计算 top-k 指标。")
+        raise ValueError("没有可评估病例，无法计算 rank 指标。")
 
     total = float(len(true_ranks))
     metrics: dict[str, float] = {}
     for k in ks:
         metrics[f"top{k}"] = sum(rank <= k for rank in true_ranks) / total
+    sorted_ranks = sorted(int(rank) for rank in true_ranks)
+    mid = len(sorted_ranks) // 2
+    if len(sorted_ranks) % 2 == 1:
+        median_rank = float(sorted_ranks[mid])
+    else:
+        median_rank = float(sorted_ranks[mid - 1] + sorted_ranks[mid]) / 2.0
+    metrics["mean_rank"] = float(sum(sorted_ranks) / total)
+    metrics["median_rank"] = median_rank
+    metrics["rank_le_50"] = sum(rank <= 50 for rank in sorted_ranks) / total
     return metrics
 
 
@@ -500,6 +509,9 @@ def _build_per_dataset_summary(
             "top1": None,
             "top3": None,
             "top5": None,
+            "mean_rank": None,
+            "median_rank": None,
+            "rank_le_50": None,
         }
 
         if num_evaluable > 0:
@@ -517,6 +529,9 @@ def _build_per_dataset_summary(
             row["top1"] = float(group_metrics["top1"])
             row["top3"] = float(group_metrics["top3"])
             row["top5"] = float(group_metrics["top5"])
+            row["mean_rank"] = float(group_metrics["mean_rank"])
+            row["median_rank"] = float(group_metrics["median_rank"])
+            row["rank_le_50"] = float(group_metrics["rank_le_50"])
 
         summary_rows.append(row)
 
@@ -850,6 +865,9 @@ def evaluate(
         "top1": float(metrics["top1"]),
         "top3": float(metrics["top3"]),
         "top5": float(metrics["top5"]),
+        "mean_rank": float(metrics["mean_rank"]),
+        "median_rank": float(metrics["median_rank"]),
+        "rank_le_50": float(metrics["rank_le_50"]),
         "per_dataset": per_dataset_summary,
         "case_id_overlap_check": overlap_summary,
         "run_manifest": run_manifest,
@@ -859,7 +877,10 @@ def evaluate(
 
     print(
         f"评估完成: top1={summary['top1']:.4f}, "
-        f"top3={summary['top3']:.4f}, top5={summary['top5']:.4f}"
+        f"top3={summary['top3']:.4f}, top5={summary['top5']:.4f}, "
+        f"mean_rank={summary['mean_rank']:.2f}, "
+        f"median_rank={summary['median_rank']:.2f}, "
+        f"rank_le_50={summary['rank_le_50']:.4f}"
     )
     if case_noise_summary is not None and (
         case_noise_summary["enabled"] or case_noise_summary["log_stats"]
@@ -884,7 +905,9 @@ def evaluate(
             continue
         print(
             f"{row['dataset_name']}: "
-            f"top1={row['top1']:.4f}, top3={row['top3']:.4f}, top5={row['top5']:.4f}"
+            f"top1={row['top1']:.4f}, top3={row['top3']:.4f}, top5={row['top5']:.4f}, "
+            f"mean_rank={row['mean_rank']:.2f}, median_rank={row['median_rank']:.2f}, "
+            f"rank_le_50={row['rank_le_50']:.4f}"
         )
 
     return {
@@ -939,6 +962,9 @@ def save_results(results: dict[str, Any], train_config: dict[str, Any]) -> dict[
             "top1",
             "top3",
             "top5",
+            "mean_rank",
+            "median_rank",
+            "rank_le_50",
         ],
     )
     per_dataset_df.to_csv(per_dataset_path, index=False, encoding="utf-8-sig")

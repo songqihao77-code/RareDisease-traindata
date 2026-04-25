@@ -11,14 +11,14 @@ if errorlevel 1 (
 )
 
 echo [2/3] Finetune started...
-python -m src.training.trainer --config configs/train_finetune.yaml
+python -m src.training.trainer --config configs/train_finetune_attn_idf_main.yaml
 if errorlevel 1 (
     echo [ERROR] Finetune failed.
     exit /b 1
 )
 
 echo [3/3] Evaluation started...
-python -m src.evaluation.evaluator --data_config_path configs/data_llldataset_eval.yaml --train_config_path configs/train_finetune.yaml
+python -m src.evaluation.evaluator --data_config_path configs/data_llldataset_eval.yaml --train_config_path configs/train_finetune_attn_idf_main.yaml
 if errorlevel 1 (
     echo [ERROR] Evaluation failed.
     exit /b 1
