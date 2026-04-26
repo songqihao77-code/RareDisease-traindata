@@ -34,7 +34,7 @@ from src.runtime_config import (
     resolve_loss_config,
     save_yaml,
 )
-from src.training.hard_negative_miner import mine_hard_negatives
+from src.training.hard_negative_miner import mine_configurable_hard_negatives
 from src.training.loss_builder import build_loss
 
 
@@ -645,6 +645,8 @@ def run_one_epoch(
     use_hard_negative = bool(hard_negative_cfg.get("use_hard_negative", True))
     hard_negative_start_epoch = int(hard_negative_cfg.get("start_epoch", 2))
     hard_negative_k = int(hard_negative_cfg.get("k", 10))
+    hard_negative_strategy = str(hard_negative_cfg.get("strategy", "HN-current"))
+    hard_negative_sampling_ratios = hard_negative_cfg.get("sampling_ratios")
     metric_ks = (1, 3, 5)
 
     total_loss = 0.0
@@ -717,10 +719,12 @@ def run_one_epoch(
             if is_train and use_hard_negative and epoch >= hard_negative_start_epoch:
                 # 训练时在线挖 top-k 难负例。
                 with torch.no_grad():
-                    hard_neg_indices = mine_hard_negatives(
+                    hard_neg_indices = mine_configurable_hard_negatives(
                         scores=scores.detach(),
                         targets=targets.detach(),
                         k=hard_negative_k,
+                        strategy=hard_negative_strategy,
+                        sampling_ratios=hard_negative_sampling_ratios,
                     )
 
             loss_output = loss_fn(scores, targets, hard_neg_indices=hard_neg_indices)

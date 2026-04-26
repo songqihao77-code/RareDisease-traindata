@@ -1,0 +1,31 @@
+﻿{
+  "original": "D:\\RareDisease-traindata\\LLLdataset\\dataset\\mimic_test.csv",
+  "cleaned": "D:\\RareDisease-traindata\\LLLdataset\\dataset\\processed\\mimic_test.csv",
+  "output_dir": "D:\\RareDisease-traindata\\reports\\mimic_cleaning_audit",
+  "original_rows": 1875,
+  "cleaned_rows": 21749,
+  "cleaned_cases": 1873,
+  "generated_files": [
+    "final_mimic_cleaning_audit.md",
+    "manifest.json",
+    "mimic_accuracy_impact.csv",
+    "mimic_case_granularity.md",
+    "mimic_case_matching.csv",
+    "mimic_duplicate_cases.csv",
+    "mimic_gold_hpo_coverage.csv",
+    "mimic_gold_hpo_coverage_summary.md",
+    "mimic_hpo_diff.csv",
+    "mimic_hpo_summary.md",
+    "mimic_invalid_hpo.csv",
+    "mimic_label_diff.csv",
+    "mimic_label_summary.md",
+    "mimic_missing_cases.csv",
+    "mimic_multilabel_diff.csv",
+    "mimic_multilabel_summary.md",
+    "mimic_overlap_zero_cases.csv",
+    "mimic_schema_audit.csv",
+    "mimic_schema_audit.md",
+    "mimic_split_leakage.csv",
+    "mimic_split_leakage.md"
+  ]
+}

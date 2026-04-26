@@ -1,0 +1,6 @@
+ablation,status,note
+all_features,not_run,"未训练 pairwise reranker；本轮只实现脚本并通过静态编译。"
+no_hgnn_score,not_run,"需要 outputs/rerank/pairwise_reranker.pkl 后才能 fixed test eval。"
+no_overlap_features,not_run,"需要 train candidates 和 validation candidates 严格协议。"
+no_coverage_features,not_run,"需要 train candidates 和 validation candidates 严格协议。"
+no_relation_features,not_run,"当前 full top50 candidates 缺少完整 MONDO relation feature，脚本会用 relation_unavailable 兜底。"

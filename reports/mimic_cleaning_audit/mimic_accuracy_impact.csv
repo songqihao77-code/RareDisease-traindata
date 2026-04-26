@@ -1,0 +1,9 @@
+﻿issue,affected_cases,expected_accuracy_impact,fix_priority,recommended_fix
+label ID 错误 / missing case / cleaned 多出病例,65,critical: 会直接改变 exact gold，可能造成 top1/top3/top5 被错误计算,A,先修复映射和病例对应关系；保留原始 exact 口径，不删除困难样本
+多标签 gold 在 exact evaluator 中只取首个标签,227,high: exact top-k 可能低估，any-label@k 明显更高时尤其需要报告 supplementary,A/C,保留 cleaned 多标签；同时报告 original exact、cleaned exact、any-label，不把 any-label 当正式 exact
+cleaned 丢失 original gold labels,1,critical: gold label 丢失会让 exact evaluation 不可信,A,恢复丢失 label 或明确剔除原因；不可为提高准确率删除测试样本
+HPO 大量丢失或 invalid/obsolete HPO,22,medium/high: 会降低 gold disease-HPO overlap 和检索证据质量,B,统一 HP:0000000 格式，恢复误删 HPO，必要时用 HPO OBO 处理 obsolete/alt_id
+gold disease-HPO overlap_zero,646,high for rank>50: 模型缺少 gold hyperedge 证据时难以召回,B/D,区分 cleaned HPO 丢失、label 映射错误、KB 覆盖不足和原文信息不足；不要在 test set 调参
+unmapped/obsolete label in hyperedge/index,64,critical/high: gold 不在疾病池或 KB 中时 exact retrieval 不可比,A/B,修复 MONDO obsolete/alt_id/replaced_by 映射，并记录版本
+train/test leakage 或 similar-case 重复,0,方向不固定: 泄漏通常虚高，split 不一致会让测试口径不可信,A,用 subject_id/hadm_id/note_id/text hash 做最终确认；不要覆盖已有 exact evaluation
+gold 已进入 top50 但 rank>5,由现有 rank 明细确认,更像模型排序能力或候选重排问题，不一定是清洗错误,D,作为模型问题单独分析；不要用 test set 调参

@@ -1,0 +1,12 @@
+{
+  "details_path": "D:\\RareDisease-traindata\\outputs\\attn_beta_sweep\\edge_log_beta02\\evaluation\\best_20260425_224439_details.csv",
+  "candidates_path": "D:\\RareDisease-traindata\\outputs\\rerank\\top50_candidates_v2.csv",
+  "outputs": {
+    "dataset_rank_decomposition": "D:\\RareDisease-traindata\\reports\\diagnosis\\dataset_rank_decomposition.csv",
+    "mimic_multilabel_audit": "D:\\RareDisease-traindata\\reports\\diagnosis\\mimic_multilabel_audit.csv",
+    "top50_miss_audit": "D:\\RareDisease-traindata\\reports\\diagnosis\\top50_miss_audit.csv",
+    "dataset_failure_by_bucket": "D:\\RareDisease-traindata\\reports\\diagnosis\\dataset_failure_by_bucket.csv",
+    "ddd_nearmiss_pairs": "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_nearmiss_pairs.csv",
+    "recommended_next_experiments": "D:\\RareDisease-traindata\\reports\\diagnosis\\recommended_next_experiments.md"
+  }
+}

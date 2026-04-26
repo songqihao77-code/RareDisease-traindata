@@ -1,0 +1,30 @@
+{
+  "method_name": "HGNN_SimilarCase_Aug",
+  "selected_by": "validation",
+  "test_protocol": "fixed_once",
+  "similar_case_topk": 10,
+  "similar_case_weight": 0.4,
+  "score_type": "raw_similarity",
+  "baseline_metrics": {
+    "top1": 0.18846769887880405,
+    "top3": 0.3016550987720235,
+    "top5": 0.3566470902295782,
+    "rank_le_50": 0.6187933796049119,
+    "median_rank": 21.0
+  },
+  "fixed_test_metrics": {
+    "top1": 0.20928990923651897,
+    "top3": 0.32995194874532835,
+    "top5": 0.39402028830752805,
+    "rank_le_50": 0.6497597437266418,
+    "median_rank": 18.0,
+    "any_label_at_5_supplementary": 0.4223171382808329
+  },
+  "deeprare_target_comparison": {
+    "target_top5": 0.39,
+    "fixed_test_top5": 0.39402028830752805,
+    "top5_target_met": true,
+    "top5_margin": 0.0040202883075280416,
+    "top1_top3_status": "仍低于 DeepRare 目标口径，需要单独提升排序质量"
+  }
+}

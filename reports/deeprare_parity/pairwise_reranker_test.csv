@@ -1,0 +1,2 @@
+dataset,method,status,top1,top3,top5,median_rank,rank_le_50,note
+ALL,pairwise_reranker,not_run,,,,,,"未训练新模型；需要先导出 train/validation top50 candidates，再运行 tools/train_top50_pairwise_reranker.py。"

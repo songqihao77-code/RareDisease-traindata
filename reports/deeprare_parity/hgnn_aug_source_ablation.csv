@@ -1,0 +1,7 @@
+﻿source,status,main_table_eligible
+hgnn_top50,available,True
+static_hpo_soft,available_as_soft_score_only,False
+similar_case,available_train_library_tfidf,False
+PubCaseFinder,unavailable_api_not_called,False
+PhenoBrain,unavailable_api_not_called,False
+synonym_omim_orpha_mondo_mapping,interface_reserved_not_applied,False

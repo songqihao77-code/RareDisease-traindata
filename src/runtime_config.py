@@ -125,6 +125,8 @@ def _disabled_hard_negative_config() -> dict[str, Any]:
         "start_epoch": 0,
         "weight": 0.0,
         "margin": 0.0,
+        "strategy": "HN-current",
+        "sampling_ratios": {},
     }
 
 
@@ -192,6 +194,8 @@ def resolve_loss_config(loss_cfg: Mapping[str, Any]) -> dict[str, Any]:
                 "start_epoch": int(hard_negative_block.get("start_epoch", 0) or 0),
                 "weight": float(hard_negative_block.get("weight", 0.0) or 0.0),
                 "margin": float(hard_negative_block.get("margin", 0.0) or 0.0),
+                "strategy": str(hard_negative_block.get("strategy", "HN-current")),
+                "sampling_ratios": dict(hard_negative_block.get("sampling_ratios", {}) or {}),
             }
             if "use_hard_negative" not in hard_negative_block:
                 warnings.append("loss.hard_negative.use_hard_negative 未声明，按 false 处理。")
@@ -210,6 +214,8 @@ def resolve_loss_config(loss_cfg: Mapping[str, Any]) -> dict[str, Any]:
                 "start_epoch": int(hard_negative_block["start_epoch"]),
                 "weight": float(hard_negative_block["weight"]),
                 "margin": float(hard_negative_block["margin"]),
+                "strategy": str(hard_negative_block.get("strategy", "HN-current")),
+                "sampling_ratios": dict(hard_negative_block.get("sampling_ratios", {}) or {}),
             }
 
     return {

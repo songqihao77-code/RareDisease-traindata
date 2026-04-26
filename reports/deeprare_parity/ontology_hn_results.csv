@@ -1,0 +1,7 @@
+experiment,status,top1,top3,top5,output_dir,note
+HN-current,not_run,,,,,"原始 hard negative 保留为 HN-current；本轮未启动训练。"
+HN-overlap,not_run,,,,,"需要构建 overlap candidate_pools 后训练。"
+HN-sibling,not_run,,,,,"需要构建 MONDO same parent/sibling candidate_pools 后训练。"
+HN-shared-ancestor,not_run,,,,,"需要构建 shared ancestor candidate_pools 后训练。"
+HN-above-gold,not_run,,,,,"需要从 train/validation top50 中构建 above-gold candidate_pools 后训练。"
+HN-mixed,not_run,,,,D:\RareDisease-traindata\outputs\ontology_hn\mixed,"已新增 configs/train_finetune_ontology_hn.yaml；未训练，避免本轮训练新 HGNN。"
