@@ -1,0 +1,42 @@
+pipeline:
+  run_pretrain: true
+  run_finetune: true
+  run_exact_eval: true
+  run_candidate_export: true
+  run_ddd_rerank: true
+  run_mimic_similar_case: true
+  run_final_aggregation: true
+
+paths:
+  output_dir: outputs/mainline_full_pipeline
+  pretrain_config: configs/train_pretrain.yaml
+  finetune_config: configs/train_finetune_attn_idf_main.yaml
+  data_eval_config: configs/data_llldataset_eval.yaml
+
+postprocess:
+  ddd:
+    enabled: true
+    module: ddd_validation_selected_grid_rerank
+    select_on: validation
+    fixed_test: true
+    objective: ddd_top1
+
+  mimic:
+    enabled: true
+    module: similar_case_fixed_test
+    fixed_test: true
+    dataset_aliases:
+      - mimic_test
+      - mimic_test_recleaned
+      - mimic_test_recleaned_mondo_hpo_rows
+
+aggregation:
+  ddd_source: ddd_rerank
+  mimic_source: similar_case
+  default_source: hgnn_exact_baseline
+  no_test_side_tuning: true
+
+resume:
+  finetune_checkpoint: null
+  skip_pretrain: true
+  skip_finetune: true

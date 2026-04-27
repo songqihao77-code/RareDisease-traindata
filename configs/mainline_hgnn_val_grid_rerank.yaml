@@ -1,0 +1,53 @@
+mainline_name: hgnn_plus_validation_selected_grid_rerank
+baseline:
+  hgnn_candidates: outputs/rerank/top50_candidates_v2.csv
+  hgnn_case_ranks: outputs/rerank/top50_rerank_case_ranks.csv
+  hgnn_metrics: outputs/rerank/top50_rerank_metrics.csv
+  exact_eval_source: outputs/attn_beta_sweep/edge_log_beta02/evaluation/best_20260427_110758_details.csv
+
+dataset_aliases:
+  mimic_test:
+    - mimic_test
+    - mimic_test_recleaned_mondo_hpo_rows
+    - mimic_test_recleaned
+
+ddd_module:
+  enabled: true
+  dataset: DDD
+  method: validation_selected_grid_rerank
+  weights: outputs/rerank/ddd_val_selected_grid_weights.json
+  selection_objective: DDD_top1
+  fixed_test_only: true
+
+mimic_module:
+  enabled: true
+  dataset: mimic_test
+  method: use_existing_mimic_mainline
+  config_or_output: AUTO_DISCOVER_FROM_PROJECT
+  frozen_config: reports/mimic_next/frozen_similar_case_aug_config.json
+  fixed_ranked_candidates: reports/mimic_next/similar_case_fixed_test_ranked_candidates.csv
+  fixed_metrics: reports/mimic_next/similar_case_fixed_test.csv
+  fixed_test_only: true
+
+other_datasets:
+  method: hgnn_baseline
+
+outputs:
+  output_dir: outputs/mainline_hgnn_val_grid_rerank_all
+  report_dir: reports/mainline_hgnn_val_grid_rerank_all
+
+constraints:
+  no_training: true
+  no_hgnn_encoder_change: true
+  no_test_side_tuning: true
+  no_exact_eval_overwrite: true
+
+frozen_protocol:
+  exact_baseline_summary: outputs/attn_beta_sweep/edge_log_beta02/evaluation/best_20260427_110758_summary.json
+  exact_baseline_details: outputs/attn_beta_sweep/edge_log_beta02/evaluation/best_20260427_110758_details.csv
+
+parity_audit:
+  old_summary: outputs/case_noise_ablation/g4b_weighting_idf/evaluation/best_20260423_202917_summary.json
+  old_details: outputs/case_noise_ablation/g4b_weighting_idf/evaluation/best_20260423_202917_details.csv
+  current_summary: outputs/attn_beta_sweep/edge_log_beta02/evaluation/best_20260427_110758_summary.json
+  current_details: outputs/attn_beta_sweep/edge_log_beta02/evaluation/best_20260427_110758_details.csv

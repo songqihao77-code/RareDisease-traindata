@@ -1,0 +1,24 @@
+# Fixed Test Rerank Result
+
+## Protocol
+- validation candidates exported separately via `tools/export_top50_candidates.py --case-source validation`。
+- validation grid search is implemented in `tools/run_top50_evidence_rerank.py --protocol validation_select`。
+- fixed test evaluation is implemented in `tools/run_top50_evidence_rerank.py --protocol fixed_eval`。
+- 原始 exact evaluation 不覆盖；rerank 结果单独保存。
+
+## ALL-objective Fixed Test
+| preset | kind | w_hgnn | w_ic | w_exact | w_semantic | w_case_cov | w_dis_cov | w_size | max_exact_threshold | max_ic_threshold | hgnn_margin_threshold | DDD_num_cases | DDD_top1 | DDD_top3 | DDD_top5 | DDD_median_rank | DDD_mean_rank | DDD_rank_le_50 | mimic_test_num_cases | mimic_test_top1 | mimic_test_top3 | mimic_test_top5 | mimic_test_median_rank | mimic_test_mean_rank | mimic_test_rank_le_50 | HMS_num_cases | HMS_top1 | HMS_top3 | HMS_top5 | HMS_median_rank | HMS_mean_rank | HMS_rank_le_50 | LIRICAL_num_cases | LIRICAL_top1 | LIRICAL_top3 | LIRICAL_top5 | LIRICAL_median_rank | LIRICAL_mean_rank | LIRICAL_rank_le_50 | ALL_num_cases | ALL_top1 | ALL_top3 | ALL_top5 | ALL_median_rank | ALL_mean_rank | ALL_rank_le_50 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| validation_selected_fixed_test | fixed_eval | 0.7500 | 0.0500 | 0.0000 | 0.1000 | 0.0000 | 0.0300 | 0.0100 |  |  |  | 761 | 0.3430 | 0.4704 | 0.5138 | 5.0000 | 17.9671 | 0.7451 | 1873 | 0.1869 | 0.3006 | 0.3529 | 20.0000 | 25.8655 | 0.6151 | 25 | 0.3200 | 0.4400 | 0.5600 | 4.0000 | 17.6800 | 0.7200 | 59 | 0.5932 | 0.6780 | 0.7119 | 1.0000 | 13.8136 | 0.7797 | 2978 | 0.2848 | 0.4026 | 0.4527 | 9.0000 | 21.5517 | 0.6847 |
+
+## DDD-objective Fixed Test / Exploratory Comparison
+| preset | kind | w_hgnn | w_ic | w_exact | w_semantic | w_case_cov | w_dis_cov | w_size | max_exact_threshold | max_ic_threshold | hgnn_margin_threshold | DDD_num_cases | DDD_top1 | DDD_top3 | DDD_top5 | DDD_median_rank | DDD_mean_rank | DDD_rank_le_50 | mimic_test_num_cases | mimic_test_top1 | mimic_test_top3 | mimic_test_top5 | mimic_test_median_rank | mimic_test_mean_rank | mimic_test_rank_le_50 | HMS_num_cases | HMS_top1 | HMS_top3 | HMS_top5 | HMS_median_rank | HMS_mean_rank | HMS_rank_le_50 | LIRICAL_num_cases | LIRICAL_top1 | LIRICAL_top3 | LIRICAL_top5 | LIRICAL_median_rank | LIRICAL_mean_rank | LIRICAL_rank_le_50 | ALL_num_cases | ALL_top1 | ALL_top3 | ALL_top5 | ALL_median_rank | ALL_mean_rank | ALL_rank_le_50 | dataset_gate |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| validation_grid_DDD_top1 | fixed_eval | 0.7000 | 0.2000 | 0.1000 | 0.1500 | 0.0500 | 0.0300 | 0.0200 |  |  |  | 761 | 0.3693 | 0.4875 | 0.5506 | 4.0000 | 17.1905 | 0.7451 | 1873 | 0.1639 | 0.2787 | 0.3353 | 22.0000 | 26.1708 | 0.6151 | 25 | 0.3600 | 0.4800 | 0.5600 | 4.0000 | 17.4000 | 0.7200 | 59 | 0.5763 | 0.6780 | 0.7288 | 1.0000 | 13.4576 | 0.7797 | 2978 | 0.2616 | 0.3872 | 0.4490 | 8.0000 | 21.5873 | 0.6847 |  |
+| validation_grid_ALL_top1 | fixed_eval | 0.7500 | 0.0500 | 0.0000 | 0.1000 | 0.0000 | 0.0300 | 0.0100 |  |  |  | 761 | 0.3430 | 0.4704 | 0.5138 | 5.0000 | 17.9671 | 0.7451 | 1873 | 0.1869 | 0.3006 | 0.3529 | 20.0000 | 25.8655 | 0.6151 | 25 | 0.3200 | 0.4400 | 0.5600 | 4.0000 | 17.6800 | 0.7200 | 59 | 0.5932 | 0.6780 | 0.7119 | 1.0000 | 13.8136 | 0.7797 | 2978 | 0.2848 | 0.4026 | 0.4527 | 9.0000 | 21.5517 | 0.6847 |  |
+| validation_gated_DDD_top1 | fixed_eval | 0.7000 | 0.2000 | 0.1000 | 0.1500 | 0.0500 | 0.0300 | 0.0200 | 2.0000 | 0.1500 | 0.1000 | 761 | 0.3693 | 0.4836 | 0.5453 | 4.0000 | 17.2733 | 0.7451 | 1873 | 0.1666 | 0.2819 | 0.3358 | 22.0000 | 26.1767 | 0.6151 | 25 | 0.3600 | 0.4800 | 0.5600 | 4.0000 | 17.4000 | 0.7200 | 59 | 0.5763 | 0.6780 | 0.7288 | 1.0000 | 13.4576 | 0.7797 | 2978 | 0.2693 | 0.3878 | 0.4480 | 9.0000 | 21.6021 | 0.6847 | ALL |
+| validation_gated_ALL_top1 | fixed_eval | 0.8000 | 0.0500 | 0.0000 | 0.1500 | 0.0000 | 0.0300 | 0.0000 | 1.0000 | 0.1500 | 0.1000 | 761 | 0.3417 | 0.4691 | 0.5125 | 5.0000 | 17.9001 | 0.7451 | 1873 | 0.1863 | 0.2974 | 0.3524 | 21.0000 | 25.8879 | 0.6151 | 25 | 0.3200 | 0.4800 | 0.5600 | 4.0000 | 17.5600 | 0.7200 | 59 | 0.5932 | 0.6949 | 0.7119 | 1.0000 | 13.7288 | 0.7797 | 2978 | 0.2834 | 0.4009 | 0.4520 | 8.0000 | 21.5477 | 0.6847 | ALL |
+
+## 论文可用性
+- `validation_selected_fixed_test` 可进入论文主表，前提是明确权重来自 validation。
+- `test_side_exploratory_upper_bound`、test-side grid/gate/search 只能作为附表或 error analysis，不能作为主表结果。

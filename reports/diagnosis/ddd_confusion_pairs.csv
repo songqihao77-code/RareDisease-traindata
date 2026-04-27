@@ -1,0 +1,336 @@
+﻿gold_disease_id,gold_disease_name,wrong_top1_disease_id,wrong_top1_disease_name,ontology_relation,confusion_count,mean_gold_rank,mean_top50_above_gold_negative_count
+MONDO:0020242,hereditary macular dystrophy,MONDO:0018146,macular telangiectasia type 1,shared_ancestor,2,3.0,2.0
+MONDO:0010717,pyruvate dehydrogenase E1-alpha deficiency,MONDO:0018651,obsolete lipoyl transferase 2 deficiency,unrelated_or_unknown,2,3.0,2.0
+MONDO:0010211,xeroderma pigmentosum group C,MONDO:0010213,xeroderma pigmentosum group E,same_parent,1,2.0,1.0
+MONDO:0008276,generalized juvenile polyposis/juvenile polyposis coli,MONDO:0044300,familial adenomatous polyposis 4,shared_ancestor,1,8.0,7.0
+MONDO:0018964,homocystinuria without methylmalonic aciduria,MONDO:0009609,methylcobalamin deficiency type cblG,candidate_descendant_of_gold,1,12.0,11.0
+MONDO:0019569,Cockayne syndrome type 1,MONDO:0019570,Cockayne syndrome type 2,same_parent,1,2.0,1.0
+MONDO:0014432,Bardet-Biedl syndrome 2,MONDO:0008854,Bardet-Biedl syndrome 1,same_parent,1,9.0,8.0
+MONDO:0012183,"melanoma, cutaneous malignant, susceptibility to, 3",MONDO:0007964,"melanoma, cutaneous malignant, susceptibility to, 2",same_parent,1,2.0,1.0
+MONDO:0010822,Warburg micro syndrome 1,MONDO:0016649,Warburg micro syndrome,candidate_ancestor_of_gold,1,42.0,41.0
+MONDO:0013326,Senior-Loken syndrome 7,MONDO:0014444,Bardet-Biedl syndrome 16,same_parent,1,5.0,4.0
+MONDO:0014706,"cutis laxa, autosomal dominant 3",MONDO:0013751,"cutis laxa, autosomal dominant 2",same_parent,1,2.0,1.0
+MONDO:0958239,microphthalmia/coloboma 11,MONDO:0014380,colobomatous microphthalmia-rhizomelic dysplasia syndrome,shared_ancestor,1,7.0,6.0
+MONDO:0010212,xeroderma pigmentosum group D,MONDO:0100045,"epidermodysplasia verruciformis, susceptibility to, 1",unrelated_or_unknown,1,31.0,30.0
+MONDO:0010196,Werner syndrome,MONDO:0012590,XFE progeroid syndrome,same_parent,1,2.0,1.0
+MONDO:0019200,retinitis pigmentosa,MONDO:0013263,retinitis pigmentosa 54,candidate_descendant_of_gold,1,10.0,9.0
+MONDO:0013218,exudative vitreoretinopathy 5,MONDO:0011151,exudative vitreoretinopathy 4,shared_ancestor,1,8.0,7.0
+MONDO:0014653,retinitis pigmentosa 72,MONDO:0013175,retinitis pigmentosa 50,same_parent,1,2.0,1.0
+MONDO:0044314,retinitis pigmentosa 78,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,20.0,19.0
+MONDO:0013002,cone-rod dystrophy 9,MONDO:0011355,cone-rod dystrophy 7,same_parent,1,6.0,5.0
+MONDO:0019200,retinitis pigmentosa,MONDO:0011974,retinitis pigmentosa 7,candidate_descendant_of_gold,1,11.0,10.0
+MONDO:0011855,granular corneal dystrophy type II,MONDO:0007377,granular corneal dystrophy type I,same_parent,1,2.0,1.0
+MONDO:0009020,macular corneal dystrophy,MONDO:0013203,"corneal dystrophy, Fuchs endothelial, 3",shared_ancestor,1,28.0,27.0
+MONDO:0003608,optic atrophy,MONDO:0007429,"optic atrophy with or without deafness, ophthalmoplegia, myopathy, ataxia, and neuropathy",candidate_descendant_of_gold,1,10.0,9.0
+MONDO:0010818,retinitis pigmentosa 12,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,4.0,3.0
+MONDO:0800445,Birt-Hogg-Dube syndrome 1,MONDO:0018492,hereditary clear cell renal cell carcinoma,shared_ancestor,1,27.0,26.0
+MONDO:0011413,cataract 9 multiple types,MONDO:0014110,cataract 15 multiple types,shared_ancestor,1,26.0,25.0
+MONDO:0014110,cataract 15 multiple types,MONDO:0012701,cataract 12 multiple types,shared_ancestor,1,9.0,8.0
+MONDO:0044320,retinitis pigmentosa 79,MONDO:0011143,cone-rod dystrophy 6,shared_ancestor,1,7.0,6.0
+MONDO:0017304,ocular albinism,MONDO:0030899,oculocutaneous albinism type 8,shared_ancestor,1,7.0,6.0
+MONDO:0012990,Leber congenital amaurosis 13,MONDO:0019200,retinitis pigmentosa,shared_ancestor,1,12.0,11.0
+MONDO:0013402,retinitis pigmentosa 27,MONDO:0013437,retinitis pigmentosa 43,same_parent,1,5.0,4.0
+MONDO:0013402,retinitis pigmentosa 27,MONDO:0014400,retinitis pigmentosa 70,same_parent,1,5.0,4.0
+MONDO:0019516,exudative vitreoretinopathy,MONDO:0033123,exudative vitreoretinopathy 7,candidate_descendant_of_gold,1,10.0,9.0
+MONDO:0007540,multiple endocrine neoplasia type 1,MONDO:0019955,GRFoma,shared_ancestor,1,5.0,4.0
+MONDO:0014955,RCBTB1-related retinopathy,MONDO:0014522,retinal dystrophy and obesity,shared_ancestor,1,19.0,18.0
+MONDO:0020367,juvenile open angle glaucoma,MONDO:0014998,"glaucoma 3, primary congenital, E",shared_ancestor,1,50.0,49.0
+MONDO:0010371,Aland island eye disease,MONDO:0012490,"cone-rod synaptic disorder, congenital nonprogressive",shared_ancestor,1,3.0,2.0
+MONDO:0010176,orofaciodigital syndrome type 6,MONDO:0009436,congenital hypothalamic hamartoma syndrome,shared_ancestor,1,3.0,2.0
+MONDO:0008662,autosomal dominant vitreoretinochoroidopathy,MONDO:0004580,retinal degeneration,shared_ancestor,1,3.0,2.0
+MONDO:0012056,Leber congenital amaurosis 9,MONDO:0013449,Leber congenital amaurosis 7,same_parent,1,25.0,24.0
+MONDO:0007471,Doyne honeycomb retinal dystrophy,MONDO:0007630,North Carolina macular dystrophy,shared_ancestor,1,9.0,8.0
+MONDO:0014702,autosomal recessive complex spastic paraplegia type 9B,MONDO:0014302,hereditary spastic paraplegia 62,shared_ancestor,1,4.0,3.0
+MONDO:0007039,NF2-related schwannomatosis,MONDO:0014630,familial adenomatous polyposis 3,shared_ancestor,1,2.0,1.0
+MONDO:0013807,congenital stationary night blindness 1E,MONDO:0008099,congenital stationary night blindness autosomal dominant 2,same_parent,1,2.0,1.0
+MONDO:0060556,"joint laxity, short stature, and myopia",MONDO:0011142,"Ehlers-Danlos syndrome, musculocontractural type",shared_ancestor,1,49.0,48.0
+MONDO:0013558,Hermansky-Pudlak syndrome 6,MONDO:0013557,Hermansky-Pudlak syndrome 5,same_parent,1,6.0,5.0
+MONDO:0013454,Leber congenital amaurosis 11,MONDO:0013449,Leber congenital amaurosis 7,same_parent,1,7.0,6.0
+MONDO:0013670,"myopia, high, with cataract and vitreoretinal degeneration",MONDO:0012013,"Weill-Marchesani syndrome 2, dominant",shared_ancestor,1,18.0,17.0
+MONDO:0013469,retinitis pigmentosa 38,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,5.0,4.0
+MONDO:0014256,retinitis pigmentosa 67,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,26.0,25.0
+MONDO:0012308,Joubert syndrome with renal defect,MONDO:0014928,Joubert syndrome 28,same_parent,1,11.0,10.0
+MONDO:0020365,congenital hereditary endothelial dystrophy type I,MONDO:0013206,"corneal dystrophy, Fuchs endothelial, 6",shared_ancestor,1,3.0,2.0
+MONDO:0013437,retinitis pigmentosa 43,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,50.0,49.0
+MONDO:0009235,familial benign flecked retina,MONDO:0100466,butterfly-shaped pigment dystrophy,shared_ancestor,1,7.0,6.0
+MONDO:0019766,"X-linked intellectual disability, Porteous type",MONDO:0012373,"ectodermal dysplasia, sensorineural hearing loss, and distinctive facial features",shared_ancestor,1,3.0,2.0
+MONDO:0011075,retinitis pigmentosa 18,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,41.0,40.0
+MONDO:0011544,pheochromocytoma/paraganglioma syndrome 3,MONDO:0011740,Carney-Stratakis syndrome,shared_ancestor,1,6.0,5.0
+MONDO:0010828,retinitis pigmentosa 11,MONDO:0011137,retinitis pigmentosa 19,same_parent,1,23.0,22.0
+MONDO:0014400,retinitis pigmentosa 70,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,18.0,17.0
+MONDO:0013516,retinitis pigmentosa 60,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,14.0,13.0
+MONDO:0012056,Leber congenital amaurosis 9,MONDO:0012990,Leber congenital amaurosis 13,same_parent,1,17.0,16.0
+MONDO:0012367,retinitis pigmentosa 31,MONDO:0019200,retinitis pigmentosa,candidate_ancestor_of_gold,1,15.0,14.0
+MONDO:0008927,colobomatous optic disc-macular atrophy-chorioretinopathy syndrome,MONDO:0000170,"microphthalmia, isolated, with coloboma",shared_ancestor,1,21.0,20.0
+MONDO:0008233,pheochromocytoma,MONDO:0011740,Carney-Stratakis syndrome,shared_ancestor,1,18.0,17.0
+MONDO:0008377,retinitis pigmentosa 1,MONDO:0019200,retinitis pigmentosa,synonym_or_name_match,1,3.0,2.0
+MONDO:0010227,retinitis pigmentosa 3,MONDO:0011987,cone-rod dystrophy 13,shared_ancestor,1,15.0,14.0
+MONDO:0010443,"macular degeneration, X-linked atrophic",MONDO:0014501,"macular degeneration, early-onset",shared_ancestor,1,7.0,6.0
+MONDO:0012073,ribose-5-P isomerase deficiency,MONDO:0958226,"leukoencephalopathy, porphyria-related",same_parent,1,33.0,32.0
+MONDO:0005129,cataract,MONDO:0011547,cataract 31 multiple types,candidate_descendant_of_gold,1,25.0,24.0
+MONDO:0008075,schwannomatosis,MONDO:0014299,LZTR1-related schwannomatosis,candidate_descendant_of_gold,1,2.0,1.0
+MONDO:0012184,Pierson syndrome,MONDO:0009732,"congenital nephrotic syndrome, Finnish type",shared_ancestor,1,2.0,1.0
+MONDO:0019200,retinitis pigmentosa,MONDO:0013454,Leber congenital amaurosis 11,shared_ancestor,1,37.0,36.0
+MONDO:0007630,North Carolina macular dystrophy,MONDO:0018146,macular telangiectasia type 1,shared_ancestor,1,2.0,1.0
+MONDO:0014296,Warburg micro syndrome 4,MONDO:0016649,Warburg micro syndrome,candidate_ancestor_of_gold,1,5.0,4.0
+MONDO:0014059,"microphthalmia, isolated, with coloboma 9",MONDO:0000170,"microphthalmia, isolated, with coloboma",candidate_ancestor_of_gold,1,7.0,6.0
+MONDO:0005835,Lynch syndrome,MONDO:0013196,Lynch syndrome 8,candidate_descendant_of_gold,1,5.0,4.0
+MONDO:0020066,Ehlers-Danlos syndrome,MONDO:0019567,"Ehlers-Danlos syndrome, classic type, 1",candidate_descendant_of_gold,1,2.0,1.0
+MONDO:0019200,retinitis pigmentosa,MONDO:0036482,retinitis pigmentosa 81,candidate_descendant_of_gold,1,45.0,44.0
+MONDO:0001384,myopia,MONDO:0012154,myopia 6,candidate_descendant_of_gold,1,7.0,6.0
+MONDO:0005129,cataract,MONDO:0013449,Leber congenital amaurosis 7,shared_ancestor,1,34.0,33.0
+MONDO:0013155,"muscular dystrophy-dystroglycanopathy (congenital with intellectual disability), type B3",MONDO:0009667,"muscular dystrophy-dystroglycanopathy (congenital with brain and eye anomalies), type A3",same_parent,1,9.0,8.0
+MONDO:0018822,global developmental delay-visual anomalies-progressive cerebellar atrophy-truncal hypotonia syndrome,MONDO:0014811,"cerebellar atrophy, visual impairment, and psychomotor retardation;",shared_ancestor,1,2.0,1.0
+MONDO:0005129,cataract,MONDO:0013067,cataract 34 multiple types,candidate_descendant_of_gold,1,2.0,1.0
+MONDO:0012701,cataract 12 multiple types,MONDO:0007284,cataract 20 multiple types,shared_ancestor,1,4.0,3.0
+MONDO:0032817,"neurodevelopmental disorder with cataracts, poor growth, and dysmorphic facies",MONDO:0010545,Nance-Horan syndrome,shared_ancestor,1,29.0,28.0
+MONDO:0010680,X-linked Emery-Dreifuss muscular dystrophy,MONDO:0008407,"neurogenic scapuloperoneal syndrome, Kaeser type",shared_ancestor,1,17.0,16.0
+MONDO:0010281,Danon disease,MONDO:0009708,"myopathy, myosin storage, autosomal recessive",shared_ancestor,1,22.0,21.0
+MONDO:0013499,Fanconi anemia complementation group P,MONDO:0013566,Fanconi anemia complementation group L,same_parent,1,2.0,1.0
+MONDO:0009746,hereditary sensory and autonomic neuropathy type 4,MONDO:0012092,hereditary sensory and autonomic neuropathy type 5,same_parent,1,2.0,1.0
+MONDO:0014076,"dyskeratosis congenita, autosomal recessive 5",MONDO:0018340,obsolete hereditary isolated aplastic anemia,unrelated_or_unknown,1,23.0,22.0
+MONDO:0016828,autosomal recessive sideroblastic anemia,MONDO:0016363,obsolete rare hereditary hemochromatosis,unrelated_or_unknown,1,3.0,2.0
+MONDO:0012589,Pitt-Hopkins syndrome,MONDO:0010407,"intellectual disability, X-linked syndromic, Turner type",shared_ancestor,1,37.0,36.0
+MONDO:0009393,ornithine translocase deficiency,MONDO:0008814,arginase deficiency,same_parent,1,3.0,2.0
+MONDO:0008368,autosomal dominant distal renal tubular acidosis,MONDO:0009967,renal tubular acidosis 3,shared_ancestor,1,5.0,4.0
+MONDO:0009213,Fanconi anemia complementation group C,MONDO:0009215,Fanconi anemia complementation group A,same_parent,1,5.0,4.0
+MONDO:0012734,SERKAL syndrome,MONDO:0060764,tetraamelia syndrome 1,shared_ancestor,1,2.0,1.0
+MONDO:0014591,autosomal dominant Robinow syndrome 2,MONDO:0859297,neurodevelopmental disorder with dysmorphic facies and skeletal and brain abnormalities,shared_ancestor,1,39.0,38.0
+MONDO:0009069,"congenital lactic acidosis, Saguenay-Lac-Saint-Jean type",MONDO:0014856,combined oxidative phosphorylation defect type 30,shared_ancestor,1,8.0,7.0
+MONDO:0009968,"renal tubular acidosis, distal, 2, with progressive sensorineural hearing loss",MONDO:0018440,autosomal recessive distal renal tubular acidosis,candidate_ancestor_of_gold,1,2.0,1.0
+MONDO:0011752,nephronophthisis 4,MONDO:0011456,nephronophthisis 3,same_parent,1,2.0,1.0
+MONDO:0012656,lethal congenital contracture syndrome 3,MONDO:0100104,fetal akinesia deformation sequence 4,shared_ancestor,1,5.0,4.0
+MONDO:0007875,Larsen syndrome,MONDO:0010075,"spondyloepimetaphyseal dysplasia with joint laxity, type 1, with or without fractures",shared_ancestor,1,7.0,6.0
+MONDO:0009580,"intellectual disability, autosomal recessive 1",MONDO:0008341,ptosis-strabismus-ectopic pupils syndrome,shared_ancestor,1,3.0,2.0
+MONDO:0008082,multiple endocrine neoplasia type 2B,MONDO:0008234,multiple endocrine neoplasia type 2A,same_parent,1,3.0,2.0
+MONDO:0012613,"intellectual disability, autosomal recessive 5",MONDO:0018658,19p13.3 microduplication syndrome,shared_ancestor,1,28.0,27.0
+MONDO:0013942,peroxisome biogenesis disorder 8A (Zellweger),MONDO:0013930,peroxisome biogenesis disorder 4A (Zellweger),shared_ancestor,1,13.0,12.0
+MONDO:0013049,DPM3-congenital disorder of glycosylation,MONDO:0013390,autosomal recessive limb-girdle muscular dystrophy type 2Q,shared_ancestor,1,2.0,1.0
+MONDO:0012084,aromatic L-amino acid decarboxylase deficiency,MONDO:0009863,BH4-deficient hyperphenylalaninemia A,shared_ancestor,1,2.0,1.0
+MONDO:0009076,autosomal recessive nonsyndromic hearing loss 1A,MONDO:0032776,"hearing loss, autosomal recessive 99",same_parent,1,10.0,9.0
+MONDO:0008818,arterial tortuosity syndrome,MONDO:0013897,Loeys-Dietz syndrome 4,shared_ancestor,1,31.0,30.0
+MONDO:0011866,pontocerebellar hypoplasia type 1A,MONDO:0013853,pontocerebellar hypoplasia type 1B,same_parent,1,7.0,6.0
+MONDO:0009291,glycogen storage disease III,MONDO:0012545,neutral lipid storage myopathy,shared_ancestor,1,3.0,2.0
+MONDO:0014015,hereditary spastic paraplegia 56,MONDO:0010733,hereditary spastic paraplegia 2,same_parent,1,22.0,21.0
+MONDO:0027407,Kleefstra syndrome 1,MONDO:0012455,Kleefstra syndrome,synonym_or_name_match,1,2.0,1.0
+MONDO:0008918,carnitine-acylcarnitine translocase deficiency,MONDO:0009282,multiple acyl-CoA dehydrogenase deficiency,shared_ancestor,1,2.0,1.0
+MONDO:0011488,"microcephaly 3, primary, autosomal recessive",MONDO:0008404,scalp-ear-nipple syndrome,shared_ancestor,1,10.0,9.0
+MONDO:0016543,hyperphenylalaninemia due to tetrahydrobiopterin deficiency,MONDO:0019335,mild hyperphenylalaninemia,shared_ancestor,1,9.0,8.0
+MONDO:0011022,Potocki-Shaffer syndrome,MONDO:0008994,"cleidocranial dysplasia, recessive form",shared_ancestor,1,4.0,3.0
+MONDO:0007810,autosomal dominant ichthyosis vulgaris,MONDO:0007812,"ichthyosis, lamellar, autosomal dominant",shared_ancestor,1,3.0,2.0
+MONDO:0013821,"intellectual disability, autosomal dominant 16",MONDO:0013819,"intellectual disability, autosomal dominant 14",same_parent,1,7.0,6.0
+MONDO:0009525,split hand-foot malformation 3,MONDO:0013385,Treacher Collins syndrome 2,shared_ancestor,1,30.0,29.0
+MONDO:0012420,autosomal recessive nonsyndromic hearing loss 49,MONDO:0011160,autosomal recessive nonsyndromic hearing loss 15,same_parent,1,9.0,8.0
+MONDO:0009076,autosomal recessive nonsyndromic hearing loss 1A,MONDO:0010238,"hearing loss, X-linked 4",shared_ancestor,1,36.0,35.0
+MONDO:0007542,Camurati-Engelmann disease,MONDO:0019409,idiopathic juvenile osteoporosis,shared_ancestor,1,9.0,8.0
+MONDO:0010953,Fanconi anemia complementation group E,MONDO:0009215,Fanconi anemia complementation group A,same_parent,1,3.0,2.0
+MONDO:0011760,Scheie syndrome,MONDO:0009261,GM1 gangliosidosis type 2,shared_ancestor,1,36.0,35.0
+MONDO:0013271,frontonasal dysplasia - severe microphthalmia - severe facial clefting syndrome,MONDO:0007636,frontorhiny,same_parent,1,2.0,1.0
+MONDO:0012553,cerebrooculofacioskeletal syndrome 2,MONDO:0011125,"trichothiodystrophy 1, photosensitive",shared_ancestor,1,10.0,9.0
+MONDO:0013912,hypogonadotropic hypogonadism 10 with or without anosmia,MONDO:0013913,hypogonadotropic hypogonadism 11 with or without anosmia,shared_ancestor,1,13.0,12.0
+MONDO:0010860,autosomal recessive nonsyndromic hearing loss 3,MONDO:0033665,"hearing loss, autosomal dominant 78",shared_ancestor,1,3.0,2.0
+MONDO:0001029,Klippel-Feil syndrome,MONDO:0008958,"Klippel-Feil syndrome 2, autosomal recessive",candidate_descendant_of_gold,1,3.0,2.0
+MONDO:0013938,peroxisome biogenesis disorder 7A (Zellweger),MONDO:0008954,peroxisome biogenesis disorder 2A (Zellweger),shared_ancestor,1,13.0,12.0
+MONDO:0010337,X-linked intellectual disability-cerebellar hypoplasia syndrome,MONDO:0019181,non-syndromic X-linked intellectual disability,shared_ancestor,1,12.0,11.0
+MONDO:0010363,"intellectual disability, X-linked 91",MONDO:0014823,"hypotonia, infantile, with psychomotor retardation and characteristic facies 3",shared_ancestor,1,6.0,5.0
+MONDO:0010986,autosomal recessive nonsyndromic hearing loss 9,MONDO:0014675,autosomal recessive nonsyndromic hearing loss 104,same_parent,1,2.0,1.0
+MONDO:0008209,Char syndrome,MONDO:0014213,CTCF-related neurodevelopmental disorder,shared_ancestor,1,2.0,1.0
+MONDO:0013827,hyperekplexia 3,MONDO:0007868,hyperekplexia 1,same_parent,1,2.0,1.0
+MONDO:0012676,autosomal recessive osteopetrosis 4,MONDO:0014040,autosomal recessive osteopetrosis 8,same_parent,1,2.0,1.0
+MONDO:0012277,myofibrillar myopathy 4,MONDO:0012215,myofibrillar myopathy 3,same_parent,1,5.0,4.0
+MONDO:0013757,congenital nongoitrous hypothyroidism 6,MONDO:0016413,congenital hypothyroidism due to maternal intake of antithyroid drugs,shared_ancestor,1,3.0,2.0
+MONDO:0012322,holoprosencephaly 5,MONDO:0013642,holoprosencephaly 11,shared_ancestor,1,25.0,24.0
+MONDO:0013356,vesicoureteral reflux 3,MONDO:0015195,atresia of urethra,shared_ancestor,1,14.0,13.0
+MONDO:0850059,hereditary persistence of fetal hemoglobin-intellectual disability syndrome,MONDO:0016672,hereditary persistence of fetal hemoglobin-sickle cell disease syndrome,same_parent,1,3.0,2.0
+MONDO:0009658,mucopolysaccharidosis type 3D,MONDO:0009656,mucopolysaccharidosis type 3B,same_parent,1,4.0,3.0
+MONDO:0010083,succinic semialdehyde dehydrogenase deficiency,MONDO:0012960,"intellectual disability, autosomal dominant 5",shared_ancestor,1,2.0,1.0
+MONDO:0011124,spondyloepimetaphyseal dysplasia-abnormal dentition syndrome,MONDO:0011109,"multiple epiphyseal dysplasia, Lowry type",shared_ancestor,1,31.0,30.0
+MONDO:0957382,multiple mitochondrial dysfunctions syndrome 7,MONDO:0958192,glycine encephalopathy 2,shared_ancestor,1,7.0,6.0
+MONDO:0014113,cardiofaciocutaneous syndrome 3,MONDO:0007265,cardiofaciocutaneous syndrome 1,same_parent,1,37.0,36.0
+MONDO:0011925,congenital merosin-deficient muscular dystrophy 1A,MONDO:1040033,congenital muscular dystrophy without intellectual disability,same_parent,1,11.0,10.0
+MONDO:0009863,BH4-deficient hyperphenylalaninemia A,MONDO:0012905,hypomyelinating leukodystrophy 6,shared_ancestor,1,42.0,41.0
+MONDO:0957811,"Alport syndrome 3b, autosomal recessive",MONDO:0007086,autosomal dominant Alport syndrome,same_parent,1,3.0,2.0
+MONDO:0008722,short chain acyl-CoA dehydrogenase deficiency,MONDO:0700250,"mitochondrial complex IV deficiency, nuclear type 1",shared_ancestor,1,2.0,1.0
+MONDO:0013675,multiple mitochondrial dysfunctions syndrome 2,MONDO:0011582,multiple mitochondrial dysfunctions syndrome 1,same_parent,1,33.0,32.0
+MONDO:0100025,epilepsy of infancy with migrating focal seizures,MONDO:0020310,familial focal epilepsy with variable foci,shared_ancestor,1,3.0,2.0
+MONDO:0007585,"exostoses, multiple, type 1",MONDO:0010846,"exostoses, multiple, type III",same_parent,1,2.0,1.0
+MONDO:0007064,"severe combined immunodeficiency, autosomal recessive, T cell-negative, B cell-negative, NK cell-negative, due to adenosine deaminase deficiency",MONDO:0009451,Nezelof syndrome,shared_ancestor,1,3.0,2.0
+MONDO:0013849,"microcephaly 8, primary, autosomal recessive",MONDO:0011435,"microcephaly 2, primary, autosomal recessive, with or without cortical malformations",same_parent,1,2.0,1.0
+MONDO:0014112,cardiofaciocutaneous syndrome 2,MONDO:0007265,cardiofaciocutaneous syndrome 1,same_parent,1,11.0,10.0
+MONDO:0007732,Holt-Oram syndrome,MONDO:0017454,triphalangeal thumb-polysyndactyly syndrome,shared_ancestor,1,11.0,10.0
+MONDO:0007168,atelosteogenesis type III,MONDO:0009727,atelosteogenesis type II,same_parent,1,3.0,2.0
+MONDO:0013590,"Stickler syndrome, type 4",MONDO:0016647,obsolete autosomal recessive Stickler syndrome,unrelated_or_unknown,1,4.0,3.0
+MONDO:0010590,FG syndrome 1,MONDO:0010316,FG syndrome 3,same_parent,1,2.0,1.0
+MONDO:0020712,"46,XY sex reversal 1",MONDO:0013120,"46,XY sex reversal 5",same_parent,1,3.0,2.0
+MONDO:0018485,"glycogen storage disease due to acid maltase deficiency, late-onset",MONDO:0009290,glycogen storage disease II,candidate_ancestor_of_gold,1,50.0,49.0
+MONDO:0008555,thrombocytopenia 2,MONDO:0016627,obsolete rare hemorrhagic disorder,unrelated_or_unknown,1,33.0,32.0
+MONDO:0018094,Waardenburg syndrome,MONDO:0013201,Waardenburg syndrome type 4B,candidate_descendant_of_gold,1,10.0,9.0
+MONDO:0008310,Hutchinson-Gilford progeria syndrome,MONDO:0030781,restrictive dermopathy 2,shared_ancestor,1,25.0,24.0
+MONDO:0008931,Cenani-Lenz syndactyly syndrome,MONDO:0010408,syndactyly-telecanthus-anogenital and renal malformations syndrome,same_parent,1,48.0,47.0
+MONDO:0009353,homocystinuria due to methylene tetrahydrofolate reductase deficiency,MONDO:0009609,methylcobalamin deficiency type cblG,shared_ancestor,1,2.0,1.0
+MONDO:0014083,"agammaglobulinemia 7, autosomal recessive",MONDO:0014865,autosomal recessive severe congenital neutropenia due to CSF3R deficiency,shared_ancestor,1,4.0,3.0
+MONDO:0009503,pyruvate dehydrogenase E3-binding protein deficiency,MONDO:0060562,"encephalopathy, neonatal severe, with lactic acidosis and brain abnormalities",shared_ancestor,1,10.0,9.0
+MONDO:0011765,multiple epiphyseal dysplasia type 5,MONDO:0010964,"epiphyseal dysplasia, multiple, 3",shared_ancestor,1,7.0,6.0
+MONDO:0007397,"craniometaphyseal dysplasia, autosomal dominant",MONDO:0009035,"craniometaphyseal dysplasia, autosomal recessive",same_parent,1,3.0,2.0
+MONDO:0010524,X-linked sideroblastic anemia with ataxia,MONDO:0007298,spinocerebellar ataxia type 29,shared_ancestor,1,24.0,23.0
+MONDO:0013372,long QT syndrome 5,MONDO:0013370,long QT syndrome 6,same_parent,1,8.0,7.0
+MONDO:0010370,Cornelia de Lange syndrome 2,MONDO:0010038,growth delay due to insulin-like growth factor I resistance,shared_ancestor,1,11.0,10.0
+MONDO:0012669,Legius syndrome,MONDO:0018208,neurofibromatosis type 1 due to NF1 mutation or intragenic deletion,shared_ancestor,1,2.0,1.0
+MONDO:0014030,primary ciliary dyskinesia 20,MONDO:0014211,primary ciliary dyskinesia 26,same_parent,1,2.0,1.0
+MONDO:0014027,hypotrichosis 11,MONDO:0013017,hypotrichosis 5,shared_ancestor,1,9.0,8.0
+MONDO:0010475,X-linked central congenital hypothyroidism with late-onset testicular enlargement,MONDO:0010142,hypothyroidism due to TSH receptor mutations,shared_ancestor,1,43.0,42.0
+MONDO:0010183,methylmalonic aciduria and homocystinuria type cblF,MONDO:0010184,methylmalonic aciduria and homocystinuria type cblC,same_parent,1,2.0,1.0
+MONDO:0013984,autosomal recessive nonsyndromic hearing loss 84B,MONDO:0010171,Usher syndrome type 1C,shared_ancestor,1,20.0,19.0
+MONDO:0800046,"thyroid hormone metabolism, abnormal 1",MONDO:0011420,short stature due to partial GHR deficiency,shared_ancestor,1,32.0,31.0
+MONDO:0008477,"spondylometaphyseal dysplasia, Kozlowski type",MONDO:0008478,"spondylometaphyseal dysplasia, Schmidt type",same_parent,1,7.0,6.0
+MONDO:0014667,"cardioencephalomyopathy, fatal infantile, due to cytochrome c oxidase deficiency 3",MONDO:0033646,"mitochondrial complex IV deficiency, nuclear type 12",shared_ancestor,1,27.0,26.0
+MONDO:0010733,hereditary spastic paraplegia 2,MONDO:0014827,autosomal recessive spastic paraplegia type 76,shared_ancestor,1,14.0,13.0
+MONDO:0018931,"mucolipidosis type III, alpha/beta",MONDO:0009661,mucopolysaccharidosis type 6,same_parent,1,6.0,5.0
+MONDO:0011186,Usher syndrome type 1F,MONDO:0016485,Usher syndrome type 3,shared_ancestor,1,16.0,15.0
+MONDO:0017726,"Tay-Sachs disease, B variant, adult form",MONDO:0010099,Tay-Sachs disease AB variant,shared_ancestor,1,2.0,1.0
+MONDO:0013722,hypomyelinating leukodystrophy 8 with or without oligodontia and-or hypogonadotropic hypogonadism,MONDO:0018656,tremor-ataxia-central hypomyelination syndrome,shared_ancestor,1,2.0,1.0
+MONDO:0013932,peroxisome biogenesis disorder 5A (Zellweger),MONDO:0008954,peroxisome biogenesis disorder 2A (Zellweger),shared_ancestor,1,6.0,5.0
+MONDO:0007664,"glaucoma 1, open angle, A",MONDO:0009277,glaucoma 3A,shared_ancestor,1,13.0,12.0
+MONDO:0010306,"X-linked intellectual disability, Cabezas type",MONDO:0010537,Borjeson-Forssman-Lehmann syndrome,same_parent,1,17.0,16.0
+MONDO:0011445,hereditary spastic paraplegia 11,MONDO:0011532,hereditary spastic paraplegia 13,shared_ancestor,1,13.0,12.0
+MONDO:0009401,hyperprolinemia type 2,MONDO:0009448,iminoglycinuria,shared_ancestor,1,4.0,3.0
+MONDO:0012994,dopa-responsive dystonia due to sepiapterin reductase deficiency,MONDO:0044304,hyperphenylalaninemia due to DNAJC12 deficiency,shared_ancestor,1,43.0,42.0
+MONDO:0012144,Waardenburg syndrome type 2D,MONDO:0018094,Waardenburg syndrome,candidate_ancestor_of_gold,1,5.0,4.0
+MONDO:0009262,GM1 gangliosidosis type 3,MONDO:0009660,mucopolysaccharidosis type 4B,shared_ancestor,1,5.0,4.0
+MONDO:0014599,"intellectual disability, autosomal dominant 34",MONDO:0014205,severe feeding difficulties-failure to thrive-microcephaly due to ASXL3 deficiency syndrome,shared_ancestor,1,19.0,18.0
+MONDO:0008318,Proteus syndrome,MONDO:0013125,CLAPO syndrome,same_parent,1,2.0,1.0
+MONDO:0013940,primary ciliary dyskinesia 18,MONDO:0014211,primary ciliary dyskinesia 26,same_parent,1,3.0,2.0
+MONDO:0008612,tuberous sclerosis 1,MONDO:0013199,tuberous sclerosis 2,same_parent,1,2.0,1.0
+MONDO:0016484,Usher syndrome type 2,MONDO:0011195,Usher syndrome type 1E,shared_ancestor,1,11.0,10.0
+MONDO:0009603,3-hydroxyisobutyryl-CoA hydrolase deficiency,MONDO:0014314,sacral agenesis-abnormal ossification of the vertebral bodies-persistent notochordal canal syndrome,shared_ancestor,1,2.0,1.0
+MONDO:0013265,"autism, susceptibility to, 17",MONDO:0014150,developmental and epileptic encephalopathy 94,unrelated_or_unknown,1,18.0,17.0
+MONDO:0008974,Greenberg dysplasia,MONDO:0008970,chondrodysplasia Blomstrand type,shared_ancestor,1,8.0,7.0
+MONDO:0013854,primary ciliary dyskinesia 17,MONDO:0012748,primary ciliary dyskinesia 7,same_parent,1,14.0,13.0
+MONDO:0008847,atrichia with papular lesions,MONDO:0007511,"ectodermal dysplasia, trichoodontoonychial type",shared_ancestor,1,2.0,1.0
+MONDO:0010711,TARP syndrome,MONDO:0007252,Gordon syndrome,shared_ancestor,1,32.0,31.0
+MONDO:0008842,"ataxia, early-onset, with oculomotor apraxia and hypoalbuminemia",MONDO:0975800,spinocerebellar ataxia 51,shared_ancestor,1,25.0,24.0
+MONDO:0008861,3-methylcrotonyl-CoA carboxylase 1 deficiency,MONDO:0009475,isovaleric acidemia,shared_ancestor,1,2.0,1.0
+MONDO:0009728,nephronophthisis 1,MONDO:0013302,nephronophthisis 11,same_parent,1,2.0,1.0
+MONDO:0011435,"microcephaly 2, primary, autosomal recessive, with or without cortical malformations",MONDO:0011830,lissencephaly due to LIS1 mutation,shared_ancestor,1,5.0,4.0
+MONDO:0013936,peroxisome biogenesis disorder 6A (Zellweger),MONDO:0008954,peroxisome biogenesis disorder 2A (Zellweger),shared_ancestor,1,18.0,17.0
+MONDO:0009251,"fructose-1,6-bisphosphatase deficiency",MONDO:0008721,medium chain acyl-CoA dehydrogenase deficiency,shared_ancestor,1,14.0,13.0
+MONDO:0018464,severe phosphoribosylpyrophosphate synthetase superactivity,MONDO:0018463,mild phosphoribosylpyrophosphate synthetase superactivity,same_parent,1,2.0,1.0
+MONDO:0008546,thanatophoric dysplasia type 1,MONDO:0008547,thanatophoric dysplasia type 2,same_parent,1,2.0,1.0
+MONDO:0008788,IRIDA syndrome,MONDO:0009187,celiac disease-epilepsy-cerebral calcification syndrome,shared_ancestor,1,19.0,18.0
+MONDO:0017226,Pelizaeus-Merzbacher-like disease,MONDO:0009843,hypomyelinating leukodystrophy 3,candidate_descendant_of_gold,1,2.0,1.0
+MONDO:0008675,Freeman-Sheldon syndrome,MONDO:0014556,"congenital contractures of the limbs and face, hypotonia, and developmental delay",shared_ancestor,1,3.0,2.0
+MONDO:0010139,isolated thyroid-stimulating hormone deficiency,MONDO:0016413,congenital hypothyroidism due to maternal intake of antithyroid drugs,shared_ancestor,1,8.0,7.0
+MONDO:0009475,isovaleric acidemia,MONDO:0008760,beta-ketothiolase deficiency,same_parent,1,4.0,3.0
+MONDO:0012699,autosomal recessive limb-girdle muscular dystrophy type 2M,MONDO:0018277,obsolete congenital muscular dystrophy with cerebellar involvement,unrelated_or_unknown,1,17.0,16.0
+MONDO:0013495,autosomal recessive congenital ichthyosis 8,MONDO:0010391,"angioma serpiginosum, X-linked",shared_ancestor,1,3.0,2.0
+MONDO:0010397,severe neonatal-onset encephalopathy with microcephaly,MONDO:0012534,combined oxidative phosphorylation defect type 4,shared_ancestor,1,28.0,27.0
+MONDO:0020340,bilateral perisylvian polymicrogyria,MONDO:0010314,"polymicrogyria, bilateral perisylvian, X-linked",candidate_descendant_of_gold,1,25.0,24.0
+MONDO:0007733,holoprosencephaly 3,MONDO:0007819,solitary median maxillary central incisor syndrome,candidate_descendant_of_gold,1,2.0,1.0
+MONDO:0013998,MEGF8-related Carpenter syndrome,MONDO:0008710,RAB23-related Carpenter syndrome,same_parent,1,18.0,17.0
+MONDO:0014437,Bardet-Biedl syndrome 9,MONDO:0014439,Bardet-Biedl syndrome 11,same_parent,1,6.0,5.0
+MONDO:0012593,brain-lung-thyroid syndrome,MONDO:0010142,hypothyroidism due to TSH receptor mutations,shared_ancestor,1,5.0,4.0
+MONDO:0010895,ABCD syndrome,MONDO:0012698,Waardenburg syndrome type 2E,shared_ancestor,1,4.0,3.0
+MONDO:0012750,lethal arthrogryposis-anterior horn cell disease syndrome,MONDO:0014569,lethal congenital contracture syndrome 7,shared_ancestor,1,2.0,1.0
+MONDO:0859233,"epidermolysis bullosa, junctional 6, with pyloric atresia",MONDO:0012807,"epidermolysis bullosa simplex 5C, with pyloric atresia",shared_ancestor,1,24.0,23.0
+MONDO:0014439,Bardet-Biedl syndrome 11,MONDO:0008854,Bardet-Biedl syndrome 1,same_parent,1,3.0,2.0
+MONDO:0024519,renal hypodysplasia/aplasia 1,MONDO:0018470,renal agenesis,synonym_or_name_match,1,4.0,3.0
+MONDO:0009130,Dyggve-Melchior-Clausen disease,MONDO:0008477,"spondylometaphyseal dysplasia, Kozlowski type",shared_ancestor,1,2.0,1.0
+MONDO:0009339,congenital bile acid synthesis defect 2,MONDO:0011906,congenital bile acid synthesis defect 1,same_parent,1,8.0,7.0
+MONDO:0013337,"neuropathy, hereditary sensory and autonomic, type 1C",MONDO:0008087,hereditary neuropathy with liability to pressure palsies,shared_ancestor,1,3.0,2.0
+MONDO:0010580,immune dysregulation-polyendocrinopathy-enteropathy-X-linked syndrome,MONDO:0016536,obsolete autosomal recessive lymphoproliferative disease,unrelated_or_unknown,1,46.0,45.0
+MONDO:0011334,limb-mammary syndrome,MONDO:0007508,Rapp-Hodgkin syndrome,same_parent,1,9.0,8.0
+MONDO:0007352,renal coloboma syndrome,MONDO:0001476,coloboma,shared_ancestor,1,44.0,43.0
+MONDO:0013820,"intellectual disability, autosomal dominant 15",MONDO:0013819,"intellectual disability, autosomal dominant 14",same_parent,1,6.0,5.0
+MONDO:0013161,autosomal recessive limb-girdle muscular dystrophy type 2O,MONDO:0012248,autosomal recessive limb-girdle muscular dystrophy type 2K,same_parent,1,5.0,4.0
+MONDO:0012471,Aicardi-Goutieres syndrome 3,MONDO:0012472,Aicardi-Goutieres syndrome 4,same_parent,1,2.0,1.0
+MONDO:0007986,metatropic dysplasia,MONDO:0008701,achondrogenesis type IA,shared_ancestor,1,2.0,1.0
+MONDO:0019349,Sotos syndrome,MONDO:0010193,Weaver syndrome,same_parent,1,37.0,36.0
+MONDO:0010952,hereditary hyperferritinemia with congenital cataracts,MONDO:0012688,cataract 17 multiple types,shared_ancestor,1,6.0,5.0
+MONDO:0013801,"developmental and epileptic encephalopathy, 13",MONDO:0020630,developmental and epileptic encephalopathy 91,shared_ancestor,1,6.0,5.0
+MONDO:0012680,nephronophthisis 7,MONDO:0011456,nephronophthisis 3,same_parent,1,7.0,6.0
+MONDO:0054637,Noonan syndrome-like disorder with loose anagen hair 1,MONDO:0012690,Noonan syndrome 5,shared_ancestor,1,5.0,4.0
+MONDO:0013115,RIN2 syndrome,MONDO:0027451,autosomal recessive cutis laxa type 2D,shared_ancestor,1,45.0,44.0
+MONDO:0008767,neuronal ceroid lipofuscinosis 3,MONDO:0008769,neuronal ceroid lipofuscinosis 2,same_parent,1,2.0,1.0
+MONDO:0014762,"heterotaxy, visceral, 7, autosomal",MONDO:0010991,"laterality defects, autosomal dominant",same_parent,1,6.0,5.0
+MONDO:0014703,Adams-Oliver syndrome 6,MONDO:0859342,"microcephaly 30, primary, autosomal recessive",shared_ancestor,1,17.0,16.0
+MONDO:0009593,"spondylometaphyseal dysplasia, Sedaghatian type",MONDO:0013795,fibrochondrogenesis 2,shared_ancestor,1,6.0,5.0
+MONDO:0054588,Noonan syndrome-like disorder with loose anagen hair 2,MONDO:0013379,Noonan syndrome 7,shared_ancestor,1,13.0,12.0
+MONDO:0013615,craniosynostosis and dental anomalies,MONDO:0007041,Apert syndrome,shared_ancestor,1,10.0,9.0
+MONDO:0850095,X-linked severe syndromic thoracic aortic aneurysm and dissection,MONDO:0010515,Meester-Loeys syndrome,shared_ancestor,1,2.0,1.0
+MONDO:0014941,"arthrogryposis, distal, with impaired proprioception and touch",MONDO:0014556,"congenital contractures of the limbs and face, hypotonia, and developmental delay",shared_ancestor,1,19.0,18.0
+MONDO:0014910,primary ciliary dyskinesia 35,MONDO:0014465,primary ciliary dyskinesia 30,same_parent,1,10.0,9.0
+MONDO:0009964,short-rib thoracic dysplasia 9 with or without polydactyly,MONDO:0014712,Senior-Loken syndrome 9,shared_ancestor,1,28.0,27.0
+MONDO:0030914,Clark-Baraitser syndrome,MONDO:0030051,"intellectual developmental disorder with autistic features and language delay, with or without seizures",shared_ancestor,1,44.0,43.0
+MONDO:0015002,"developmental and epileptic encephalopathy, 49",MONDO:0014392,"developmental and epileptic encephalopathy, 25",shared_ancestor,1,2.0,1.0
+MONDO:0060631,Alkuraya-Kucinskas syndrome,MONDO:0009364,"muscular dystrophy-dystroglycanopathy (congenital with brain and eye anomalies), type A1",shared_ancestor,1,2.0,1.0
+MONDO:0012085,primary ciliary dyskinesia 3,MONDO:0030474,"heterotaxy, visceral, 10, autosomal, with male infertility",shared_ancestor,1,9.0,8.0
+MONDO:0018651,obsolete lipoyl transferase 2 deficiency,MONDO:0060562,"encephalopathy, neonatal severe, with lactic acidosis and brain abnormalities",unrelated_or_unknown,1,2.0,1.0
+MONDO:0060510,Cohen-Gibson syndrome,MONDO:0032916,Imagawa-Matsumoto syndrome,same_parent,1,3.0,2.0
+MONDO:0060486,"arthrogryposis multiplex congenita 1, neurogenic, with myelin defect",MONDO:0008826,"arthrogryposis-hyperkeratosis syndrome, lethal form",shared_ancestor,1,40.0,39.0
+MONDO:0054677,combined oxidative phosphorylation deficiency 33,MONDO:0016810,autosomal recessive progressive external ophthalmoplegia,shared_ancestor,1,46.0,45.0
+MONDO:0033309,Joubert syndrome 32,MONDO:0033310,Joubert syndrome 31,same_parent,1,14.0,13.0
+MONDO:0020631,developmental and epileptic encephalopathy 92,MONDO:0014995,"neurodevelopmental disorder with hypotonia, seizures, and absent language",shared_ancestor,1,18.0,17.0
+MONDO:0030919,"intellectual disability, autosomal dominant 53",MONDO:0032697,Houge-Janssens syndrome 3,shared_ancestor,1,40.0,39.0
+MONDO:0029138,"developmental and epileptic encephalopathy, 67",MONDO:0014199,"developmental and epileptic encephalopathy, 17",same_parent,1,50.0,49.0
+MONDO:0009749,giant axonal neuropathy 1,MONDO:0014024,hereditary spastic paraplegia 43,shared_ancestor,1,20.0,19.0
+MONDO:0800043,Stüve-Wiedemann syndrome 1,MONDO:0019409,idiopathic juvenile osteoporosis,shared_ancestor,1,17.0,16.0
+MONDO:0012173,long chain 3-hydroxyacyl-CoA dehydrogenase deficiency,MONDO:0017715,3-hydroxyacyl-CoA dehydrogenase deficiency,same_parent,1,24.0,23.0
+MONDO:0032578,"cortical dysplasia, complex, with other brain malformations 9",MONDO:0010250,"intellectual disability, X-linked 49",shared_ancestor,1,8.0,7.0
+MONDO:0011213,Pierpont syndrome,MONDO:0020820,distal arthrogryposis type 2B1,shared_ancestor,1,28.0,27.0
+MONDO:0044315,craniosynostosis 7,MONDO:0014705,craniosynostosis 6,unrelated_or_unknown,1,2.0,1.0
+MONDO:8000011,"visceral neuropathy, familial, 1, autosomal recessive",MONDO:0018309,Hirschsprung disease,shared_ancestor,1,4.0,3.0
+MONDO:0014693,Noonan syndrome 10,MONDO:0014143,Noonan syndrome 8,same_parent,1,24.0,23.0
+MONDO:0010649,isolated congenital megalocornea,MONDO:0016559,glaucoma secondary to spherophakia/ectopia lentis and megalocornea,shared_ancestor,1,2.0,1.0
+MONDO:0027462,autosomal recessive cutis laxa type 2C,MONDO:0027451,autosomal recessive cutis laxa type 2D,same_parent,1,14.0,13.0
+MONDO:0054782,"leukodystrophy, hypomyelinating, 15",MONDO:0017226,Pelizaeus-Merzbacher-like disease,same_parent,1,2.0,1.0
+MONDO:0060760,intellectual developmental disorder with dysmorphic facies and behavioral abnormalities,MONDO:0014205,severe feeding difficulties-failure to thrive-microcephaly due to ASXL3 deficiency syndrome,shared_ancestor,1,19.0,18.0
+MONDO:0032658,"macrocephaly, acquired, with impaired intellectual development",MONDO:0012756,proximal 16p11.2 microdeletion syndrome,shared_ancestor,1,5.0,4.0
+MONDO:0032791,Coffin-Siris syndrome 10,MONDO:0014376,intellectual developmental disorder with microcephaly and with or without ocular malformations or hypogonadotropic hypogonadism,same_parent,1,47.0,46.0
+MONDO:0032485,intellectual developmental disorder 61,MONDO:0030051,"intellectual developmental disorder with autistic features and language delay, with or without seizures",shared_ancestor,1,12.0,11.0
+MONDO:0100436,"cataract 2, multiple types",MONDO:0012688,cataract 17 multiple types,shared_ancestor,1,3.0,2.0
+MONDO:0054582,Townes-Brocks syndrome 2,MONDO:0008404,scalp-ear-nipple syndrome,shared_ancestor,1,20.0,19.0
+MONDO:0030934,"intellectual developmental disorder, autosomal dominant 64",MONDO:0968945,"neurodevelopmental disorder with language impairment, autism, and attention deficit-hyperactivity disorder",shared_ancestor,1,10.0,9.0
+MONDO:0016619,autosomal recessive hypohidrotic ectodermal dysplasia,MONDO:0013982,"ectodermal dysplasia 11A, hypohidrotic/hair/tooth type, autosomal dominant",shared_ancestor,1,50.0,49.0
+MONDO:0850087,primary hypomagnesemia-generalized seizures-intellectual disability-obesity syndrome,MONDO:0013480,renal hypomagnesemia 6,shared_ancestor,1,3.0,2.0
+MONDO:0018315,X-linked osteoporosis with fractures,MONDO:0019409,idiopathic juvenile osteoporosis,same_parent,1,4.0,3.0
+MONDO:0032835,"spondyloepiphyseal dysplasia, nishimura type",MONDO:0009785,opsismodysplasia,shared_ancestor,1,4.0,3.0
+MONDO:0031213,restrictive dermopathy,MONDO:0030781,restrictive dermopathy 2,candidate_descendant_of_gold,1,3.0,2.0
+MONDO:0009052,"cutis laxa, autosomal recessive, type 1A",MONDO:0013170,"cutis laxa with severe pulmonary, gastrointestinal and urinary anomalies",shared_ancestor,1,3.0,2.0
+MONDO:0020066,Ehlers-Danlos syndrome,MONDO:0011670,Ehlers-Danlos syndrome due to tenascin-X deficiency,candidate_descendant_of_gold,1,6.0,5.0
+MONDO:0011826,glucocorticoid deficiency 2,MONDO:0013874,glucocorticoid deficiency 4,same_parent,1,6.0,5.0
+MONDO:0007813,superficial epidermolytic ichthyosis,MONDO:0008218,Hailey-Hailey disease,shared_ancestor,1,5.0,4.0
+MONDO:0008278,juvenile polyposis/hereditary hemorrhagic telangiectasia syndrome,MONDO:0044300,familial adenomatous polyposis 4,shared_ancestor,1,4.0,3.0
+MONDO:0009258,classic galactosemia,MONDO:0009257,galactose epimerase deficiency,same_parent,1,4.0,3.0
+MONDO:0010201,Winchester syndrome,MONDO:0009218,Farber lipogranulomatosis,shared_ancestor,1,9.0,8.0
+MONDO:0011216,hemochromatosis type 2A,MONDO:0021001,hemochromatosis type 1,shared_ancestor,1,2.0,1.0
+MONDO:0017610,epidermolysis bullosa simplex,MONDO:0007555,"epidermolysis bullosa simplex 5A, Ogna type",candidate_descendant_of_gold,1,34.0,33.0
+MONDO:0008963,Chediak-Higashi syndrome,MONDO:0019312,Hermansky-Pudlak syndrome,same_parent,1,25.0,24.0
+MONDO:0019019,osteogenesis imperfecta,MONDO:0014086,osteogenesis imperfecta type 15,candidate_descendant_of_gold,1,37.0,36.0
+MONDO:0007805,hypotrichosis 2,MONDO:0014027,hypotrichosis 11,same_parent,1,9.0,8.0
+MONDO:0009053,ALDH18A1-related de Barsy syndrome,MONDO:0013755,PYCR1-related de Barsy syndrome,same_parent,1,15.0,14.0
+MONDO:0015085,bathing suit ichthyosis,MONDO:0009441,autosomal recessive congenital ichthyosis 1,synonym_or_name_match,1,5.0,4.0
+MONDO:0012847,autosomal recessive congenital ichthyosis 6,MONDO:0014010,autosomal recessive congenital ichthyosis 9,same_parent,1,5.0,4.0
+MONDO:0018865,striate palmoplantar keratoderma,MONDO:0014272,"palmoplantar keratoderma, Nagashima type",shared_ancestor,1,3.0,2.0
+MONDO:0007727,TNF receptor 1-associated periodic fever syndrome,MONDO:0019509,cutaneous leukocytoclastic angiitis,shared_ancestor,1,16.0,15.0
+MONDO:0035524,blepharophimosis-ptosis-epicanthus inversus syndrome type 1,MONDO:0007201,"blepharophimosis, ptosis, and epicanthus inversus syndrome",candidate_ancestor_of_gold,1,2.0,1.0
+MONDO:0014139,"Ehlers-Danlos syndrome, spondylodysplastic type, 2",MONDO:0010075,"spondyloepimetaphyseal dysplasia with joint laxity, type 1, with or without fractures",same_parent,1,2.0,1.0
+MONDO:0014010,autosomal recessive congenital ichthyosis 9,MONDO:0033092,"ichthyosis, congenital, autosomal recessive 13",shared_ancestor,1,12.0,11.0
+MONDO:0014227,hypopigmentation-punctate palmoplantar keratoderma syndrome,MONDO:0013980,"palmoplantar keratoderma, punctate type ib",shared_ancestor,1,30.0,29.0
+MONDO:0014307,Dowling-Degos disease 4,MONDO:0013980,"palmoplantar keratoderma, punctate type ib",shared_ancestor,1,39.0,38.0
+MONDO:0007610,gingival fibromatosis-hypertrichosis syndrome,MONDO:0015452,Coffin-Siris syndrome,shared_ancestor,1,15.0,14.0
+MONDO:0013935,Usher syndrome type 1J,MONDO:0016485,Usher syndrome type 3,shared_ancestor,1,11.0,10.0
+MONDO:0019141,porokeratosis of Mibelli,MONDO:0013868,"porokeratosis 7, multiple types",shared_ancestor,1,4.0,3.0
+MONDO:0014923,peeling skin syndrome 5,MONDO:0008924,congenital cataract-ichthyosis syndrome,shared_ancestor,1,26.0,25.0
+MONDO:0010832,Bardet-Biedl syndrome 3,MONDO:0014439,Bardet-Biedl syndrome 11,same_parent,1,15.0,14.0
+MONDO:0054765,"amyloidosis, primary localized cutaneous, 3",MONDO:0017906,amyloidosis cutis dyschromia,shared_ancestor,1,4.0,3.0
+MONDO:0008244,piebaldism,MONDO:0013201,Waardenburg syndrome type 4B,shared_ancestor,1,2.0,1.0
+MONDO:0010690,congenital stationary night blindness 1A,MONDO:0008099,congenital stationary night blindness autosomal dominant 2,shared_ancestor,1,3.0,2.0
+MONDO:0008907,PMM2-congenital disorder of glycosylation,MONDO:0011257,MPI-congenital disorder of glycosylation,same_parent,1,20.0,19.0
+MONDO:0013606,Hermansky-Pudlak syndrome 9,MONDO:0011683,oculocutaneous albinism type 4,shared_ancestor,1,20.0,19.0
+MONDO:0012177,posterior column ataxia-retinitis pigmentosa syndrome,MONDO:0019200,retinitis pigmentosa,shared_ancestor,1,3.0,2.0
+MONDO:0008800,microphthalmia with limb anomalies,MONDO:0012980,endocrine-cerebro-osteodysplasia syndrome,shared_ancestor,1,4.0,3.0
+MONDO:0020378,early-onset posterior polar cataract,MONDO:0010948,cataract 10 multiple types,shared_ancestor,1,43.0,42.0
+MONDO:0859578,lacrimoauriculodentodigital syndrome 3,MONDO:0100302,LADD syndrome 1,same_parent,1,2.0,1.0
+MONDO:0011630,retinitis pigmentosa 28,MONDO:0008377,retinitis pigmentosa 1,same_parent,1,24.0,23.0
+MONDO:0009561,alpha-mannosidosis,MONDO:0018149,GM1 gangliosidosis,same_parent,1,2.0,1.0
+MONDO:0011987,cone-rod dystrophy 13,MONDO:0011355,cone-rod dystrophy 7,same_parent,1,11.0,10.0

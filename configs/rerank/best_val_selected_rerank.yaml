@@ -1,0 +1,17 @@
+protocol: validation_selected_fixed_test
+selection_source: D:\RareDisease-traindata\outputs\rerank\val_selected_weights.json
+validation_candidates_path: D:\RareDisease-traindata\outputs\rerank\top50_candidates_validation.csv
+test_candidates_path: D:\RareDisease-traindata\outputs\rerank\top50_candidates_v2.csv
+selection_objective: ALL_top1
+selected_preset: grid_1787
+weights:
+  w_hgnn: 0.75
+  w_ic: 0.05
+  w_exact: 0.0
+  w_semantic: 0.1
+  w_case_cov: 0.0
+  w_dis_cov: 0.03
+  w_size: 0.01
+gate: null
+fixed_test_only: true
+do_not_tune_on_test: true

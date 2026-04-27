@@ -1,0 +1,34 @@
+{
+  "inputs": {
+    "test_candidates": "D:\\RareDisease-traindata\\outputs\\rerank\\top50_candidates_v2.csv",
+    "validation_candidates": "D:\\RareDisease-traindata\\outputs\\rerank\\top50_candidates_validation.csv",
+    "exact_details": "D:\\RareDisease-traindata\\outputs\\attn_beta_sweep\\edge_log_beta02\\evaluation\\best_20260425_224439_details.csv",
+    "data_config": "D:\\RareDisease-traindata\\configs\\data_llldataset_eval.yaml",
+    "finetune_config": "D:\\RareDisease-traindata\\configs\\train_finetune_attn_idf_main.yaml",
+    "mondo_json": "D:\\RareDisease-traindata\\data\\raw_data\\mondo-base.json",
+    "hpo_obo": "D:\\RareDisease-traindata\\data\\raw_data\\hp-base.obo",
+    "hyperedge_csv": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\rare_disease_hgnn_clean_package_v59\\v59_hyperedge_weighted_patched.csv"
+  },
+  "outputs": [
+    "reports/diagnosis/dataset_rank_decomposition.csv",
+    "reports/diagnosis/dataset_rank_decomposition.md",
+    "reports/diagnosis/mimic_multilabel_audit.csv",
+    "reports/diagnosis/mimic_top50_miss_audit.csv",
+    "reports/diagnosis/mimic_failure_bucket_summary.md",
+    "reports/diagnosis/ddd_nearmiss_cases.csv",
+    "reports/diagnosis/ddd_confusion_pairs.csv",
+    "reports/diagnosis/ddd_hard_negative_recommendation.md",
+    "reports/diagnosis/rerank_validationization_plan.md",
+    "configs/rerank/best_val_selected_rerank.yaml",
+    "reports/rerank/fixed_test_result.md",
+    "reports/diagnosis/hard_negative_code_audit.md",
+    "configs/experiments/hgnn_hn_current.yaml",
+    "configs/experiments/hgnn_hn_overlap.yaml",
+    "configs/experiments/hgnn_hn_sibling.yaml",
+    "configs/experiments/hgnn_hn_top50_above_gold.yaml",
+    "configs/experiments/hgnn_hn_mixed.yaml",
+    "reports/diagnosis/mondo_hpo_mapping_audit.csv",
+    "reports/diagnosis/mapping_issue_summary.md",
+    "reports/diagnosis/recommended_accuracy_improvement_plan.md"
+  ]
+}

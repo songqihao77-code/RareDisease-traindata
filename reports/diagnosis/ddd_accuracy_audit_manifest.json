@@ -1,0 +1,46 @@
+{
+  "sources": {
+    "candidates": "D:\\RareDisease-traindata\\outputs\\rerank\\top50_candidates_v2.csv",
+    "details": "D:\\RareDisease-traindata\\outputs\\attn_beta_sweep\\edge_log_beta02\\evaluation\\best_20260425_224439_details.csv",
+    "per_dataset": "D:\\RareDisease-traindata\\outputs\\attn_beta_sweep\\edge_log_beta02\\evaluation\\best_20260425_224439_per_dataset.csv",
+    "ddd_cases": "D:\\RareDisease-traindata\\LLLdataset\\dataset\\processed\\test\\DDD.csv",
+    "disease_index": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\processed\\Disease_index_v4.xlsx",
+    "disease_hyperedge": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\rare_disease_hgnn_clean_package_v59\\v59_hyperedge_weighted_patched.csv",
+    "mondo": "D:\\RareDisease-traindata\\data\\raw_data\\mondo.json"
+  },
+  "outputs": [
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_rank_decomposition.csv",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_rank_decomposition.md",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_top50_miss_audit.csv",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_top50_miss_audit.md",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_nearmiss_cases.csv",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_nearmiss_pairs.csv",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_nearmiss_audit.md",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_rerank_protocol_audit.md",
+    "D:\\RareDisease-traindata\\reports\\diagnosis\\ddd_hard_negative_audit.md",
+    "D:\\RareDisease-traindata\\reports\\ddd_improvement\\ddd_accuracy_improvement_context.md"
+  ],
+  "ddd_rank_summary": {
+    "num_cases": 761,
+    "top1_count": 230,
+    "top3_count": 338,
+    "top5_count": 378,
+    "top10_count": 438,
+    "top20_count": 496,
+    "top50_count": 567,
+    "rank_gt50_count": 194,
+    "top50_rank_gt5_count": 189,
+    "top5_not_top1_count": 148
+  },
+  "miss_summary": {
+    "num_miss": 194,
+    "gold_not_in_candidate_universe": 0,
+    "gold_no_hyperedge": 0,
+    "obsolete_gold": 1,
+    "zero_exact_overlap": 26,
+    "mean_case_hpo_count": 14.54639175257732,
+    "mean_gold_hpo_count": 31.948453608247423,
+    "mean_ic_overlap": 0.3019812695309169
+  },
+  "nearmiss_cases": 337
+}

@@ -38,6 +38,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--score-type", default="raw_similarity,rank_decay")
     parser.add_argument("--use-frozen-config", action="store_true")
     parser.add_argument("--frozen-config-path", type=Path, default=DEFAULT_FROZEN_CONFIG)
+    parser.add_argument("--data-config-path", type=Path, default=DEFAULT_DATA_CONFIG)
+    parser.add_argument("--train-config-path", type=Path, default=DEFAULT_TRAIN_CONFIG)
     parser.add_argument("--validation-candidates-path", type=Path, default=DEFAULT_VAL_CANDIDATES)
     parser.add_argument("--test-candidates-path", type=Path, default=DEFAULT_TEST_CANDIDATES)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_REPORT_DIR)
@@ -463,9 +465,9 @@ def write_case_analysis(
 def main() -> None:
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    data_config = load_yaml_config(DEFAULT_DATA_CONFIG)
-    train_config = load_yaml_config(DEFAULT_TRAIN_CONFIG)
-    train_table, val_table, test_table = load_case_tables(data_config, DEFAULT_DATA_CONFIG, train_config)
+    data_config = load_yaml_config(args.data_config_path)
+    train_config = load_yaml_config(args.train_config_path)
+    train_table, val_table, test_table = load_case_tables(data_config, args.data_config_path, train_config)
 
     val_candidates = load_candidates(args.validation_candidates_path)
     test_candidates = load_candidates(args.test_candidates_path)
