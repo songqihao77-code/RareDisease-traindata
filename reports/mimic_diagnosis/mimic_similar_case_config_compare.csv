@@ -1,0 +1,3 @@
+﻿source,topk,weight,score_type,top1,top3,top5,rank_le_50
+docx / reports/mimic_next frozen config,10,0.4,raw_similarity,0.20928990923651897,0.32995194874532835,0.39402028830752805,0.6497597437266418
+current outputs/mainline_full_pipeline,20,0.5,raw_similarity,0.2092899092365189,0.3422317138280832,0.402562733582488,0.6556326748531767

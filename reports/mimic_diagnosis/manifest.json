@@ -1,0 +1,28 @@
+{
+  "command": "D:\\python\\python.exe tools\\analysis\\mimic_diagnosis.py",
+  "inputs": {
+    "mimic_path": "D:\\RareDisease-traindata\\LLLdataset\\dataset\\processed\\test\\mimic_test_recleaned_mondo_hpo_rows.csv",
+    "exact_details_path": "D:\\RareDisease-traindata\\outputs\\mainline_full_pipeline\\stage3_exact_eval\\exact_details.csv",
+    "candidates_path": "D:\\RareDisease-traindata\\outputs\\mainline_full_pipeline\\stage4_candidates\\top50_candidates_test.csv",
+    "disease_index": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\processed\\Disease_index_v4.xlsx",
+    "hyperedge_csv": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\rare_disease_hgnn_clean_package_v59\\v59_hyperedge_weighted_patched.csv",
+    "mondo_json": "D:\\RareDisease-traindata\\data\\raw_data\\mondo-base.json"
+  },
+  "outputs": [
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_eval_path_audit.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_rank_decomposition.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_rank_decomposition.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_multilabel_audit.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_multilabel_audit.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_label_mapping_audit.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_unmapped_labels.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_label_mapping_audit.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_hpo_hyperedge_overlap_case_level.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_hpo_hyperedge_overlap_summary.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_hpo_hyperedge_overlap.md",
+    "D:\\RareDisease-traindata\\outputs\\mimic_diagnosis\\mimic_top50_candidates_with_evidence.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\mimic_candidate_recall_audit.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\method_suitability_comparison.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_diagnosis\\recommended_mimic_next_step.md"
+  ]
+}

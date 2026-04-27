@@ -1,0 +1,2 @@
+﻿baseline_gt50_to_final_le50,baseline_le50_to_final_gt50,baseline_gt50_to_final_le5,baseline_6_50_to_final_le5,baseline_gt5_to_final_le5,baseline_le5_to_final_gt5,baseline_not_top1_to_final_top1,baseline_top1_to_final_not_top1,improved_rank,worsened_rank,unchanged_rank
+104,47,0,168,168,53,128,69,549,992,332
