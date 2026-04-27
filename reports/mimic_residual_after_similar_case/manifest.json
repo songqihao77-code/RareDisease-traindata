@@ -1,0 +1,19 @@
+{
+  "command": "D:\\python\\python.exe tools\\analysis\\mimic_residual_after_similar_case.py",
+  "outputs": [
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\current_mimic_mainline_audit.md",
+    "D:\\RareDisease-traindata\\outputs\\mimic_residual_after_similar_case\\final_residual_cases.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\residual_bucket_summary.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\residual_bucket_summary.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\failure_type_summary.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\failure_type_summary.md",
+    "D:\\RareDisease-traindata\\outputs\\mimic_residual_after_similar_case\\residual_expanded_candidates_validation.csv",
+    "D:\\RareDisease-traindata\\outputs\\mimic_residual_after_similar_case\\residual_expanded_candidates_test_analysis_only.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\residual_expansion_recall_audit.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\residual_expansion_recall_audit.md",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\validation_gated_rerank_grid.csv",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\validation_gated_rerank_selected.md",
+    "D:\\RareDisease-traindata\\outputs\\mimic_residual_after_similar_case\\gated_selected_config.json",
+    "D:\\RareDisease-traindata\\reports\\mimic_residual_after_similar_case\\recommended_next_step_after_residual.md"
+  ]
+}

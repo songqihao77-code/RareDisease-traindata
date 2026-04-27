@@ -1,0 +1,2 @@
+﻿sim_weight,ic_weight,agree_boost,protect_bonus,val_num_cases,val_top1,val_top3,val_top5,val_rank_le_50,val_median_rank,val_mean_rank,baseline_current_val_top5,top5_delta_vs_current,top1_delta_vs_current,test_num_cases,test_top1,test_top3,test_top5,test_rank_le_50,test_median_rank,test_mean_rank
+0.5,0.1,0.1,0.05,2146,0.6393289841565704,0.7143522833178005,0.7437092264678472,0.902143522833178,1.0,905.2432432432432,0.7362534948741846,0.00745573159366264,0.002795899347623476,1873,0.2167645488521089,0.3459690336358783,0.403630539241858,0.6529631607047517,16.0,3200.6983449012278

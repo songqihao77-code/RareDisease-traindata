@@ -1,0 +1,9 @@
+﻿deeprare_dataset_name,project_dataset,mapping_status,num_cases,current_top1,target_top1,top1_gap,top1_case_gap,current_top3,target_top3,top3_gap,top3_case_gap,current_top5,target_top5,top5_gap,top5_case_gap,current_rank_le_50,target_status,priority_level,notes
+RareBench-MME,MME,exact_match,10.0,0.9,0.78,0.0,0.0,0.9,0.85,0.0,0.0,0.9,0.9,0.0,0.0,0.9,all_reached,P3,high_variance
+RareBench-HMS,HMS,exact_match,25.0,0.32,0.57,0.24999999999999994,7.0,0.44,0.65,0.21000000000000002,6.0,0.48,0.71,0.22999999999999998,6.0,0.88,far_from_target,P2,high_variance
+RareBench-LIRICAL,LIRICAL,exact_match,59.0,0.5084745762711864,0.56,0.051525423728813635,4.0,0.6440677966101694,0.65,0.0059322033898305815,1.0,0.6779661016949152,0.68,0.0020338983050848247,1.0,0.847457627118644,far_from_target,P2,high_variance; strict target 未全达，但 Top3/Top5 只差约 1 case
+RareBench-RAMEDIS,RAMEDIS,exact_match,217.0,0.7880184331797235,0.73,0.0,0.0,0.8755760368663594,0.83,0.0,0.0,0.9308755760368664,0.85,0.0,0.0,0.9861751152073732,all_reached,P3,
+MIMIC-IV-Rare,mimic_test_recleaned_mondo_hpo_rows,exact_match,1873.0,0.2092899092365189,0.29,0.08071009076348107,152.0,0.3422317138280832,0.37,0.02776828617191679,53.0,0.402562733582488,0.39,0.0,0.0,0.6556326748531767,top5_reached_only,P0,Top5 已达标；Top1/Top3 仍低于 target
+MyGene,MyGene2,approximate_match,33.0,0.8787878787878788,0.76,0.0,0.0,0.8787878787878788,0.8,0.0,0.0,0.8787878787878788,0.81,0.0,0.0,0.9696969696969696,all_reached,P3,high_variance; 从 MyGene2 近似映射
+DDD,DDD,exact_match,761.0,0.3758212877792378,0.48,0.10417871222076219,80.0,0.4967148488830486,0.6,0.10328515111695136,79.0,0.5400788436268068,0.63,0.0899211563731932,69.0,0.7437582128777924,far_from_target,P0,
+Xinhua Hosp.,,unavailable,,,0.58,,,,0.71,,,,0.74,,,,unavailable,P3,unavailable / not comparable

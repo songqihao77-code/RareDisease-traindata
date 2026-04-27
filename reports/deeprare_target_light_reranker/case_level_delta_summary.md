@@ -1,0 +1,18 @@
+# Case-Level Delta Summary
+
+| dataset                             | num_cases | top1_gained_cases | top1_lost_cases | top3_gained_cases | top3_lost_cases | top5_gained_cases | top5_lost_cases | rank_improved | rank_worsened | rank_unchanged |
+| ----------------------------------- | --------- | ----------------- | --------------- | ----------------- | --------------- | ----------------- | --------------- | ------------- | ------------- | -------------- |
+| DDD                                 | 761       | 16                | 29              | 9                 | 21              | 9                 | 24              | 69            | 362           | 330            |
+| HMS                                 | 25        | 0                 | 0               | 0                 | 1               | 0                 | 0               | 3             | 5             | 17             |
+| LIRICAL                             | 59        | 0                 | 0               | 0                 | 0               | 0                 | 0               | 4             | 10            | 45             |
+| MME                                 | 10        | 0                 | 0               | 0                 | 0               | 0                 | 0               | 0             | 1             | 9              |
+| MyGene2                             | 33        | 0                 | 0               | 0                 | 0               | 0                 | 0               | 0             | 1             | 32             |
+| RAMEDIS                             | 217       | 0                 | 0               | 0                 | 0               | 0                 | 0               | 0             | 3             | 214            |
+| mimic_test_recleaned_mondo_hpo_rows | 1873      | 15                | 6               | 9                 | 9               | 7                 | 13              | 306           | 678           | 889            |
+
+## Focus Counts
+- MIMIC final rank 2-5 -> rank1: 15
+- MIMIC final rank 4-5 -> rank<=3: 9
+- DDD final rank 6-50 -> top5: 9
+- DDD final rank 2-5 -> top1: 15
+- 已达标数据集 top5 lost cases: 0
