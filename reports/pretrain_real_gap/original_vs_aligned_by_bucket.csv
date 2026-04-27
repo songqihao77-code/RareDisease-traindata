@@ -1,0 +1,43 @@
+﻿dataset,bucket,metric_source,cases,top1,top3,top5,rank_le_50,mean_rank,median_rank
+DDD,Bucket 1: label gap,original_single_label_exact_failed_cases,1,0.0,0.0,0.0,1.0,28.0,28.0
+DDD,Bucket 2: HPO vocabulary gap,original_single_label_exact_failed_cases,50,0.0,0.18,0.2,0.6,538.74,36.0
+DDD,Bucket 3: HPO sparsity gap,original_single_label_exact_failed_cases,115,0.0,0.0782608695652174,0.12173913043478261,0.5391304347826087,559.2347826086957,44.0
+DDD,Bucket 4: HPO noise gap,original_single_label_exact_failed_cases,55,0.0,0.07272727272727272,0.10909090909090909,0.509090909090909,665.3454545454546,49.0
+DDD,Bucket 5: phenotype granularity gap,original_single_label_exact_failed_cases,172,0.0,0.14534883720930233,0.19767441860465115,0.5348837209302325,714.8313953488372,33.5
+DDD,Bucket 6: multi-label evaluation gap,original_single_label_exact_failed_cases,28,0.0,0.35714285714285715,0.42857142857142855,0.6428571428571429,226.0,10.0
+DDD,Bucket 7: candidate recall gap,original_single_label_exact_failed_cases,193,0.0,0.0,0.0,0.0,1037.4922279792745,221.0
+DDD,Bucket 8: ranking gap,original_single_label_exact_failed_cases,217,0.0,0.0,0.0,1.0,19.5852534562212,15.0
+DDD,unbucketed,original_single_label_exact_failed_cases,68,0.0,0.75,1.0,1.0,2.8823529411764706,3.0
+HMS,Bucket 1: label gap,original_single_label_exact_failed_cases,1,0.0,0.0,0.0,1.0,19.0,19.0
+HMS,Bucket 4: HPO noise gap,original_single_label_exact_failed_cases,5,0.0,0.0,0.8,0.8,21.2,5.0
+HMS,Bucket 5: phenotype granularity gap,original_single_label_exact_failed_cases,2,0.0,0.0,0.5,1.0,15.5,15.5
+HMS,Bucket 7: candidate recall gap,original_single_label_exact_failed_cases,4,0.0,0.0,0.0,0.0,323.5,272.0
+HMS,Bucket 8: ranking gap,original_single_label_exact_failed_cases,6,0.0,0.0,0.0,1.0,20.833333333333332,22.0
+HMS,unbucketed,original_single_label_exact_failed_cases,1,0.0,1.0,1.0,1.0,3.0,3.0
+LIRICAL,Bucket 3: HPO sparsity gap,original_single_label_exact_failed_cases,1,0.0,0.0,0.0,1.0,8.0,8.0
+LIRICAL,Bucket 5: phenotype granularity gap,original_single_label_exact_failed_cases,5,0.0,0.4,0.4,1.0,6.6,6.0
+LIRICAL,Bucket 7: candidate recall gap,original_single_label_exact_failed_cases,9,0.0,0.0,0.0,0.0,577.2222222222222,131.0
+LIRICAL,Bucket 8: ranking gap,original_single_label_exact_failed_cases,19,0.0,0.0,0.0,1.0,17.63157894736842,12.0
+LIRICAL,unbucketed,original_single_label_exact_failed_cases,2,0.0,1.0,1.0,1.0,2.0,2.0
+MME,Bucket 8: ranking gap,original_single_label_exact_failed_cases,2,0.0,0.0,0.0,1.0,15.0,15.0
+MyGene2,Bucket 3: HPO sparsity gap,original_single_label_exact_failed_cases,1,0.0,0.0,1.0,1.0,4.0,4.0
+MyGene2,Bucket 4: HPO noise gap,original_single_label_exact_failed_cases,1,0.0,0.0,0.0,0.0,100.0,100.0
+MyGene2,Bucket 5: phenotype granularity gap,original_single_label_exact_failed_cases,2,0.0,0.0,0.0,0.0,102.5,102.5
+MyGene2,Bucket 7: candidate recall gap,original_single_label_exact_failed_cases,3,0.0,0.0,0.0,0.0,264.3333333333333,105.0
+MyGene2,unbucketed,original_single_label_exact_failed_cases,1,0.0,1.0,1.0,1.0,2.0,2.0
+RAMEDIS,Bucket 2: HPO vocabulary gap,original_single_label_exact_failed_cases,16,0.0,0.25,0.5,0.75,90.75,6.0
+RAMEDIS,Bucket 3: HPO sparsity gap,original_single_label_exact_failed_cases,4,0.0,0.25,0.75,0.75,37.5,4.0
+RAMEDIS,Bucket 4: HPO noise gap,original_single_label_exact_failed_cases,4,0.0,0.75,0.75,0.75,45.75,2.0
+RAMEDIS,Bucket 5: phenotype granularity gap,original_single_label_exact_failed_cases,13,0.0,0.07692307692307693,0.3076923076923077,0.6153846153846154,121.23076923076923,34.0
+RAMEDIS,Bucket 7: candidate recall gap,original_single_label_exact_failed_cases,9,0.0,0.0,0.0,0.0,212.33333333333334,101.0
+RAMEDIS,Bucket 8: ranking gap,original_single_label_exact_failed_cases,16,0.0,0.0,0.0,1.0,13.8125,9.0
+RAMEDIS,unbucketed,original_single_label_exact_failed_cases,14,0.0,0.5714285714285714,1.0,1.0,3.5714285714285716,3.0
+mimic_test_recleaned_mondo_hpo_rows,Bucket 1: label gap,original_single_label_exact_failed_cases,9,0.0,0.0,0.0,0.1111111111111111,469.3333333333333,172.0
+mimic_test_recleaned_mondo_hpo_rows,Bucket 2: HPO vocabulary gap,original_single_label_exact_failed_cases,36,0.0,0.16666666666666666,0.19444444444444445,0.4444444444444444,1122.3055555555557,119.5
+mimic_test_recleaned_mondo_hpo_rows,Bucket 3: HPO sparsity gap,original_single_label_exact_failed_cases,110,0.0,0.045454545454545456,0.1,0.39090909090909093,1080.709090909091,141.0
+mimic_test_recleaned_mondo_hpo_rows,Bucket 4: HPO noise gap,original_single_label_exact_failed_cases,81,0.0,0.12345679012345678,0.1728395061728395,0.4567901234567901,808.1358024691358,70.0
+mimic_test_recleaned_mondo_hpo_rows,Bucket 5: phenotype granularity gap,original_single_label_exact_failed_cases,390,0.0,0.06153846153846154,0.09487179487179487,0.4358974358974359,650.0461538461539,69.5
+mimic_test_recleaned_mondo_hpo_rows,Bucket 6: multi-label evaluation gap,original_single_label_exact_failed_cases,419,0.0,0.081145584725537,0.11933174224343675,0.39856801909307876,1028.147971360382,96.0
+mimic_test_recleaned_mondo_hpo_rows,Bucket 7: candidate recall gap,original_single_label_exact_failed_cases,940,0.0,0.0,0.0,0.0,1155.018085106383,238.0
+mimic_test_recleaned_mondo_hpo_rows,Bucket 8: ranking gap,original_single_label_exact_failed_cases,566,0.0,0.0,0.0,1.0,23.06183745583039,21.0
+mimic_test_recleaned_mondo_hpo_rows,unbucketed,original_single_label_exact_failed_cases,190,0.0,0.6105263157894737,1.0,1.0,3.2526315789473683,3.0

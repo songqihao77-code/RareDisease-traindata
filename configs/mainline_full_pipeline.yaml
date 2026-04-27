@@ -25,6 +25,8 @@ postprocess:
     enabled: true
     module: similar_case_fixed_test
     fixed_test: true
+    similarity_device: cuda
+    similarity_batch_size: 256
     dataset_aliases:
       - mimic_test
       - mimic_test_recleaned
@@ -37,6 +39,6 @@ aggregation:
   no_test_side_tuning: true
 
 resume:
-  finetune_checkpoint: null
+  finetune_checkpoint: outputs/mainline_full_pipeline/stage2_finetune/checkpoints/best.pt
   skip_pretrain: true
   skip_finetune: true

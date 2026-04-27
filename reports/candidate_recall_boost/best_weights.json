@@ -1,0 +1,28 @@
+{
+  "created_at": "2026-04-27T16:19:31",
+  "module": "candidate_recall_boost",
+  "protocol": "validation_selected_fixed_test",
+  "selection_dataset": "ALL",
+  "selection_priority": [
+    "recall_at_50",
+    "top5",
+    "top1",
+    "mrr"
+  ],
+  "selected_grid_id": "grid_0658",
+  "weights": {
+    "w_hgnn": 1.0,
+    "w_exact": 0.2,
+    "w_ic": 0.1,
+    "w_semantic": 0.0,
+    "w_pretrain": 0.0,
+    "w_prior": 0.0
+  },
+  "validation_selected_metrics": {
+    "recall_at_50": 0.6602238046795524,
+    "top5": 0.37741607324516785,
+    "top1": 0.22380467955239064,
+    "mrr": 0.3006530999771467
+  },
+  "warning": "Weights are selected only on validation candidates. Do not tune on test outputs."
+}

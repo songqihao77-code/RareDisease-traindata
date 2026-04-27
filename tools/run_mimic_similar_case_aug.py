@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +44,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--validation-candidates-path", type=Path, default=DEFAULT_VAL_CANDIDATES)
     parser.add_argument("--test-candidates-path", type=Path, default=DEFAULT_TEST_CANDIDATES)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_REPORT_DIR)
+    parser.add_argument("--similarity-device", default="auto", help="auto, cpu, cuda, or cuda:N for SimilarCase TF-IDF similarity.")
+    parser.add_argument("--similarity-batch-size", type=int, default=256)
     return parser.parse_args()
 
 
@@ -169,39 +172,172 @@ def build_disease_overlap_resources(train_config: dict[str, Any]) -> dict[str, s
     return disease_hpos
 
 
-def compute_similar_matches(query_table: pd.DataFrame, train_table: pd.DataFrame, max_topk: int) -> pd.DataFrame:
-    lib_docs = [hpo_doc(hpos) for hpos in train_table["hpo_ids"].tolist()]
-    query_docs = [hpo_doc(hpos) for hpos in query_table["hpo_ids"].tolist()]
-    vectorizer = TfidfVectorizer(token_pattern=r"[^ ]+")
-    matrix = vectorizer.fit_transform(lib_docs + query_docs)
-    lib_x = matrix[: len(lib_docs)]
-    query_x = matrix[len(lib_docs):]
+def resolve_similarity_device(value: str) -> torch.device:
+    requested = str(value or "auto").strip().lower()
+    if requested == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if requested.startswith("cuda") and not torch.cuda.is_available():
+        raise RuntimeError("similarity-device requested CUDA, but torch.cuda.is_available() is False.")
+    return torch.device(requested)
+
+
+def append_similar_rows(
+    rows: list[dict[str, Any]],
+    *,
+    query: Any,
+    indices: np.ndarray,
+    scores: np.ndarray,
+    train_ids: list[str],
+    train_labels: list[str],
+    train_label_counts: Counter,
+) -> None:
+    ranked = [(int(idx), float(score)) for idx, score in zip(indices, scores, strict=True) if float(score) > 0.0]
+    for rank, (idx, score) in enumerate(ranked, start=1):
+        label = train_labels[idx]
+        rows.append(
+            {
+                "case_id": query.case_id,
+                "query_primary_label": query.primary_label,
+                "matched_case_id": train_ids[idx],
+                "matched_label": label,
+                "similar_rank": rank,
+                "raw_similarity": score,
+                "rank_decay": float(score / math.sqrt(rank)),
+                "similarity_times_label_frequency_penalty": float(score / math.sqrt(train_label_counts[label])),
+            }
+        )
+
+
+def compute_similar_matches_cpu(
+    query_x: Any,
+    lib_x: Any,
+    query_table: pd.DataFrame,
+    train_ids: list[str],
+    train_labels: list[str],
+    train_label_counts: Counter,
+    max_topk: int,
+) -> pd.DataFrame:
     sim = (query_x @ lib_x.T).tocsr()
-    train_ids = train_table["case_id"].astype(str).tolist()
-    train_labels = train_table["primary_label"].astype(str).tolist()
-    train_label_counts = Counter(train_labels)
-    rows = []
+    rows: list[dict[str, Any]] = []
     for row_idx, query in enumerate(query_table.itertuples(index=False)):
         scores = sim.getrow(row_idx).toarray().ravel()
         if scores.size == 0:
             continue
         top_idx = np.argpartition(-scores, min(max_topk, len(scores) - 1))[:max_topk]
-        ranked = [idx for idx in top_idx[np.argsort(-scores[top_idx])] if scores[int(idx)] > 0]
-        for rank, idx in enumerate(ranked, start=1):
-            label = train_labels[int(idx)]
-            rows.append(
-                {
-                    "case_id": query.case_id,
-                    "query_primary_label": query.primary_label,
-                    "matched_case_id": train_ids[int(idx)],
-                    "matched_label": label,
-                    "similar_rank": rank,
-                    "raw_similarity": float(scores[int(idx)]),
-                    "rank_decay": float(scores[int(idx)] / math.sqrt(rank)),
-                    "similarity_times_label_frequency_penalty": float(scores[int(idx)] / math.sqrt(train_label_counts[label])),
-                }
-            )
+        order = top_idx[np.argsort(-scores[top_idx])]
+        append_similar_rows(
+            rows,
+            query=query,
+            indices=order,
+            scores=scores[order],
+            train_ids=train_ids,
+            train_labels=train_labels,
+            train_label_counts=train_label_counts,
+        )
     return pd.DataFrame(rows)
+
+
+def compute_similar_matches_cuda(
+    query_x: Any,
+    lib_x: Any,
+    query_table: pd.DataFrame,
+    train_ids: list[str],
+    train_labels: list[str],
+    train_label_counts: Counter,
+    max_topk: int,
+    device: torch.device,
+    batch_size: int,
+) -> pd.DataFrame:
+    lib_coo = lib_x.tocoo()
+    indices_np = np.vstack([lib_coo.row, lib_coo.col]).astype(np.int64, copy=False)
+    indices = torch.from_numpy(indices_np).to(device=device)
+    values = torch.from_numpy(lib_coo.data.astype(np.float32, copy=False)).to(device=device)
+    lib_sparse = torch.sparse_coo_tensor(indices, values, lib_coo.shape, device=device).coalesce()
+
+    rows: list[dict[str, Any]] = []
+    queries = list(query_table.itertuples(index=False))
+    k = min(int(max_topk), int(lib_x.shape[0]))
+    print(
+        f"[similarity] CUDA sparse mm: query_cases={len(queries)} train_cases={lib_x.shape[0]} vocab={lib_x.shape[1]} topk={k} batch_size={batch_size}",
+        flush=True,
+    )
+    with torch.inference_mode():
+        for start in range(0, len(queries), batch_size):
+            end = min(start + batch_size, len(queries))
+            query_dense_np = query_x[start:end].toarray().astype(np.float32, copy=False)
+            query_dense = torch.from_numpy(query_dense_np).to(device=device)
+            scores = torch.sparse.mm(lib_sparse, query_dense.T).T
+            top_scores, top_indices = torch.topk(scores, k=k, dim=1)
+            top_scores_np = top_scores.detach().cpu().numpy()
+            top_indices_np = top_indices.detach().cpu().numpy()
+            for local_idx, query in enumerate(queries[start:end]):
+                append_similar_rows(
+                    rows,
+                    query=query,
+                    indices=top_indices_np[local_idx],
+                    scores=top_scores_np[local_idx],
+                    train_ids=train_ids,
+                    train_labels=train_labels,
+                    train_label_counts=train_label_counts,
+                )
+            print(f"[similarity] processed {end}/{len(queries)} query cases on {device}", flush=True)
+            del query_dense, scores, top_scores, top_indices
+    return pd.DataFrame(rows)
+
+
+def compute_similar_matches(
+    query_table: pd.DataFrame,
+    train_table: pd.DataFrame,
+    max_topk: int,
+    *,
+    device_name: str = "auto",
+    batch_size: int = 256,
+    label: str = "query",
+) -> pd.DataFrame:
+    lib_docs = [hpo_doc(hpos) for hpos in train_table["hpo_ids"].tolist()]
+    query_docs = [hpo_doc(hpos) for hpos in query_table["hpo_ids"].tolist()]
+    device = resolve_similarity_device(device_name)
+    print(
+        f"[similarity:{label}] vectorizing query_cases={len(query_docs)} train_cases={len(lib_docs)} device={device}",
+        flush=True,
+    )
+    vectorizer = TfidfVectorizer(token_pattern=r"[^ ]+")
+    matrix = vectorizer.fit_transform(lib_docs + query_docs).astype(np.float32)
+    lib_x = matrix[: len(lib_docs)]
+    query_x = matrix[len(lib_docs):]
+    train_ids = train_table["case_id"].astype(str).tolist()
+    train_labels = train_table["primary_label"].astype(str).tolist()
+    train_label_counts = Counter(train_labels)
+
+    if device.type == "cuda":
+        try:
+            return compute_similar_matches_cuda(
+                query_x,
+                lib_x,
+                query_table,
+                train_ids,
+                train_labels,
+                train_label_counts,
+                max_topk,
+                device,
+                max(1, int(batch_size)),
+            )
+        except RuntimeError as exc:
+            if str(device_name).strip().lower() != "auto":
+                raise
+            print(f"[WARN] CUDA SimilarCase failed, falling back to CPU: {exc}", flush=True)
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+    print(f"[similarity:{label}] using CPU sparse similarity", flush=True)
+    return compute_similar_matches_cpu(
+        query_x,
+        lib_x,
+        query_table,
+        train_ids,
+        train_labels,
+        train_label_counts,
+        max_topk,
+    )
 
 
 def hgnn_source(candidates: pd.DataFrame, case_table: pd.DataFrame) -> pd.DataFrame:
@@ -240,7 +376,14 @@ def similar_source(similar_matches: pd.DataFrame, topk: int, score_type: str, ca
     return out
 
 
-def combine(hgnn: pd.DataFrame, similar: pd.DataFrame, *, similar_weight: float, use_similar_case: bool = True) -> pd.DataFrame:
+def combine(
+    hgnn: pd.DataFrame,
+    similar: pd.DataFrame,
+    *,
+    similar_weight: float,
+    use_similar_case: bool = True,
+    keep_evidence: bool = True,
+) -> pd.DataFrame:
     rows = hgnn.copy()
     if use_similar_case and not similar.empty:
         rows = pd.concat(
@@ -260,36 +403,63 @@ def combine(hgnn: pd.DataFrame, similar: pd.DataFrame, *, similar_weight: float,
         rows["similar_case_source_score"] = 0.0
     rows["similar_case_source_score"] = pd.to_numeric(rows["similar_case_source_score"], errors="coerce").fillna(0.0)
     rows["score"] = rows["hgnn_component"] + similar_weight * rows["similar_component"]
-    agg = rows.groupby(["case_id", "gold_id", "candidate_id"], sort=False).agg(
-        score=("score", "sum"),
-        hgnn_component=("hgnn_component", "max"),
-        similar_component=("similar_component", "max"),
-        matched_case_ids=("matched_case_ids", lambda values: "|".join(sorted({v for v in values.dropna().astype(str) if v}))),
-        matched_labels=("matched_labels", lambda values: "|".join(sorted({v for v in values.dropna().astype(str) if v}))),
-        similar_case_source_score=("similar_case_source_score", "max"),
-    ).reset_index()
+    agg_spec: dict[str, Any] = {
+        "score": ("score", "sum"),
+        "hgnn_component": ("hgnn_component", "max"),
+        "similar_component": ("similar_component", "max"),
+        "similar_case_source_score": ("similar_case_source_score", "max"),
+    }
+    if keep_evidence:
+        agg_spec.update(
+            {
+                "matched_case_ids": ("matched_case_ids", lambda values: "|".join(sorted({v for v in values.dropna().astype(str) if v}))),
+                "matched_labels": ("matched_labels", lambda values: "|".join(sorted({v for v in values.dropna().astype(str) if v}))),
+            }
+        )
+    agg = rows.groupby(["case_id", "gold_id", "candidate_id"], sort=False).agg(**agg_spec).reset_index()
+    if not keep_evidence:
+        agg["matched_case_ids"] = ""
+        agg["matched_labels"] = ""
     agg = agg.sort_values(["case_id", "score", "hgnn_component"], ascending=[True, False, False], kind="stable")
     agg["rank"] = agg.groupby("case_id").cumcount() + 1
     return agg
 
 
 def evaluate(ranked: pd.DataFrame, case_table: pd.DataFrame, method: str) -> tuple[dict[str, Any], pd.DataFrame]:
-    label_sets = {row.case_id: set(row.label_set) for row in case_table.itertuples(index=False)}
-    primary = {row.case_id: str(row.primary_label) for row in case_table.itertuples(index=False)}
-    rows = []
-    exact_ranks = []
-    any_ranks = []
-    for case_id in case_table["case_id"].astype(str).tolist():
-        group = ranked[ranked["case_id"] == case_id]
-        exact_hits = group[group["candidate_id"] == primary[case_id]]
-        any_hits = group[group["candidate_id"].isin(label_sets[case_id])]
-        exact_rank = int(exact_hits["rank"].min()) if not exact_hits.empty else 9999
-        any_rank = int(any_hits["rank"].min()) if not any_hits.empty else 9999
-        exact_ranks.append(exact_rank)
-        any_ranks.append(any_rank)
-        rows.append({"case_id": case_id, "method": method, "exact_rank": exact_rank, "any_label_rank": any_rank, "label_count": len(label_sets[case_id])})
-    metrics = {"method": method, **metric_from_ranks(exact_ranks)}
-    arr = np.asarray(any_ranks)
+    case_meta = case_table[["case_id", "primary_label", "label_set"]].copy()
+    case_meta["case_id"] = case_meta["case_id"].astype(str)
+    case_meta["primary_label"] = case_meta["primary_label"].astype(str)
+    rank_view = ranked[["case_id", "candidate_id", "rank"]].copy()
+    rank_view["case_id"] = rank_view["case_id"].astype(str)
+    rank_view["candidate_id"] = rank_view["candidate_id"].astype(str)
+    rank_view["rank"] = pd.to_numeric(rank_view["rank"], errors="coerce").fillna(9999).astype(int)
+
+    exact = case_meta[["case_id", "primary_label"]].merge(
+        rank_view,
+        left_on=["case_id", "primary_label"],
+        right_on=["case_id", "candidate_id"],
+        how="left",
+    )
+    exact_rank = exact["rank"].fillna(9999).astype(int).to_numpy()
+
+    label_rows = case_meta[["case_id", "label_set"]].explode("label_set").rename(columns={"label_set": "candidate_id"})
+    label_rows["candidate_id"] = label_rows["candidate_id"].astype(str)
+    any_hits = label_rows.merge(rank_view, on=["case_id", "candidate_id"], how="left")
+    any_rank_by_case = any_hits.groupby("case_id", sort=False)["rank"].min()
+    any_rank = case_meta["case_id"].map(any_rank_by_case).fillna(9999).astype(int).to_numpy()
+
+    label_count = case_meta["label_set"].apply(len).astype(int).to_numpy()
+    rows = pd.DataFrame(
+        {
+            "case_id": case_meta["case_id"].to_numpy(),
+            "method": method,
+            "exact_rank": exact_rank,
+            "any_label_rank": any_rank,
+            "label_count": label_count,
+        }
+    )
+    metrics = {"method": method, **metric_from_ranks(exact_rank)}
+    arr = np.asarray(any_rank)
     metrics.update(
         {
             "any_label_at_1": float(np.mean(arr <= 1)),
@@ -298,7 +468,43 @@ def evaluate(ranked: pd.DataFrame, case_table: pd.DataFrame, method: str) -> tup
             "any_label_at_50": float(np.mean(arr <= 50)),
         }
     )
-    return metrics, pd.DataFrame(rows)
+    return metrics, rows
+
+
+def prepare_validation_rank_input(hgnn: pd.DataFrame, similar: pd.DataFrame) -> pd.DataFrame:
+    key_cols = ["case_id", "gold_id", "candidate_id"]
+    hgnn_part = (
+        hgnn[key_cols + ["hgnn_component"]]
+        .copy()
+        .groupby(key_cols, sort=False, as_index=False)["hgnn_component"]
+        .max()
+    )
+    if similar.empty:
+        hgnn_part["similar_component"] = 0.0
+        return hgnn_part
+
+    similar_part = (
+        similar[key_cols + ["similar_component"]]
+        .copy()
+        .groupby(key_cols, sort=False, as_index=False)["similar_component"]
+        .max()
+    )
+    prepared = hgnn_part.merge(similar_part, on=key_cols, how="outer")
+    prepared["hgnn_component"] = pd.to_numeric(prepared["hgnn_component"], errors="coerce").fillna(0.0)
+    prepared["similar_component"] = pd.to_numeric(prepared["similar_component"], errors="coerce").fillna(0.0)
+    return prepared
+
+
+def rank_prepared_validation(prepared: pd.DataFrame, similar_weight: float) -> pd.DataFrame:
+    ranked = prepared[["case_id", "candidate_id", "hgnn_component", "similar_component"]].copy()
+    ranked["score"] = ranked["hgnn_component"] + float(similar_weight) * ranked["similar_component"]
+    ranked = ranked.sort_values(
+        ["case_id", "score", "hgnn_component"],
+        ascending=[True, False, False],
+        kind="stable",
+    )
+    ranked["rank"] = ranked.groupby("case_id").cumcount() + 1
+    return ranked[["case_id", "candidate_id", "rank"]]
 
 
 def top5_candidates_cell(ranked: pd.DataFrame, case_id: str) -> str:
@@ -316,7 +522,9 @@ def select_on_validation(
 ) -> tuple[dict[str, Any], pd.DataFrame]:
     rows = []
     best: dict[str, Any] | None = None
-    baseline_ranked = combine(val_hgnn, pd.DataFrame(), similar_weight=0.0, use_similar_case=False)
+    print("[selection] evaluating HGNN-only validation baseline", flush=True)
+    baseline_prepared = prepare_validation_rank_input(val_hgnn, pd.DataFrame())
+    baseline_ranked = rank_prepared_validation(baseline_prepared, similar_weight=0.0)
     baseline_metrics, _ = evaluate(baseline_ranked, val_table, "HGNN only")
     rows.append(
         {
@@ -328,11 +536,25 @@ def select_on_validation(
             **baseline_metrics,
         }
     )
+    total = len(topks) * len(weights) * len(score_types)
+    done = 0
+    prepared_cache: dict[tuple[int, str], pd.DataFrame] = {}
     for topk in topks:
-        for weight in weights:
-            for score_type in score_types:
-                sim_source = similar_source(val_sim, topk, score_type, val_table)
-                ranked = combine(val_hgnn, sim_source, similar_weight=weight)
+        for score_type in score_types:
+            sim_source = similar_source(val_sim, topk, score_type, val_table)
+            prepared_cache[(topk, score_type)] = prepare_validation_rank_input(val_hgnn, sim_source)
+            print(
+                f"[selection] cached rank input topk={topk} score_type={score_type} "
+                f"similar_rows={len(sim_source)} rank_rows={len(prepared_cache[(topk, score_type)])}",
+                flush=True,
+            )
+            for weight in weights:
+                done += 1
+                print(
+                    f"[selection] evaluating {done}/{total}: topk={topk} weight={weight} score_type={score_type}",
+                    flush=True,
+                )
+                ranked = rank_prepared_validation(prepared_cache[(topk, score_type)], similar_weight=weight)
                 metrics, _ = evaluate(ranked, val_table, "HGNN + similar_case")
                 row = {
                     "source_combination": "HGNN + similar_case",
@@ -482,14 +704,28 @@ def main() -> None:
         topks = parse_int_list(args.similar_case_topk)
         weights = parse_float_list(args.similar_case_weight)
         score_types = parse_score_types(args.score_type)
-        val_sim = compute_similar_matches(val_table, train_table, max(topks))
+        val_sim = compute_similar_matches(
+            val_table,
+            train_table,
+            max(topks),
+            device_name=args.similarity_device,
+            batch_size=args.similarity_batch_size,
+            label="validation",
+        )
         selected, val_ablation = select_on_validation(val_hgnn, val_sim, val_table, topks, weights, score_types)
     write_csv(val_ablation, args.output_dir / "similar_case_val_selection.csv")
 
     selected_topk = int(selected["similar_case_topk"])
     selected_weight = float(selected["similar_case_weight"])
     selected_score_type = str(selected["similar_case_score_type"])
-    test_sim = compute_similar_matches(test_table, train_table, selected_topk)
+    test_sim = compute_similar_matches(
+        test_table,
+        train_table,
+        selected_topk,
+        device_name=args.similarity_device,
+        batch_size=args.similarity_batch_size,
+        label="test",
+    )
     test_sim_source = similar_source(test_sim, selected_topk, selected_score_type, test_table)
     test_ranked = combine(test_hgnn, test_sim_source, similar_weight=selected_weight)
     baseline_ranked = combine(test_hgnn, pd.DataFrame(), similar_weight=0.0, use_similar_case=False)

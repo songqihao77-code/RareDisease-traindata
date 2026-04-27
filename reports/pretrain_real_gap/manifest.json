@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-04-27T15:40:32",
+  "config_path": "D:\\RareDisease-traindata\\configs\\pretrain_real_alignment.yaml",
+  "outputs": {
+    "summary": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\pretrain_vs_real_dataset_summary.csv",
+    "hpo_distribution": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\hpo_distribution_gap.csv",
+    "disease_label": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\disease_label_gap.csv",
+    "overlap": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\disease_hpo_overlap_gap.csv",
+    "bucket_summary": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\failure_bucket_summary.csv",
+    "failure_details": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\failure_case_details.csv",
+    "metrics": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\original_vs_aligned_metrics.csv",
+    "metrics_by_dataset": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\original_vs_aligned_by_dataset.csv",
+    "metrics_by_bucket": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\original_vs_aligned_by_bucket.csv",
+    "data_file_manifest": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\data_file_manifest.csv",
+    "markdown": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\pretrain_real_gap_analysis.md",
+    "manifest": "D:\\RareDisease-traindata\\reports\\pretrain_real_gap\\manifest.json"
+  },
+  "resource_summary": {
+    "hpo_ontology_available": true,
+    "mondo_ontology_available": true,
+    "pretrain_hpo_vocab_size": 8140,
+    "pretrain_disease_vocab_size": 6247,
+    "model_hpo_index_size": 19566,
+    "disease_index_size": 16443,
+    "disease_hyperedge_size": 16443
+  }
+}

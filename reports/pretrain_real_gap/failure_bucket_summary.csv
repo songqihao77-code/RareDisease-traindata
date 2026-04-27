@@ -1,0 +1,64 @@
+﻿dataset,bucket,failed_case_count,bucket_case_count,bucket_ratio_among_failed
+DDD,Bucket 1: label gap,539,1,0.0018552875695732839
+DDD,Bucket 2: HPO vocabulary gap,539,50,0.09276437847866419
+DDD,Bucket 3: HPO sparsity gap,539,115,0.21335807050092764
+DDD,Bucket 4: HPO noise gap,539,55,0.10204081632653061
+DDD,Bucket 5: phenotype granularity gap,539,172,0.31910946196660483
+DDD,Bucket 6: multi-label evaluation gap,539,28,0.05194805194805195
+DDD,Bucket 7: candidate recall gap,539,193,0.3580705009276438
+DDD,Bucket 8: ranking gap,539,217,0.4025974025974026
+DDD,unbucketed,539,68,0.1261595547309833
+HMS,Bucket 1: label gap,15,1,0.06666666666666667
+HMS,Bucket 2: HPO vocabulary gap,15,0,0.0
+HMS,Bucket 3: HPO sparsity gap,15,0,0.0
+HMS,Bucket 4: HPO noise gap,15,5,0.3333333333333333
+HMS,Bucket 5: phenotype granularity gap,15,2,0.13333333333333333
+HMS,Bucket 6: multi-label evaluation gap,15,0,0.0
+HMS,Bucket 7: candidate recall gap,15,4,0.26666666666666666
+HMS,Bucket 8: ranking gap,15,6,0.4
+HMS,unbucketed,15,1,0.06666666666666667
+LIRICAL,Bucket 1: label gap,32,0,0.0
+LIRICAL,Bucket 2: HPO vocabulary gap,32,0,0.0
+LIRICAL,Bucket 3: HPO sparsity gap,32,1,0.03125
+LIRICAL,Bucket 4: HPO noise gap,32,0,0.0
+LIRICAL,Bucket 5: phenotype granularity gap,32,5,0.15625
+LIRICAL,Bucket 6: multi-label evaluation gap,32,0,0.0
+LIRICAL,Bucket 7: candidate recall gap,32,9,0.28125
+LIRICAL,Bucket 8: ranking gap,32,19,0.59375
+LIRICAL,unbucketed,32,2,0.0625
+MME,Bucket 1: label gap,2,0,0.0
+MME,Bucket 2: HPO vocabulary gap,2,0,0.0
+MME,Bucket 3: HPO sparsity gap,2,0,0.0
+MME,Bucket 4: HPO noise gap,2,0,0.0
+MME,Bucket 5: phenotype granularity gap,2,0,0.0
+MME,Bucket 6: multi-label evaluation gap,2,0,0.0
+MME,Bucket 7: candidate recall gap,2,0,0.0
+MME,Bucket 8: ranking gap,2,2,1.0
+MME,unbucketed,2,0,0.0
+MyGene2,Bucket 1: label gap,5,0,0.0
+MyGene2,Bucket 2: HPO vocabulary gap,5,0,0.0
+MyGene2,Bucket 3: HPO sparsity gap,5,1,0.2
+MyGene2,Bucket 4: HPO noise gap,5,1,0.2
+MyGene2,Bucket 5: phenotype granularity gap,5,2,0.4
+MyGene2,Bucket 6: multi-label evaluation gap,5,0,0.0
+MyGene2,Bucket 7: candidate recall gap,5,3,0.6
+MyGene2,Bucket 8: ranking gap,5,0,0.0
+MyGene2,unbucketed,5,1,0.2
+RAMEDIS,Bucket 1: label gap,50,0,0.0
+RAMEDIS,Bucket 2: HPO vocabulary gap,50,16,0.32
+RAMEDIS,Bucket 3: HPO sparsity gap,50,4,0.08
+RAMEDIS,Bucket 4: HPO noise gap,50,4,0.08
+RAMEDIS,Bucket 5: phenotype granularity gap,50,13,0.26
+RAMEDIS,Bucket 6: multi-label evaluation gap,50,0,0.0
+RAMEDIS,Bucket 7: candidate recall gap,50,9,0.18
+RAMEDIS,Bucket 8: ranking gap,50,16,0.32
+RAMEDIS,unbucketed,50,14,0.28
+mimic_test_recleaned_mondo_hpo_rows,Bucket 1: label gap,1796,9,0.005011135857461025
+mimic_test_recleaned_mondo_hpo_rows,Bucket 2: HPO vocabulary gap,1796,36,0.0200445434298441
+mimic_test_recleaned_mondo_hpo_rows,Bucket 3: HPO sparsity gap,1796,110,0.061247216035634745
+mimic_test_recleaned_mondo_hpo_rows,Bucket 4: HPO noise gap,1796,81,0.04510022271714922
+mimic_test_recleaned_mondo_hpo_rows,Bucket 5: phenotype granularity gap,1796,390,0.21714922048997773
+mimic_test_recleaned_mondo_hpo_rows,Bucket 6: multi-label evaluation gap,1796,419,0.23329621380846324
+mimic_test_recleaned_mondo_hpo_rows,Bucket 7: candidate recall gap,1796,940,0.5233853006681515
+mimic_test_recleaned_mondo_hpo_rows,Bucket 8: ranking gap,1796,566,0.3151447661469933
+mimic_test_recleaned_mondo_hpo_rows,unbucketed,1796,190,0.10579064587973273

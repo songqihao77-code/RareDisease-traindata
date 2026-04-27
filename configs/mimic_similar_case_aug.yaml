@@ -1,9 +1,0 @@
-method_name: HGNN_SimilarCase_Aug
-selected_by: validation
-test_protocol: fixed_once
-similar_case_topk: 10
-similar_case_weight: 0.4
-score_type: raw_similarity
-allow_test_tuning: false
-allow_pairwise_training: false
-allow_broad_source_ablation: false
