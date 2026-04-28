@@ -1,0 +1,28 @@
+# Listwise Feature Manifest
+
+- gold-relative fields such as `mondo_parent_child_flag`, `mondo_sibling_flag`, and `disease_hyperedge_similarity_to_gold` are retained for audit/supplementary analysis, not used as model scoring features.
+- scoring features:
+  - `current_score`
+  - `current_rank_recip`
+  - `hgnn_score`
+  - `hgnn_rank_recip`
+  - `failed_pairwise_score`
+  - `exact_hpo_overlap_count`
+  - `exact_hpo_overlap_ratio`
+  - `ic_weighted_overlap`
+  - `semantic_overlap`
+  - `case_coverage`
+  - `disease_coverage`
+  - `jaccard_overlap`
+  - `candidate_source_hgnn`
+  - `candidate_source_mondo_expansion`
+  - `candidate_source_hpo_expansion`
+  - `candidate_source_similar_case`
+  - `candidate_source_count`
+  - `case_hpo_count`
+  - `disease_hpo_count`
+  - `log1p_case_hpo_count`
+  - `log1p_disease_hpo_count`
+  - `max_exact_overlap_in_case`
+  - `max_ic_overlap_in_case`
+  - `evidence_rank_by_ic_recip`
