@@ -1,0 +1,37 @@
+﻿key_path,value,runner_mentions_leaf_key,runner_mentions_full_key,status,severity,notes
+aggregation.ddd_source,ddd_rerank,false,false,SUSPICIOUS,Medium,control-flow-looking key is not directly mentioned in runner source; verify manually
+aggregation.default_source,hgnn_exact_baseline,false,false,SUSPICIOUS,Medium,control-flow-looking key is not directly mentioned in runner source; verify manually
+aggregation.mimic_source,similar_case,false,false,SUSPICIOUS,Medium,control-flow-looking key is not directly mentioned in runner source; verify manually
+aggregation.no_test_side_tuning,True,false,false,SUSPICIOUS,Medium,control-flow-looking key is not directly mentioned in runner source; verify manually
+paths.data_eval_config,configs/data_llldataset_eval.yaml,true,false,CONSUMED_OR_MENTIONED,Low,
+paths.finetune_config,configs/train_finetune_attn_idf_main.yaml,true,false,CONSUMED_OR_MENTIONED,Low,
+paths.output_dir,outputs/mainline_full_pipeline,true,false,CONSUMED_OR_MENTIONED,Low,
+paths.pretrain_config,configs/train_pretrain.yaml,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_candidate_export,True,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_ddd_rerank,True,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_exact_eval,True,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_final_aggregation,True,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_finetune,True,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_mimic_similar_case,True,true,false,CONSUMED_OR_MENTIONED,Low,
+pipeline.run_pretrain,True,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.ddd.enabled,True,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.ddd.fixed_test,True,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.ddd.module,ddd_validation_selected_grid_rerank,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.ddd.objective,ddd_top1,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.ddd.select_on,validation,false,false,SUSPICIOUS,Medium,control-flow-looking key is not directly mentioned in runner source; verify manually
+postprocess.mimic.dataset_aliases[0],mimic_test,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.dataset_aliases[1],mimic_test_recleaned,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.dataset_aliases[2],mimic_test_recleaned_mondo_hpo_rows,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.enabled,True,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.fixed_test,True,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.module,similar_case_fixed_test,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.similarity_batch_size,256,true,false,CONSUMED_OR_MENTIONED,Low,
+postprocess.mimic.similarity_device,cuda,true,false,CONSUMED_OR_MENTIONED,Low,
+resume.finetune_checkpoint,outputs/mainline_full_pipeline/stage2_finetune/checkpoints/best.pt,true,false,CONSUMED_OR_MENTIONED,Low,
+resume.skip_finetune,True,false,false,CONFIRMED_IGNORED,High,runner does not contain 'skip_finetune'; field can mislead rerun expectations
+resume.skip_pretrain,True,false,false,CONFIRMED_IGNORED,High,runner does not contain 'skip_pretrain'; field can mislead rerun expectations
+tag_encoder.batch_size,64,true,false,CONSUMED_OR_MENTIONED,Low,
+tag_encoder.enabled,False,true,false,CONSUMED_OR_MENTIONED,Low,
+tag_encoder.hpo_index_path,LLLdataset/DiseaseHy/processed/HPO_index_v5.xlsx,true,false,CONSUMED_OR_MENTIONED,Low,
+tag_encoder.model_name,models/BioLORD-2023,true,false,CONSUMED_OR_MENTIONED,Low,
+tag_encoder.pretrained_embed_path,data/processed/biolord_hpo_embeds_v5.npy,true,false,CONSUMED_OR_MENTIONED,Low,

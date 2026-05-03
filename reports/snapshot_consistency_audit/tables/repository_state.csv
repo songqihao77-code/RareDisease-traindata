@@ -1,0 +1,40 @@
+﻿item,value,status,notes
+cwd,D:\RareDisease-traindata,OK,
+audit_time,2026-04-29T23:51:20,OK,
+python_version,"3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",OK,Windows-11-10.0.26100-SP0
+git_status_short,"M api_tset.py
+ M configs/mainline_full_pipeline.yaml
+A  ""reports/TAG Implementation Report.md""
+ M reports/mainline/full_pipeline_readme.md
+ M src/models/model_pipeline.py
+ M src/runtime_config.py
+ M src/training/trainer.py
+ M tools/run_full_mainline_pipeline.py
+?? configs/train_finetune_dual_stream_frozen.yaml
+?? models/
+?? reports/current_framework_accuracy_audit/
+?? reports/dual_stream_frozen_ablation/
+?? reports/llm_reranker_top30_error_analysis.md
+?? reports/llm_reranker_top30_v2_deep_analysis_and_v3_update.md
+?? reports/llm_reranker_top30_v4_small_model_update.md
+?? src/extract_biolord_hpo.py
+?? src/hgnn_encoder_tag.py
+?? src/models/dual_stream_fusion.py
+?? tools/analyze_candidate_recall.py
+?? tools/audit_current_framework_accuracy.py
+?? tools/audit_snapshot_consistency.py
+?? tools/run_dual_stream_frozen_ablation.py
+?? tools/run_llm_reranker_top30.py
+?? tools/run_llm_reranker_top30_v2.py
+?? tools/run_llm_reranker_top30_v3.py
+?? tools/run_llm_reranker_top30_v4.py
+?? tools/run_llm_reranker_top30_v5.py
+?? tools/run_llm_reranker_top30_v5_guarded.py
+?? v59_rare_disease_authoritative_diagnostic_guide_final.zip
+?? v59_rare_disease_authoritative_diagnostic_guide_final/
+warning: unable to access 'C:\Users\admin/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\admin/.config/git/ignore': Permission denied",OK,
+git_rev_parse_HEAD,4cb0dc995658e1a114eb49e24076c4dd421fed9c,OK,
+run_dir,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5,OK,
+top_config,D:\RareDisease-traindata\configs\mainline_full_pipeline.yaml,OK,
+runner,D:\RareDisease-traindata\tools\run_full_mainline_pipeline.py,OK,

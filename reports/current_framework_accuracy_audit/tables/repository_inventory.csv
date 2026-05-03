@@ -1,0 +1,40 @@
+﻿type,path,purpose,exists,notes
+config,D:\RareDisease-traindata\configs\mainline_full_pipeline.yaml,top-level staged pipeline config,True,size=1310; mtime=1777364577.2181208
+config,D:\RareDisease-traindata\configs\train_pretrain.yaml,config,True,size=1569; mtime=1776906735.6603093
+config,D:\RareDisease-traindata\configs\train_finetune_attn_idf_main.yaml,config,True,size=2757; mtime=1777184820.4150896
+config,D:\RareDisease-traindata\configs\data_llldataset_eval.yaml,config,True,size=785; mtime=1777193399.9718711
+config,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage1_pretrain.yaml,config,True,size=1835; mtime=1777367989.0305295
+config,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage2_finetune.yaml,effective finetune config captured by run,True,size=2914; mtime=1777367989.036838
+config,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage3_exact_eval_train.yaml,config,True,size=2916; mtime=1777367989.0389123
+script,D:\RareDisease-traindata\tools\run_full_mainline_pipeline.py,script,True,size=53533; mtime=1777367964.843916
+script,D:\RareDisease-traindata\tools\export_top50_candidates.py,script,True,size=17689; mtime=1777279147.25088
+script,D:\RareDisease-traindata\tools\run_top50_evidence_rerank.py,script,True,size=17333; mtime=1777255703.3580513
+script,D:\RareDisease-traindata\tools\run_mimic_similar_case_aug.py,script,True,size=34828; mtime=1777277695.2222767
+script,D:\RareDisease-traindata\tools\audit_current_framework_accuracy.py,script,True,size=40652; mtime=1777473267.0995858
+src,D:\RareDisease-traindata\src\data\dataset.py,src,True,size=16971; mtime=1776861099.701323
+src,D:\RareDisease-traindata\src\data\build_hypergraph.py,src,True,size=19046; mtime=1777184820.416408
+src,D:\RareDisease-traindata\src\models\hgnn_encoder.py,src,True,size=4242; mtime=1775716779.891674
+src,D:\RareDisease-traindata\src\hgnn_encoder_tag.py,src,True,size=11126; mtime=1777428378.9025352
+src,D:\RareDisease-traindata\src\models\model_pipeline.py,src,True,size=20987; mtime=1777432217.475445
+src,D:\RareDisease-traindata\src\training\trainer.py,src,True,size=54438; mtime=1777432292.2078092
+src,D:\RareDisease-traindata\src\evaluation\evaluator.py,src,True,size=41978; mtime=1777184820.416408
+src,D:\RareDisease-traindata\src\runtime_config.py,src,True,size=14628; mtime=1777432226.0642204
+checkpoint,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage1_pretrain\checkpoints\best.pt,checkpoint,True,size=93748043; mtime=1777368210.9719918
+checkpoint,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage2_finetune\checkpoints\best.pt,checkpoint,True,size=93749323; mtime=1777368800.949281
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage3_exact_eval\exact_per_dataset.csv,result,True,size=988; mtime=1777368992.8051124
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage3_exact_eval\exact_details.csv,result,True,size=1141082; mtime=1777368992.8041117
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage5_ddd_rerank\rerank_fixed_test_metrics.csv,result,True,size=1067; mtime=1777369138.5245688
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage6_mimic_similar_case\similar_case_fixed_test.csv,result,True,size=568; mtime=1777369241.74119
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\mainline_final_metrics.csv,final mixed metrics after DDD/mimic postprocess,True,size=649; mtime=1777369246.628656
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\mainline_final_metrics_with_sources.csv,result,True,size=3891; mtime=1777369246.629164
+result,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\mainline_final_case_ranks.csv,result,True,size=492395; mtime=1777369246.6373305
+candidate,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage4_candidates\top50_candidates_validation.csv,candidate,True,size=30118438; mtime=1777369064.6550522
+candidate,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage4_candidates\top50_candidates_test.csv,test top50 candidate export,True,size=43605533; mtime=1777369106.3881633
+dataset,D:\RareDisease-traindata\LLLdataset\dataset\processed\test\DDD.csv,dataset,True,size=477647; mtime=1775657368.9948828
+dataset,D:\RareDisease-traindata\LLLdataset\dataset\processed\test\mimic_test_recleaned_mondo_hpo_rows.csv,dataset,True,size=748475; mtime=1777192128.054445
+dataset,D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\Disease_index_v4.xlsx,dataset,True,size=237101; mtime=1775656117.2697282
+dataset,D:\RareDisease-traindata\LLLdataset\DiseaseHy\processed\HPO_index_v4.xlsx,dataset,True,size=278167; mtime=1775641376.8813565
+dataset,D:\RareDisease-traindata\LLLdataset\DiseaseHy\rare_disease_hgnn_clean_package_v59\v59DiseaseHy.npz,v59 disease-HPO incidence matrix,True,size=858662; mtime=1776133776.4436092
+dataset,D:\RareDisease-traindata\v59_rare_disease_authoritative_diagnostic_guide_final,dataset,True,directory
+audit_output,D:\RareDisease-traindata\reports\current_framework_accuracy_audit,audit_output,True,directory
+audit_output,D:\RareDisease-traindata\outputs\current_framework_accuracy_audit,audit_output,True,directory

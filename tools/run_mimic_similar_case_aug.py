@@ -37,6 +37,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--similar-case-topk", default="3,5,10,20")
     parser.add_argument("--similar-case-weight", default="0.2,0.3,0.4,0.5")
     parser.add_argument("--score-type", default="raw_similarity,rank_decay")
+    parser.add_argument("--disable-gated-rerank", action="store_true")
+    parser.add_argument("--gated-sim-weight", default="0.2,0.3,0.4,0.5")
+    parser.add_argument("--gated-ic-weight", default="0.0,0.05,0.1")
+    parser.add_argument("--gated-agree-boost", default="0.0,0.05,0.1")
+    parser.add_argument("--gated-protect-bonus", default="0.0,0.05,0.1")
     parser.add_argument("--use-frozen-config", action="store_true")
     parser.add_argument("--frozen-config-path", type=Path, default=DEFAULT_FROZEN_CONFIG)
     parser.add_argument("--data-config-path", type=Path, default=DEFAULT_DATA_CONFIG)
@@ -170,6 +175,31 @@ def build_disease_overlap_resources(train_config: dict[str, Any]) -> dict[str, s
         disease = idx_to_disease[col_idx]
         disease_hpos[disease] = {idx_to_hpo[int(idx)] for idx in matrix[:, col_idx].indices if int(idx) in idx_to_hpo}
     return disease_hpos
+
+
+def build_overlap_metric_resources(train_config: dict[str, Any]) -> dict[str, Any]:
+    disease_hpos = build_disease_overlap_resources(train_config)
+    hpo_disease_counts: Counter[str] = Counter()
+    for hpos in disease_hpos.values():
+        for hpo in hpos:
+            hpo_disease_counts[hpo] += 1
+    n_disease = max(1, len(disease_hpos))
+    hpo_ic = {
+        hpo: float(math.log((n_disease + 1.0) / (count + 1.0)) + 1.0)
+        for hpo, count in hpo_disease_counts.items()
+    }
+    return {"disease_hpos": disease_hpos, "hpo_ic": hpo_ic}
+
+
+def overlap_metrics(case_hpos: set[str], disease_hpos: set[str], hpo_ic: dict[str, float]) -> dict[str, Any]:
+    shared = case_hpos & disease_hpos
+    case_ic = sum(float(hpo_ic.get(hpo, 1.0)) for hpo in case_hpos)
+    shared_ic = sum(float(hpo_ic.get(hpo, 1.0)) for hpo in shared)
+    return {
+        "exact_overlap": float(len(shared) / len(case_hpos)) if case_hpos else 0.0,
+        "ic_weighted_overlap": float(shared_ic / case_ic) if case_ic > 0 else 0.0,
+        "shared_hpo_count": int(len(shared)),
+    }
 
 
 def resolve_similarity_device(value: str) -> torch.device:
@@ -507,6 +537,96 @@ def rank_prepared_validation(prepared: pd.DataFrame, similar_weight: float) -> p
     return ranked[["case_id", "candidate_id", "rank"]]
 
 
+def rank_scored_candidates(scored: pd.DataFrame) -> pd.DataFrame:
+    ranked = scored.sort_values(
+        ["case_id", "score", "hgnn_component"],
+        ascending=[True, False, False],
+        kind="stable",
+    ).copy()
+    ranked["rank"] = ranked.groupby("case_id").cumcount() + 1
+    return ranked
+
+
+def add_overlap_features(df: pd.DataFrame, case_table: pd.DataFrame, resources: dict[str, Any]) -> pd.DataFrame:
+    case_hpos = {row.case_id: set(row.hpo_ids) for row in case_table.itertuples(index=False)}
+    disease_hpos = resources["disease_hpos"]
+    hpo_ic = resources["hpo_ic"]
+    rows = []
+    for row in df.itertuples(index=False):
+        rows.append(overlap_metrics(case_hpos.get(str(row.case_id), set()), disease_hpos.get(str(row.candidate_id), set()), hpo_ic))
+    metrics = pd.DataFrame(rows)
+    out = df.reset_index(drop=True).copy()
+    for col in ["exact_overlap", "ic_weighted_overlap", "shared_hpo_count"]:
+        fallback = metrics[col] if col in metrics else 0.0
+        if col not in out.columns:
+            out[col] = fallback
+        else:
+            current = pd.to_numeric(out[col], errors="coerce")
+            out[col] = current.mask(current.fillna(0.0).le(0.0), fallback).fillna(0.0)
+    return out
+
+
+def prepare_gated_input(
+    hgnn: pd.DataFrame,
+    similar: pd.DataFrame,
+    case_table: pd.DataFrame,
+    resources: dict[str, Any],
+) -> pd.DataFrame:
+    rows = hgnn.copy()
+    if not similar.empty:
+        rows = pd.concat(
+            [
+                rows,
+                similar.assign(hgnn_component=0.0, hgnn_score=0.0, ic_weighted_overlap=0.0, exact_overlap=0.0),
+            ],
+            ignore_index=True,
+            sort=False,
+        )
+    for col in ["hgnn_component", "similar_component", "similar_case_source_score", "ic_weighted_overlap", "exact_overlap"]:
+        if col not in rows.columns:
+            rows[col] = 0.0
+        rows[col] = pd.to_numeric(rows[col], errors="coerce").fillna(0.0)
+    for col in ["matched_case_ids", "matched_labels"]:
+        if col not in rows.columns:
+            rows[col] = ""
+    if "similar_case_source_score" not in rows.columns:
+        rows["similar_case_source_score"] = 0.0
+    agg = rows.groupby(["case_id", "gold_id", "candidate_id"], sort=False).agg(
+        hgnn_component=("hgnn_component", "max"),
+        similar_component=("similar_component", "max"),
+        similar_case_source_score=("similar_case_source_score", "max"),
+        ic_weighted_overlap=("ic_weighted_overlap", "max"),
+        exact_overlap=("exact_overlap", "max"),
+        matched_case_ids=("matched_case_ids", lambda values: "|".join(sorted({v for v in values.dropna().astype(str) if v}))),
+        matched_labels=("matched_labels", lambda values: "|".join(sorted({v for v in values.dropna().astype(str) if v}))),
+    ).reset_index()
+    return add_overlap_features(agg, case_table, resources)
+
+
+def score_gated(
+    prepared: pd.DataFrame,
+    *,
+    sim_weight: float,
+    ic_weight: float,
+    agree_boost: float,
+    protect_bonus: float,
+) -> pd.DataFrame:
+    scored = prepared.copy()
+    agreement = (scored["hgnn_component"] > 0) & (scored["similar_component"] > 0)
+    low_overlap_sim_only = (scored["hgnn_component"] == 0) & (scored["ic_weighted_overlap"] <= 0.02)
+    sim_eff = scored["similar_component"] * float(sim_weight)
+    sim_eff = np.where(low_overlap_sim_only, sim_eff * 0.5, sim_eff)
+    scored["score"] = (
+        scored["hgnn_component"]
+        + sim_eff
+        + float(ic_weight) * scored["ic_weighted_overlap"]
+        + np.where(agreement, float(agree_boost), 0.0)
+    )
+    top1_idx = scored.sort_values(["case_id", "hgnn_component"], ascending=[True, False]).groupby("case_id").head(1).index
+    scored.loc[top1_idx, "score"] = scored.loc[top1_idx, "score"] + float(protect_bonus)
+    return rank_scored_candidates(scored)
+
+
 def top5_candidates_cell(ranked: pd.DataFrame, case_id: str) -> str:
     group = ranked[ranked["case_id"] == case_id].sort_values("rank").head(5)
     return "|".join(group["candidate_id"].astype(str).tolist())
@@ -519,6 +639,13 @@ def select_on_validation(
     topks: list[int],
     weights: list[float],
     score_types: list[str],
+    *,
+    enable_gated_rerank: bool = True,
+    gated_sim_weights: list[float] | None = None,
+    gated_ic_weights: list[float] | None = None,
+    gated_agree_boosts: list[float] | None = None,
+    gated_protect_bonuses: list[float] | None = None,
+    overlap_resources: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
     rows = []
     best: dict[str, Any] | None = None
@@ -558,16 +685,89 @@ def select_on_validation(
                 metrics, _ = evaluate(ranked, val_table, "HGNN + similar_case")
                 row = {
                     "source_combination": "HGNN + similar_case",
+                    "rerank_mode": "simple",
                     "status": "evaluated",
                     "similar_case_topk": topk,
                     "similar_case_weight": weight,
                     "similar_case_score_type": score_type,
+                    "gated_sim_weight": np.nan,
+                    "gated_ic_weight": np.nan,
+                    "gated_agree_boost": np.nan,
+                    "gated_protect_bonus": np.nan,
                     **metrics,
                 }
                 rows.append(row)
                 key = (float(metrics["top5"]), float(metrics["rank_le_50"]), float(metrics["top1"]), -float(metrics["mean_rank"]))
                 if best is None or key > best["key"]:
-                    best = {"key": key, "row": row}
+                    best = {
+                        "key": key,
+                        "row": row,
+                        "simple_topk": topk,
+                        "simple_score_type": score_type,
+                    }
+    if (
+        enable_gated_rerank
+        and best is not None
+        and overlap_resources is not None
+        and int(best["row"]["similar_case_topk"]) > 0
+    ):
+        base_topk = int(best["simple_topk"])
+        base_score_type = str(best["simple_score_type"])
+        base_sim_source = similar_source(val_sim, base_topk, base_score_type, val_table)
+        gated_input = prepare_gated_input(val_hgnn, base_sim_source, val_table, overlap_resources)
+        sim_grid = gated_sim_weights or [0.2, 0.3, 0.4, 0.5]
+        ic_grid = gated_ic_weights or [0.0, 0.05, 0.1]
+        agree_grid = gated_agree_boosts or [0.0, 0.05, 0.1]
+        protect_grid = gated_protect_bonuses or [0.0, 0.05, 0.1]
+        total_gated = len(sim_grid) * len(ic_grid) * len(agree_grid) * len(protect_grid)
+        done_gated = 0
+        for sim_weight in sim_grid:
+            for ic_weight in ic_grid:
+                for agree_boost in agree_grid:
+                    for protect_bonus in protect_grid:
+                        done_gated += 1
+                        print(
+                            f"[selection] evaluating gated {done_gated}/{total_gated}: "
+                            f"base_topk={base_topk} score_type={base_score_type} "
+                            f"sim_weight={sim_weight} ic_weight={ic_weight} "
+                            f"agree_boost={agree_boost} protect_bonus={protect_bonus}",
+                            flush=True,
+                        )
+                        ranked = score_gated(
+                            gated_input,
+                            sim_weight=float(sim_weight),
+                            ic_weight=float(ic_weight),
+                            agree_boost=float(agree_boost),
+                            protect_bonus=float(protect_bonus),
+                        )
+                        metrics, _ = evaluate(ranked, val_table, "HGNN + gated_similar_case")
+                        row = {
+                            "source_combination": "HGNN + gated_similar_case",
+                            "rerank_mode": "gated",
+                            "status": "evaluated",
+                            "similar_case_topk": base_topk,
+                            "similar_case_weight": np.nan,
+                            "similar_case_score_type": base_score_type,
+                            "gated_sim_weight": float(sim_weight),
+                            "gated_ic_weight": float(ic_weight),
+                            "gated_agree_boost": float(agree_boost),
+                            "gated_protect_bonus": float(protect_bonus),
+                            **metrics,
+                        }
+                        rows.append(row)
+                        key = (
+                            float(metrics["top5"]),
+                            float(metrics["rank_le_50"]),
+                            float(metrics["top1"]),
+                            -float(metrics["mean_rank"]),
+                        )
+                        if best is None or key > best["key"]:
+                            best = {
+                                "key": key,
+                                "row": row,
+                                "simple_topk": base_topk,
+                                "simple_score_type": base_score_type,
+                            }
     if best is None:
         raise RuntimeError("No SimilarCase validation config was evaluated.")
     return best["row"], pd.DataFrame(rows)
@@ -577,10 +777,15 @@ def frozen_selection(path: Path) -> dict[str, Any]:
     config = json.load(open(path, encoding="utf-8"))
     return {
         "source_combination": "HGNN + similar_case",
+        "rerank_mode": "simple",
         "status": "loaded_frozen_config",
         "similar_case_topk": int(config["similar_case_topk"]),
         "similar_case_weight": float(config["similar_case_weight"]),
         "similar_case_score_type": str(config["score_type"]),
+        "gated_sim_weight": np.nan,
+        "gated_ic_weight": np.nan,
+        "gated_agree_boost": np.nan,
+        "gated_protect_bonus": np.nan,
     }
 
 
@@ -696,6 +901,7 @@ def main() -> None:
     test_candidates = test_candidates[test_candidates["dataset_name"].astype(str).str.startswith(MIMIC_PREFIX)].copy()
     val_hgnn = hgnn_source(val_candidates, val_table)
     test_hgnn = hgnn_source(test_candidates, test_table)
+    overlap_resources = build_overlap_metric_resources(train_config)
 
     if args.use_frozen_config:
         selected = frozen_selection(args.frozen_config_path)
@@ -712,11 +918,25 @@ def main() -> None:
             batch_size=args.similarity_batch_size,
             label="validation",
         )
-        selected, val_ablation = select_on_validation(val_hgnn, val_sim, val_table, topks, weights, score_types)
+        selected, val_ablation = select_on_validation(
+            val_hgnn,
+            val_sim,
+            val_table,
+            topks,
+            weights,
+            score_types,
+            enable_gated_rerank=not args.disable_gated_rerank,
+            gated_sim_weights=parse_float_list(args.gated_sim_weight),
+            gated_ic_weights=parse_float_list(args.gated_ic_weight),
+            gated_agree_boosts=parse_float_list(args.gated_agree_boost),
+            gated_protect_bonuses=parse_float_list(args.gated_protect_bonus),
+            overlap_resources=overlap_resources,
+        )
     write_csv(val_ablation, args.output_dir / "similar_case_val_selection.csv")
 
     selected_topk = int(selected["similar_case_topk"])
-    selected_weight = float(selected["similar_case_weight"])
+    selected_mode = str(selected.get("rerank_mode", "simple"))
+    selected_weight = float(selected["similar_case_weight"]) if selected_mode == "simple" else 0.0
     selected_score_type = str(selected["similar_case_score_type"])
     test_sim = compute_similar_matches(
         test_table,
@@ -727,7 +947,16 @@ def main() -> None:
         label="test",
     )
     test_sim_source = similar_source(test_sim, selected_topk, selected_score_type, test_table)
-    test_ranked = combine(test_hgnn, test_sim_source, similar_weight=selected_weight)
+    if selected_mode == "gated":
+        test_ranked = score_gated(
+            prepare_gated_input(test_hgnn, test_sim_source, test_table, overlap_resources),
+            sim_weight=float(selected["gated_sim_weight"]),
+            ic_weight=float(selected["gated_ic_weight"]),
+            agree_boost=float(selected["gated_agree_boost"]),
+            protect_bonus=float(selected["gated_protect_bonus"]),
+        )
+    else:
+        test_ranked = combine(test_hgnn, test_sim_source, similar_weight=selected_weight)
     baseline_ranked = combine(test_hgnn, pd.DataFrame(), similar_weight=0.0, use_similar_case=False)
     write_csv(test_ranked, args.output_dir / "similar_case_fixed_test_ranked_candidates.csv")
 
@@ -737,10 +966,15 @@ def main() -> None:
         [
             {
                 **test_metrics,
-                "selected_source_combination": "HGNN + similar_case",
+                "selected_source_combination": str(selected.get("source_combination", "HGNN + similar_case")),
+                "selected_rerank_mode": selected_mode,
                 "selected_similar_case_topk": selected_topk,
                 "selected_similar_case_weight": selected_weight,
                 "selected_similar_case_score_type": selected_score_type,
+                "selected_gated_sim_weight": selected.get("gated_sim_weight", np.nan),
+                "selected_gated_ic_weight": selected.get("gated_ic_weight", np.nan),
+                "selected_gated_agree_boost": selected.get("gated_agree_boost", np.nan),
+                "selected_gated_protect_bonus": selected.get("gated_protect_bonus", np.nan),
             }
         ]
     )
@@ -752,7 +986,8 @@ def main() -> None:
                 "# similar_case fixed test",
                 "",
                 "- 协议: validation-selected fixed weights，用 test 只评估一次。",
-                "- selected source_combination: HGNN + similar_case",
+                f"- selected source_combination: {selected.get('source_combination', 'HGNN + similar_case')}",
+                f"- selected rerank_mode: {selected_mode}",
                 f"- selected topk/weight/score_type: {selected_topk} / {selected_weight} / {selected_score_type}",
                 "",
                 df_to_markdown(fixed_out),
@@ -760,7 +995,7 @@ def main() -> None:
         ),
     )
 
-    disease_hpos = build_disease_overlap_resources(train_config)
+    disease_hpos = overlap_resources["disease_hpos"]
     write_case_analysis(args.output_dir, baseline_case_ranks, test_case_ranks, test_ranked, test_table, disease_hpos)
     print(
         json.dumps(
@@ -771,6 +1006,11 @@ def main() -> None:
                     "similar_case_topk": selected_topk,
                     "similar_case_weight": selected_weight,
                     "score_type": selected_score_type,
+                    "rerank_mode": selected_mode,
+                    "gated_sim_weight": selected.get("gated_sim_weight", None),
+                    "gated_ic_weight": selected.get("gated_ic_weight", None),
+                    "gated_agree_boost": selected.get("gated_agree_boost", None),
+                    "gated_protect_bonus": selected.get("gated_protect_bonus", None),
                     "selected_by": "frozen_config" if args.use_frozen_config else "validation",
                 },
                 "output_dir": str(args.output_dir.resolve()),

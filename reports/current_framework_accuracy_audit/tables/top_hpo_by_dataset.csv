@@ -1,0 +1,461 @@
+﻿split,dataset,hpo_id,hpo_name,case_or_row_mentions,mention_rate,is_generic_watchlist,in_hpo_index,obsolete
+test,DDD,HP:0000007,Autosomal recessive inheritance,316,0.023603226770242007,False,True,False
+test,DDD,HP:0001249,Intellectual disability,200,0.014938751120406334,True,True,False
+test,DDD,HP:0000006,Autosomal dominant inheritance,169,0.012623244696743353,False,True,False
+test,DDD,HP:0001263,Global developmental delay,150,0.01120406334030475,True,True,False
+test,DDD,HP:0001250,Seizure,141,0.010531819539886465,True,True,False
+test,DDD,HP:0001252,Hypotonia,97,0.007245294293397072,True,True,False
+test,DDD,HP:0004322,Short stature,96,0.00717060053779504,True,True,False
+test,DDD,HP:0000252,Microcephaly,94,0.007021213026590977,False,True,False
+test,DDD,HP:0000316,Hypertelorism,72,0.00537795040334628,False,True,False
+test,DDD,HP:0002650,Scoliosis,67,0.005004481625336122,False,True,False
+test,DDD,HP:0001508,Failure to thrive,65,0.004855094114132059,False,True,False
+test,DDD,HP:0000639,Nystagmus,64,0.004780400358530027,False,True,False
+test,DDD,HP:0001574,Abnormality of the integument,61,0.004556319091723932,False,True,False
+test,DDD,HP:0000556,Retinal dystrophy,59,0.0044069315805198685,False,True,False
+test,DDD,HP:0000347,Micrognathia,59,0.0044069315805198685,False,True,False
+test,DDD,HP:0000407,Sensorineural hearing impairment,57,0.004257544069315805,False,True,False
+test,DDD,HP:0000218,High palate,57,0.004257544069315805,False,True,False
+test,DDD,HP:0000486,Strabismus,56,0.004182850313713774,False,True,False
+test,DDD,HP:0000369,Low-set ears,56,0.004182850313713774,False,True,False
+test,DDD,HP:0001251,Ataxia,55,0.004108156558111742,False,True,False
+test,HMS,HP:0011227,Elevated circulating C-reactive protein concentration,9,0.016981132075471698,False,True,False
+test,HMS,HP:0012378,Fatigue,9,0.016981132075471698,False,True,False
+test,HMS,HP:0002829,Arthralgia,8,0.01509433962264151,False,True,False
+test,HMS,HP:0003546,Exercise intolerance,8,0.01509433962264151,False,True,False
+test,HMS,HP:0002315,Headache,7,0.013207547169811321,False,True,False
+test,HMS,HP:0002094,Dyspnea,7,0.013207547169811321,False,True,False
+test,HMS,HP:0001744,Splenomegaly,6,0.011320754716981131,False,True,False
+test,HMS,HP:0002014,Diarrhea,6,0.011320754716981131,False,True,False
+test,HMS,HP:0000822,Hypertension,5,0.009433962264150943,False,True,False
+test,HMS,HP:0002018,Nausea,5,0.009433962264150943,False,True,False
+test,HMS,HP:0002321,Vertigo,5,0.009433962264150943,False,True,False
+test,HMS,HP:0003418,Back pain,5,0.009433962264150943,False,True,False
+test,HMS,HP:0003474,Somatic sensory dysfunction,5,0.009433962264150943,False,True,False
+test,HMS,HP:0012514,Lower limb pain,5,0.009433962264150943,False,True,False
+test,HMS,HP:0002027,Abdominal pain,5,0.009433962264150943,False,True,False
+test,HMS,HP:0002202,Pleural effusion,5,0.009433962264150943,False,True,False
+test,HMS,HP:0030840,Ankle pain,5,0.009433962264150943,False,True,False
+test,HMS,HP:0012213,Decreased glomerular filtration rate,5,0.009433962264150943,False,True,False
+test,HMS,HP:0001945,Fever,5,0.009433962264150943,False,True,False
+test,HMS,HP:0002875,Exertional dyspnea,4,0.007547169811320755,False,True,False
+test,LIRICAL,HP:0001249,Intellectual disability,14,0.013631937682570594,True,True,False
+test,LIRICAL,HP:0001250,Seizure,13,0.012658227848101266,True,True,False
+test,LIRICAL,HP:0001290,Generalized hypotonia,13,0.012658227848101266,False,True,False
+test,LIRICAL,HP:0002650,Scoliosis,13,0.012658227848101266,False,True,False
+test,LIRICAL,HP:0000750,Delayed speech and language development,13,0.012658227848101266,False,True,False
+test,LIRICAL,HP:0001263,Global developmental delay,10,0.009737098344693282,True,True,False
+test,LIRICAL,HP:0000252,Microcephaly,10,0.009737098344693282,False,True,False
+test,LIRICAL,HP:0001252,Hypotonia,8,0.007789678675754625,True,True,False
+test,LIRICAL,HP:0004322,Short stature,8,0.007789678675754625,True,True,False
+test,LIRICAL,HP:0001344,Absent speech,8,0.007789678675754625,False,True,False
+test,LIRICAL,HP:0000365,Hearing impairment,8,0.007789678675754625,False,True,False
+test,LIRICAL,HP:0001270,Motor delay,7,0.006815968841285297,False,True,False
+test,LIRICAL,HP:0000490,Deeply set eye,7,0.006815968841285297,False,True,False
+test,LIRICAL,HP:0000316,Hypertelorism,7,0.006815968841285297,False,True,False
+test,LIRICAL,HP:0001385,Hip dysplasia,6,0.005842259006815969,False,True,False
+test,LIRICAL,HP:0000486,Strabismus,6,0.005842259006815969,False,True,False
+test,LIRICAL,HP:0001999,Abnormal facial shape,6,0.005842259006815969,False,True,False
+test,LIRICAL,HP:0001260,Dysarthria,6,0.005842259006815969,False,True,False
+test,LIRICAL,HP:0002376,Developmental regression,6,0.005842259006815969,False,True,False
+test,LIRICAL,HP:0000218,High palate,6,0.005842259006815969,False,True,False
+test,MME,HP:0007033,Cerebellar dysplasia,3,0.02608695652173913,False,True,False
+test,MME,HP:0000657,Oculomotor apraxia,3,0.02608695652173913,False,True,False
+test,MME,HP:0000175,Cleft palate,3,0.02608695652173913,False,True,False
+test,MME,HP:0000201,Pierre-Robin sequence,3,0.02608695652173913,False,True,False
+test,MME,HP:0002650,Scoliosis,3,0.02608695652173913,False,True,False
+test,MME,HP:0000522,Alacrima,3,0.02608695652173913,False,True,False
+test,MME,HP:0001252,Hypotonia,3,0.02608695652173913,True,True,False
+test,MME,HP:0001263,Global developmental delay,3,0.02608695652173913,True,True,False
+test,MME,HP:0002019,Constipation,3,0.02608695652173913,False,True,False
+test,MME,HP:0002353,EEG abnormality,3,0.02608695652173913,False,True,False
+test,MME,HP:0002910,Elevated circulating hepatic transaminase concentration,3,0.02608695652173913,False,True,False
+test,MME,HP:0000750,Delayed speech and language development,2,0.017391304347826087,False,True,False
+test,MME,HP:0001270,Motor delay,2,0.017391304347826087,False,True,False
+test,MME,HP:0001290,Generalized hypotonia,2,0.017391304347826087,False,True,False
+test,MME,HP:0007068,Inferior cerebellar vermis hypoplasia,2,0.017391304347826087,False,True,False
+test,MME,HP:0000486,Strabismus,2,0.017391304347826087,False,True,False
+test,MME,HP:0030282,Posterior rib gap,2,0.017391304347826087,False,True,False
+test,MME,HP:0000495,Recurrent corneal erosions,2,0.017391304347826087,False,True,False
+test,MME,HP:0001315,Reduced tendon reflexes,2,0.017391304347826087,False,True,False
+test,MME,HP:0001395,Hepatic fibrosis,2,0.017391304347826087,False,True,False
+test,MyGene2,HP:0000347,Micrognathia,12,0.04040404040404041,False,True,False
+test,MyGene2,HP:0001371,Flexion contracture,10,0.03367003367003367,False,True,False
+test,MyGene2,HP:0002650,Scoliosis,10,0.03367003367003367,False,True,False
+test,MyGene2,HP:0009473,Joint contracture of the hand,9,0.030303030303030304,False,True,False
+test,MyGene2,HP:0012385,Camptodactyly,8,0.026936026936026935,False,True,False
+test,MyGene2,HP:0000602,Ophthalmoplegia,7,0.02356902356902357,False,True,False
+test,MyGene2,HP:0001762,Talipes equinovarus,6,0.020202020202020204,False,True,False
+test,MyGene2,HP:0000508,Ptosis,6,0.020202020202020204,False,True,False
+test,MyGene2,HP:0001488,Bilateral ptosis,6,0.020202020202020204,False,True,False
+test,MyGene2,HP:0000343,Long philtrum,5,0.016835016835016835,False,True,False
+test,MyGene2,HP:0001270,Motor delay,5,0.016835016835016835,False,True,False
+test,MyGene2,HP:0002987,Elbow flexion contracture,5,0.016835016835016835,False,True,False
+test,MyGene2,HP:0000750,Delayed speech and language development,5,0.016835016835016835,False,True,False
+test,MyGene2,HP:0004322,Short stature,5,0.016835016835016835,True,True,False
+test,MyGene2,HP:0000365,Hearing impairment,5,0.016835016835016835,False,True,False
+test,MyGene2,HP:0000205,Pursed lips,4,0.013468013468013467,False,True,False
+test,MyGene2,HP:0000293,Full cheeks,4,0.013468013468013467,False,True,False
+test,MyGene2,HP:0000431,Wide nasal bridge,4,0.013468013468013467,False,True,False
+test,MyGene2,HP:0000470,Short neck,4,0.013468013468013467,False,True,False
+test,MyGene2,HP:0001181,Adducted thumb,4,0.013468013468013467,False,True,False
+test,RAMEDIS,HP:0001522,Death in infancy,176,0.08392942298521698,False,True,False
+test,RAMEDIS,HP:0003811,Neonatal death,114,0.05436337625178827,False,True,False
+test,RAMEDIS,HP:0003819,Death in childhood,99,0.04721030042918455,False,True,False
+test,RAMEDIS,HP:0004923,Hyperphenylalaninemia,57,0.027181688125894134,False,True,False
+test,RAMEDIS,HP:0001290,Generalized hypotonia,54,0.02575107296137339,False,True,False
+test,RAMEDIS,HP:0001197,Abnormality of prenatal development or birth,50,0.023843586075345733,False,True,False
+test,RAMEDIS,HP:0003231,Hypertyrosinemia,49,0.023366714353838816,False,True,False
+test,RAMEDIS,HP:0001250,Seizure,44,0.020982355746304245,True,True,False
+test,RAMEDIS,HP:0001987,Hyperammonemia,43,0.02050548402479733,False,True,False
+test,RAMEDIS,HP:0011421,Death in adolescence,41,0.0195517405817835,False,True,False
+test,RAMEDIS,HP:0040156,Elevated urinary carboxylic acid,39,0.01859799713876967,False,True,False
+test,RAMEDIS,HP:0002013,Vomiting,38,0.018121125417262757,False,True,False
+test,RAMEDIS,HP:0001249,Intellectual disability,38,0.018121125417262757,True,True,False
+test,RAMEDIS,HP:0001270,Motor delay,31,0.014783023366714354,False,True,False
+test,RAMEDIS,HP:0011968,Feeding difficulties,26,0.01239866475917978,False,True,False
+test,RAMEDIS,HP:0001942,Metabolic acidosis,25,0.011921793037672867,False,True,False
+test,RAMEDIS,HP:0010967,Abnormal circulating carnitine concentration,25,0.011921793037672867,False,True,False
+test,RAMEDIS,HP:0001945,Fever,24,0.011444921316165951,False,True,False
+test,RAMEDIS,HP:0000750,Delayed speech and language development,21,0.010014306151645207,False,True,False
+test,RAMEDIS,HP:0001254,Lethargy,20,0.009537434430138292,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0000822,Hypertension,563,0.029891160074329706,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002018,Nausea,322,0.017095832227236527,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0001945,Fever,320,0.016989646933899656,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0012378,Fatigue,320,0.016989646933899656,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002094,Dyspnea,308,0.016352535173878417,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0001903,Anemia,285,0.01513140430050438,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002027,Abdominal pain,284,0.015078311653835944,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002014,Diarrhea,275,0.014600477833820015,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0001873,Thrombocytopenia,213,0.011308733740376957,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0000716,Depression,204,0.01083089992036103,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0003077,Hyperlipidemia,202,0.010724714627024156,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002013,Vomiting,199,0.010565436687018847,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002315,Headache,184,0.009769046986992302,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002099,Asthma,182,0.009662861693655428,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0000739,Anxiety,155,0.008229360233607645,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0001824,Weight loss,154,0.008176267586939208,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0001250,Seizure,153,0.008123174940270773,True,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0012622,Chronic kidney disease,152,0.008070082293602336,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0002321,Vertigo,152,0.008070082293602336,False,True,False
+test,mimic_test_recleaned_mondo_hpo_rows,HP:0012735,Cough,150,0.007963897000265464,False,True,False
+validation,DDD,HP:0000007,Autosomal recessive inheritance,73,0.022174969623329283,False,True,False
+validation,DDD,HP:0001249,Intellectual disability,50,0.015188335358444714,True,True,False
+validation,DDD,HP:0001263,Global developmental delay,40,0.012150668286755772,True,True,False
+validation,DDD,HP:0001250,Seizure,39,0.011846901579586877,True,True,False
+validation,DDD,HP:0000006,Autosomal dominant inheritance,37,0.011239368165249088,False,True,False
+validation,DDD,HP:0001252,Hypotonia,27,0.008201701093560146,True,True,False
+validation,DDD,HP:0000252,Microcephaly,27,0.008201701093560146,False,True,False
+validation,DDD,HP:0004322,Short stature,27,0.008201701093560146,True,True,False
+validation,DDD,HP:0000518,Cataract,20,0.006075334143377886,False,True,False
+validation,DDD,HP:0000639,Nystagmus,19,0.005771567436208992,False,True,False
+validation,DDD,HP:0001251,Ataxia,18,0.0054678007290400975,False,True,False
+validation,DDD,HP:0000316,Hypertelorism,18,0.0054678007290400975,False,True,False
+validation,DDD,HP:0001574,Abnormality of the integument,17,0.005164034021871203,False,True,False
+validation,DDD,HP:0000175,Cleft palate,16,0.004860267314702308,False,True,False
+validation,DDD,HP:0000369,Low-set ears,15,0.004556500607533414,False,True,False
+validation,DDD,HP:0001939,Abnormality of metabolism/homeostasis,15,0.004556500607533414,False,True,False
+validation,DDD,HP:0000347,Micrognathia,15,0.004556500607533414,False,True,False
+validation,DDD,HP:0005280,Depressed nasal bridge,14,0.00425273390036452,False,True,False
+validation,DDD,HP:0003593,Infantile onset,14,0.00425273390036452,False,True,False
+validation,DDD,HP:0000407,Sensorineural hearing impairment,13,0.003948967193195626,False,True,False
+validation,FakeDisease,HP:0000007,Autosomal recessive inheritance,459,0.020554386279163495,False,True,False
+validation,FakeDisease,HP:0000006,Autosomal dominant inheritance,391,0.017509292015583718,False,True,False
+validation,FakeDisease,HP:0001263,Global developmental delay,254,0.011374322690430344,True,True,False
+validation,FakeDisease,HP:0001249,Intellectual disability,218,0.009762213962652814,True,True,False
+validation,FakeDisease,HP:0003593,Infantile onset,208,0.009314405982714612,False,True,False
+validation,FakeDisease,HP:0001250,Seizure,196,0.00877703640678877,True,True,False
+validation,FakeDisease,HP:0001252,Hypotonia,156,0.006985804487035959,True,True,False
+validation,FakeDisease,HP:0003577,Congenital onset,154,0.006896242891048319,False,True,False
+validation,FakeDisease,HP:0000739,Anxiety,147,0.006582777305091577,False,True,False
+validation,FakeDisease,HP:0011463,Childhood onset,132,0.005911065335184273,False,True,False
+validation,FakeDisease,HP:0000750,Delayed speech and language development,126,0.005642380547221351,False,True,False
+validation,FakeDisease,HP:0002315,Headache,124,0.005552818951233711,False,True,False
+validation,FakeDisease,HP:0000252,Microcephaly,124,0.005552818951233711,False,True,False
+validation,FakeDisease,HP:0002018,Nausea,119,0.00532891496126461,False,True,False
+validation,FakeDisease,HP:0012735,Cough,118,0.0052841341632707895,False,True,False
+validation,FakeDisease,HP:0001945,Fever,115,0.005149791769289328,False,True,False
+validation,FakeDisease,HP:0002027,Abdominal pain,115,0.005149791769289328,False,True,False
+validation,FakeDisease,HP:0004322,Short stature,110,0.004925887779320228,True,True,False
+validation,FakeDisease,HP:0002098,Respiratory distress,109,0.004881106981326407,False,True,False
+validation,FakeDisease,HP:0000639,Nystagmus,107,0.0047915453853387665,False,True,False
+validation,HMS,HP:0001974,Increased total leukocyte count,2,0.046511627906976744,False,True,False
+validation,HMS,HP:0001903,Anemia,2,0.046511627906976744,False,True,False
+validation,HMS,HP:0000793,Membranoproliferative glomerulonephritis,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0002205,Recurrent respiratory infections,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0002633,Vasculitis,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0003496,Increased circulating IgM level,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0100778,Cryoglobulinemia,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0000083,Renal insufficiency,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0000100,Nephrotic syndrome,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0001698,Pericardial effusion,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0001701,Pericarditis,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0003259,Elevated circulating creatinine concentration,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0003493,Antinuclear antibody positivity,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0003546,Exercise intolerance,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0004431,Reduced circulating complement concentration,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0012378,Fatigue,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0012596,Moderate proteinuria,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0012597,Heavy proteinuria,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0000017,Nocturia,1,0.023255813953488372,False,True,False
+validation,HMS,HP:0001600,Abnormality of the larynx,1,0.023255813953488372,False,True,False
+validation,LIRICAL,HP:0001263,Global developmental delay,6,0.016713091922005572,True,True,False
+validation,LIRICAL,HP:0001250,Seizure,6,0.016713091922005572,True,True,False
+validation,LIRICAL,HP:0011968,Feeding difficulties,4,0.011142061281337047,False,True,False
+validation,LIRICAL,HP:0001260,Dysarthria,4,0.011142061281337047,False,True,False
+validation,LIRICAL,HP:0001251,Ataxia,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0001252,Hypotonia,3,0.008356545961002786,True,True,False
+validation,LIRICAL,HP:0001371,Flexion contracture,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0002650,Scoliosis,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0003236,Elevated circulating creatine kinase concentration,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0001344,Absent speech,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0000316,Hypertelorism,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0001510,Growth delay,3,0.008356545961002786,False,True,False
+validation,LIRICAL,HP:0000252,Microcephaly,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0000750,Delayed speech and language development,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0002069,Bilateral tonic-clonic seizure,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0002136,Broad-based gait,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0001999,Abnormal facial shape,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0002119,Ventriculomegaly,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0001324,Muscle weakness,2,0.005571030640668524,False,True,False
+validation,LIRICAL,HP:0001385,Hip dysplasia,2,0.005571030640668524,False,True,False
+validation,MME,HP:0000486,Strabismus,2,0.05,False,True,False
+validation,MME,HP:0000639,Nystagmus,1,0.025,False,True,False
+validation,MME,HP:0000750,Delayed speech and language development,1,0.025,False,True,False
+validation,MME,HP:0001090,Abnormally large globe,1,0.025,False,True,False
+validation,MME,HP:0001270,Motor delay,1,0.025,False,True,False
+validation,MME,HP:0001274,Agenesis of corpus callosum,1,0.025,False,True,False
+validation,MME,HP:0001320,Cerebellar vermis hypoplasia,1,0.025,False,True,False
+validation,MME,HP:0002198,Dilated fourth ventricle,1,0.025,False,True,False
+validation,MME,HP:0002350,Cerebellar cyst,1,0.025,False,True,False
+validation,MME,HP:0002418,Abnormal midbrain morphology,1,0.025,False,True,False
+validation,MME,HP:0007033,Cerebellar dysplasia,1,0.025,False,True,False
+validation,MME,HP:0011003,High myopia,1,0.025,False,True,False
+validation,MME,HP:0011932,Abnormal superior cerebellar peduncle morphology,1,0.025,False,True,False
+validation,MME,HP:0030283,Partial absence of the septum pellucidum,1,0.025,False,True,False
+validation,MME,HP:0000201,Pierre-Robin sequence,1,0.025,False,True,False
+validation,MME,HP:0000218,High palate,1,0.025,False,True,False
+validation,MME,HP:0000765,Abnormal thorax morphology,1,0.025,False,True,False
+validation,MME,HP:0000495,Recurrent corneal erosions,1,0.025,False,True,False
+validation,MME,HP:0000522,Alacrima,1,0.025,False,True,False
+validation,MME,HP:0001250,Seizure,1,0.025,True,True,False
+validation,MyGene2,HP:0001263,Global developmental delay,4,0.0851063829787234,True,True,False
+validation,MyGene2,HP:0002650,Scoliosis,4,0.0851063829787234,False,True,False
+validation,MyGene2,HP:0000717,Autism,3,0.06382978723404255,False,True,False
+validation,MyGene2,HP:0004322,Short stature,3,0.06382978723404255,True,True,False
+validation,MyGene2,HP:0000347,Micrognathia,3,0.06382978723404255,False,True,False
+validation,MyGene2,HP:0000175,Cleft palate,3,0.06382978723404255,False,True,False
+validation,MyGene2,HP:0000508,Ptosis,3,0.06382978723404255,False,True,False
+validation,MyGene2,HP:0009473,Joint contracture of the hand,3,0.06382978723404255,False,True,False
+validation,MyGene2,HP:0000750,Delayed speech and language development,2,0.0425531914893617,False,True,False
+validation,MyGene2,HP:0001249,Intellectual disability,2,0.0425531914893617,True,True,False
+validation,MyGene2,HP:0000319,Smooth philtrum,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000322,Short philtrum,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000202,Orofacial cleft,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000378,Cupped ear,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000411,Protruding ear,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000448,Prominent nose,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000625,Eyelid coloboma,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0002558,Supernumerary nipple,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0005617,Bilateral camptodactyly,1,0.02127659574468085,False,True,False
+validation,MyGene2,HP:0000006,Autosomal dominant inheritance,1,0.02127659574468085,False,True,False
+validation,RAMEDIS,HP:0001522,Death in infancy,34,0.07218683651804671,False,True,False
+validation,RAMEDIS,HP:0003819,Death in childhood,23,0.04883227176220807,False,True,False
+validation,RAMEDIS,HP:0003811,Neonatal death,21,0.044585987261146494,False,True,False
+validation,RAMEDIS,HP:0001290,Generalized hypotonia,11,0.02335456475583864,False,True,False
+validation,RAMEDIS,HP:0001197,Abnormality of prenatal development or birth,11,0.02335456475583864,False,True,False
+validation,RAMEDIS,HP:0001249,Intellectual disability,10,0.021231422505307854,True,True,False
+validation,RAMEDIS,HP:0001987,Hyperammonemia,10,0.021231422505307854,False,True,False
+validation,RAMEDIS,HP:0002013,Vomiting,10,0.021231422505307854,False,True,False
+validation,RAMEDIS,HP:0011421,Death in adolescence,10,0.021231422505307854,False,True,False
+validation,RAMEDIS,HP:0004429,Recurrent viral infections,8,0.016985138004246284,False,True,False
+validation,RAMEDIS,HP:0002151,Increased circulating lactate concentration,8,0.016985138004246284,False,True,False
+validation,RAMEDIS,HP:0040156,Elevated urinary carboxylic acid,8,0.016985138004246284,False,True,False
+validation,RAMEDIS,HP:0004923,Hyperphenylalaninemia,8,0.016985138004246284,False,True,False
+validation,RAMEDIS,HP:0000750,Delayed speech and language development,7,0.014861995753715499,False,True,False
+validation,RAMEDIS,HP:0000988,Skin rash,7,0.014861995753715499,False,True,False
+validation,RAMEDIS,HP:0001270,Motor delay,6,0.012738853503184714,False,True,False
+validation,RAMEDIS,HP:0010967,Abnormal circulating carnitine concentration,6,0.012738853503184714,False,True,False
+validation,RAMEDIS,HP:0011968,Feeding difficulties,6,0.012738853503184714,False,True,False
+validation,RAMEDIS,HP:0001250,Seizure,6,0.012738853503184714,True,True,False
+validation,RAMEDIS,HP:0001945,Fever,6,0.012738853503184714,False,True,False
+validation,mimic_rag_0425,HP:0000822,Hypertension,245,0.03120224146714213,False,True,False
+validation,mimic_rag_0425,HP:0012378,Fatigue,143,0.018211920529801324,False,True,False
+validation,mimic_rag_0425,HP:0001903,Anemia,139,0.01770249617931737,False,True,False
+validation,mimic_rag_0425,HP:0002094,Dyspnea,134,0.01706571574121243,False,True,False
+validation,mimic_rag_0425,HP:0002018,Nausea,134,0.01706571574121243,False,True,False
+validation,mimic_rag_0425,HP:0001945,Fever,131,0.016683647478349464,False,True,False
+validation,mimic_rag_0425,HP:0000716,Depression,113,0.014391237901171677,False,True,False
+validation,mimic_rag_0425,HP:0002027,Abdominal pain,107,0.013627101375445747,False,True,False
+validation,mimic_rag_0425,HP:0001873,Thrombocytopenia,103,0.013117677024961793,False,True,False
+validation,mimic_rag_0425,HP:0002014,Diarrhea,96,0.012226184411614875,False,True,False
+validation,mimic_rag_0425,HP:0003077,Hyperlipidemia,89,0.011334691798267958,False,True,False
+validation,mimic_rag_0425,HP:0002020,Gastroesophageal reflux,88,0.011207335710646969,False,True,False
+validation,mimic_rag_0425,HP:0002013,Vomiting,88,0.011207335710646969,False,True,False
+validation,mimic_rag_0425,HP:0012735,Cough,86,0.010952623535404993,False,True,False
+validation,mimic_rag_0425,HP:0000739,Anxiety,75,0.009551706571574121,False,True,False
+validation,mimic_rag_0425,HP:0001250,Seizure,75,0.009551706571574121,True,True,False
+validation,mimic_rag_0425,HP:0012622,Chronic kidney disease,73,0.009296994396332145,False,True,False
+validation,mimic_rag_0425,HP:0001824,Weight loss,70,0.00891492613346918,False,True,False
+validation,mimic_rag_0425,HP:0002315,Headache,68,0.008660213958227204,False,True,False
+validation,mimic_rag_0425,HP:0000821,Hypothyroidism,67,0.008532857870606215,False,True,False
+train_split,DDD,HP:0000007,Autosomal recessive inheritance,563,0.02305676140552052,False,True,False
+train_split,DDD,HP:0001249,Intellectual disability,350,0.014333688262756982,True,True,False
+train_split,DDD,HP:0000006,Autosomal dominant inheritance,299,0.012245065115898108,False,True,False
+train_split,DDD,HP:0001250,Seizure,286,0.011712670980424278,True,True,False
+train_split,DDD,HP:0001263,Global developmental delay,278,0.011385043820132688,True,True,False
+train_split,DDD,HP:0004322,Short stature,192,0.007863051846998117,True,True,False
+train_split,DDD,HP:0000252,Microcephaly,173,0.007084937341305594,False,True,False
+train_split,DDD,HP:0001252,Hypotonia,165,0.006757310181014006,True,True,False
+train_split,DDD,HP:0000639,Nystagmus,152,0.006224916045540175,False,True,False
+train_split,DDD,HP:0000407,Sensorineural hearing impairment,124,0.0050782209845196165,False,True,False
+train_split,DDD,HP:0000486,Strabismus,123,0.005037267589483168,False,True,False
+train_split,DDD,HP:0000518,Cataract,123,0.005037267589483168,False,True,False
+train_split,DDD,HP:0000316,Hypertelorism,122,0.00499631419444672,False,True,False
+train_split,DDD,HP:0001508,Failure to thrive,116,0.004750593824228029,False,True,False
+train_split,DDD,HP:0000556,Retinal dystrophy,111,0.004545826849045786,False,True,False
+train_split,DDD,HP:0001251,Ataxia,108,0.00442296666393644,False,True,False
+train_split,DDD,HP:0002650,Scoliosis,104,0.004259153083790646,False,True,False
+train_split,DDD,HP:0000347,Micrognathia,104,0.004259153083790646,False,True,False
+train_split,DDD,HP:0000175,Cleft palate,103,0.0042181996887541975,False,True,False
+train_split,DDD,HP:0000218,High palate,98,0.004013432713571955,False,True,False
+train_split,FakeDisease,HP:0000007,Autosomal recessive inheritance,3913,0.018195514594076808,False,True,False
+train_split,FakeDisease,HP:0000006,Autosomal dominant inheritance,3864,0.017967663785206436,False,True,False
+train_split,FakeDisease,HP:0001263,Global developmental delay,2386,0.011094939387034824,True,True,False
+train_split,FakeDisease,HP:0001249,Intellectual disability,2138,0.009941735293160291,True,True,False
+train_split,FakeDisease,HP:0001250,Seizure,2035,0.009462783592881755,True,True,False
+train_split,FakeDisease,HP:0003593,Infantile onset,1791,0.008328179565037456,False,True,False
+train_split,FakeDisease,HP:0003577,Congenital onset,1512,0.007030824959428606,False,True,False
+train_split,FakeDisease,HP:0001252,Hypotonia,1446,0.006723923869929738,True,True,False
+train_split,FakeDisease,HP:0000252,Microcephaly,1401,0.006514673127089601,False,True,False
+train_split,FakeDisease,HP:0000739,Anxiety,1318,0.006128721756962237,False,True,False
+train_split,FakeDisease,HP:0011463,Childhood onset,1214,0.005645120040176143,False,True,False
+train_split,FakeDisease,HP:0002315,Headache,1193,0.005547469693517412,False,True,False
+train_split,FakeDisease,HP:0001945,Fever,1170,0.005440519313843564,False,True,False
+train_split,FakeDisease,HP:0000750,Delayed speech and language development,1157,0.005380069099245302,False,True,False
+train_split,FakeDisease,HP:0002027,Abdominal pain,1122,0.005217318521480751,False,True,False
+train_split,FakeDisease,HP:0002014,Diarrhea,1105,0.005138268240852255,False,True,False
+train_split,FakeDisease,HP:0004322,Short stature,1097,0.005101068108791787,True,True,False
+train_split,FakeDisease,HP:0002098,Respiratory distress,1087,0.0050545679437162,False,True,False
+train_split,FakeDisease,HP:0002018,Nausea,1034,0.0048081170688155945,False,True,False
+train_split,FakeDisease,HP:0012735,Cough,1018,0.004733716804694657,False,True,False
+train_split,HMS,HP:0011227,Elevated circulating C-reactive protein concentration,27,0.023746701846965697,False,True,False
+train_split,HMS,HP:0003565,Elevated erythrocyte sedimentation rate,22,0.019349164467897976,False,True,False
+train_split,HMS,HP:0001945,Fever,20,0.01759014951627089,False,True,False
+train_split,HMS,HP:0003546,Exercise intolerance,20,0.01759014951627089,False,True,False
+train_split,HMS,HP:0030839,Knee pain,18,0.0158311345646438,False,True,False
+train_split,HMS,HP:0001974,Increased total leukocyte count,16,0.014072119613016711,False,True,False
+train_split,HMS,HP:0002910,Elevated circulating hepatic transaminase concentration,15,0.013192612137203167,False,True,False
+train_split,HMS,HP:0012378,Fatigue,15,0.013192612137203167,False,True,False
+train_split,HMS,HP:0002829,Arthralgia,14,0.012313104661389622,False,True,False
+train_split,HMS,HP:0003493,Antinuclear antibody positivity,14,0.012313104661389622,False,True,False
+train_split,HMS,HP:0003326,Myalgia,14,0.012313104661389622,False,True,False
+train_split,HMS,HP:0001824,Weight loss,13,0.011433597185576077,False,True,False
+train_split,HMS,HP:0003418,Back pain,11,0.009674582233948988,False,True,False
+train_split,HMS,HP:0030948,Elevated gamma-glutamyltransferase level,11,0.009674582233948988,False,True,False
+train_split,HMS,HP:0002315,Headache,10,0.008795074758135445,False,True,False
+train_split,HMS,HP:0001369,Arthritis,10,0.008795074758135445,False,True,False
+train_split,HMS,HP:0003259,Elevated circulating creatinine concentration,10,0.008795074758135445,False,True,False
+train_split,HMS,HP:0030833,Neck pain,9,0.0079155672823219,False,True,False
+train_split,HMS,HP:0012213,Decreased glomerular filtration rate,9,0.0079155672823219,False,True,False
+train_split,HMS,HP:0030835,Elbow pain,8,0.007036059806508356,False,True,False
+train_split,LIRICAL,HP:0001263,Global developmental delay,51,0.013130792996910402,True,True,False
+train_split,LIRICAL,HP:0004322,Short stature,44,0.01132852729145211,True,True,False
+train_split,LIRICAL,HP:0001250,Seizure,38,0.009783728115345005,True,True,False
+train_split,LIRICAL,HP:0000252,Microcephaly,33,0.008496395468589083,False,True,False
+train_split,LIRICAL,HP:0001249,Intellectual disability,33,0.008496395468589083,True,True,False
+train_split,LIRICAL,HP:0000750,Delayed speech and language development,33,0.008496395468589083,False,True,False
+train_split,LIRICAL,HP:0001252,Hypotonia,32,0.008238928939237899,True,True,False
+train_split,LIRICAL,HP:0001290,Generalized hypotonia,30,0.007723995880535531,False,True,False
+train_split,LIRICAL,HP:0000316,Hypertelorism,28,0.007209062821833162,False,True,False
+train_split,LIRICAL,HP:0002650,Scoliosis,27,0.006951596292481977,False,True,False
+train_split,LIRICAL,HP:0000218,High palate,24,0.006179196704428424,False,True,False
+train_split,LIRICAL,HP:0000347,Micrognathia,22,0.005664263645726055,False,True,False
+train_split,LIRICAL,HP:0000369,Low-set ears,22,0.005664263645726055,False,True,False
+train_split,LIRICAL,HP:0005280,Depressed nasal bridge,21,0.005406797116374871,False,True,False
+train_split,LIRICAL,HP:0000463,Anteverted nares,20,0.005149330587023687,False,True,False
+train_split,LIRICAL,HP:0011968,Feeding difficulties,20,0.005149330587023687,False,True,False
+train_split,LIRICAL,HP:0000365,Hearing impairment,17,0.004376930998970134,False,True,False
+train_split,LIRICAL,HP:0002007,Frontal bossing,17,0.004376930998970134,False,True,False
+train_split,LIRICAL,HP:0000490,Deeply set eye,17,0.004376930998970134,False,True,False
+train_split,LIRICAL,HP:0000486,Strabismus,17,0.004376930998970134,False,True,False
+train_split,MME,HP:0000201,Pierre-Robin sequence,7,0.021148036253776436,False,True,False
+train_split,MME,HP:0001263,Global developmental delay,6,0.01812688821752266,True,True,False
+train_split,MME,HP:0030282,Posterior rib gap,6,0.01812688821752266,False,True,False
+train_split,MME,HP:0002650,Scoliosis,6,0.01812688821752266,False,True,False
+train_split,MME,HP:0000252,Microcephaly,6,0.01812688821752266,False,True,False
+train_split,MME,HP:0001252,Hypotonia,6,0.01812688821752266,True,True,False
+train_split,MME,HP:0000486,Strabismus,5,0.015105740181268883,False,True,False
+train_split,MME,HP:0000175,Cleft palate,5,0.015105740181268883,False,True,False
+train_split,MME,HP:0000286,Epicanthus,5,0.015105740181268883,False,True,False
+train_split,MME,HP:0011968,Feeding difficulties,4,0.012084592145015106,False,True,False
+train_split,MME,HP:0000218,High palate,4,0.012084592145015106,False,True,False
+train_split,MME,HP:0001250,Seizure,4,0.012084592145015106,True,True,False
+train_split,MME,HP:0003196,Short nose,4,0.012084592145015106,False,True,False
+train_split,MME,HP:0000347,Micrognathia,3,0.00906344410876133,False,True,False
+train_split,MME,HP:0000405,Conductive hearing impairment,3,0.00906344410876133,False,True,False
+train_split,MME,HP:0000545,Myopia,3,0.00906344410876133,False,True,False
+train_split,MME,HP:0000639,Nystagmus,3,0.00906344410876133,False,True,False
+train_split,MME,HP:0002098,Respiratory distress,3,0.00906344410876133,False,True,False
+train_split,MME,HP:0000522,Alacrima,3,0.00906344410876133,False,True,False
+train_split,MME,HP:0001315,Reduced tendon reflexes,3,0.00906344410876133,False,True,False
+train_split,MyGene2,HP:0000347,Micrognathia,35,0.044929396662387676,False,True,False
+train_split,MyGene2,HP:0009473,Joint contracture of the hand,24,0.03080872913992298,False,True,False
+train_split,MyGene2,HP:0001371,Flexion contracture,21,0.026957637997432605,False,True,False
+train_split,MyGene2,HP:0002650,Scoliosis,20,0.025673940949935817,False,True,False
+train_split,MyGene2,HP:0012385,Camptodactyly,19,0.024390243902439025,False,True,False
+train_split,MyGene2,HP:0001263,Global developmental delay,18,0.023106546854942234,True,True,False
+train_split,MyGene2,HP:0000508,Ptosis,16,0.02053915275994865,False,True,False
+train_split,MyGene2,HP:0004322,Short stature,15,0.019255455712451863,True,True,False
+train_split,MyGene2,HP:0000602,Ophthalmoplegia,15,0.019255455712451863,False,True,False
+train_split,MyGene2,HP:0001270,Motor delay,13,0.01668806161745828,False,True,False
+train_split,MyGene2,HP:0001181,Adducted thumb,12,0.01540436456996149,False,True,False
+train_split,MyGene2,HP:0001762,Talipes equinovarus,12,0.01540436456996149,False,True,False
+train_split,MyGene2,HP:0000365,Hearing impairment,12,0.01540436456996149,False,True,False
+train_split,MyGene2,HP:0000343,Long philtrum,11,0.014120667522464698,False,True,False
+train_split,MyGene2,HP:0000431,Wide nasal bridge,11,0.014120667522464698,False,True,False
+train_split,MyGene2,HP:0000750,Delayed speech and language development,11,0.014120667522464698,False,True,False
+train_split,MyGene2,HP:0000293,Full cheeks,10,0.012836970474967908,False,True,False
+train_split,MyGene2,HP:0000470,Short neck,10,0.012836970474967908,False,True,False
+train_split,MyGene2,HP:0001252,Hypotonia,10,0.012836970474967908,True,True,False
+train_split,MyGene2,HP:0002000,Short columella,10,0.012836970474967908,False,True,False
+train_split,RAMEDIS,HP:0001522,Death in infancy,301,0.0808487778673113,False,True,False
+train_split,RAMEDIS,HP:0003811,Neonatal death,200,0.05372011818426001,False,True,False
+train_split,RAMEDIS,HP:0003819,Death in childhood,183,0.04915390813859791,False,True,False
+train_split,RAMEDIS,HP:0001290,Generalized hypotonia,101,0.027128659683051302,False,True,False
+train_split,RAMEDIS,HP:0004923,Hyperphenylalaninemia,96,0.0257856567284448,False,True,False
+train_split,RAMEDIS,HP:0001197,Abnormality of prenatal development or birth,89,0.023905452591995703,False,True,False
+train_split,RAMEDIS,HP:0003231,Hypertyrosinemia,80,0.021488047273704004,False,True,False
+train_split,RAMEDIS,HP:0001987,Hyperammonemia,70,0.018802041364491002,False,True,False
+train_split,RAMEDIS,HP:0011421,Death in adolescence,63,0.016921837228041903,False,True,False
+train_split,RAMEDIS,HP:0001249,Intellectual disability,62,0.0166532366371206,True,True,False
+train_split,RAMEDIS,HP:0001250,Seizure,59,0.0158474348643567,True,True,False
+train_split,RAMEDIS,HP:0011968,Feeding difficulties,54,0.014504431909750202,False,True,False
+train_split,RAMEDIS,HP:0040156,Elevated urinary carboxylic acid,54,0.014504431909750202,False,True,False
+train_split,RAMEDIS,HP:0002013,Vomiting,53,0.014235831318828902,False,True,False
+train_split,RAMEDIS,HP:0001270,Motor delay,48,0.0128928283642224,False,True,False
+train_split,RAMEDIS,HP:0000750,Delayed speech and language development,44,0.0118184260005372,False,True,False
+train_split,RAMEDIS,HP:0010967,Abnormal circulating carnitine concentration,40,0.010744023636852002,False,True,False
+train_split,RAMEDIS,HP:0001254,Lethargy,39,0.010475423045930701,False,True,False
+train_split,RAMEDIS,HP:0002329,Drowsiness,39,0.010475423045930701,False,True,False
+train_split,RAMEDIS,HP:0002360,Sleep disturbance,39,0.010475423045930701,False,True,False
+train_split,mimic_rag_0425,HP:0000822,Hypertension,2267,0.03212640827605753,False,True,False
+train_split,mimic_rag_0425,HP:0002018,Nausea,1223,0.0173315382980231,False,True,False
+train_split,mimic_rag_0425,HP:0012378,Fatigue,1212,0.017175653652660668,False,True,False
+train_split,mimic_rag_0425,HP:0002094,Dyspnea,1189,0.01684971303053922,False,True,False
+train_split,mimic_rag_0425,HP:0001903,Anemia,1173,0.016622971728193863,False,True,False
+train_split,mimic_rag_0425,HP:0001945,Fever,1170,0.01658045773400411,False,True,False
+train_split,mimic_rag_0425,HP:0002027,Abdominal pain,985,0.013958761425635938,False,True,False
+train_split,mimic_rag_0425,HP:0000716,Depression,917,0.012995110890668179,False,True,False
+train_split,mimic_rag_0425,HP:0003077,Hyperlipidemia,845,0.01197477503011408,False,True,False
+train_split,mimic_rag_0425,HP:0002014,Diarrhea,838,0.011875575710337986,False,True,False
+train_split,mimic_rag_0425,HP:0001873,Thrombocytopenia,805,0.011407921774250691,False,True,False
+train_split,mimic_rag_0425,HP:0002013,Vomiting,784,0.011110323814922413,False,True,False
+train_split,mimic_rag_0425,HP:0012622,Chronic kidney disease,723,0.010245872599730744,False,True,False
+train_split,mimic_rag_0425,HP:0002020,Gastroesophageal reflux,708,0.010033302628781974,False,True,False
+train_split,mimic_rag_0425,HP:0000821,Hypothyroidism,705,0.00999078863459222,False,True,False
+train_split,mimic_rag_0425,HP:0002315,Headache,633,0.00897045277403812,False,True,False
+train_split,mimic_rag_0425,HP:0000739,Anxiety,621,0.008800396797279104,False,True,False
+train_split,mimic_rag_0425,HP:0002099,Asthma,620,0.00878622546588252,False,True,False
+train_split,mimic_rag_0425,HP:0012735,Cough,610,0.008644512151916672,False,True,False
+train_split,mimic_rag_0425,HP:0001824,Weight loss,605,0.00857365549493375,False,True,False

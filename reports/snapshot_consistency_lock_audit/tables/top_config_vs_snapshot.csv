@@ -1,0 +1,22 @@
+﻿key_path,top_config_value,snapshot_value,status,severity,notes
+paths.output_dir,D:\RareDisease-traindata\outputs\mainline_full_pipeline,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5,FAIL,High,
+tag_encoder.enabled,False,True,FAIL,High,
+paths.data_eval_config,D:\RareDisease-traindata\configs\data_llldataset_eval.yaml,D:\RareDisease-traindata\configs\data_llldataset_eval.yaml,PASS,Info,
+resume.finetune_checkpoint,D:\RareDisease-traindata\outputs\mainline_full_pipeline\stage2_finetune\checkpoints\best.pt,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage2_finetune\checkpoints\best.pt,FAIL,High,
+resume.skip_pretrain,True,NOT_FOUND,NOT_FOUND,High,snapshot manifest has no equivalent field; runner audit checks whether this is ignored
+resume.skip_finetune,True,NOT_FOUND,NOT_FOUND,High,snapshot manifest has no equivalent field; runner audit checks whether this is ignored
+pipeline.run_pretrain,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+pipeline.run_finetune,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+pipeline.run_exact_eval,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+pipeline.run_candidate_export,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+pipeline.run_ddd_rerank,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+pipeline.run_mimic_similar_case,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+pipeline.run_final_aggregation,True,True,PASS,Info,snapshot value inferred from run_manifest commands
+data.random_seed,NOT_FOUND,42,NOT_FOUND,Low,top-level config does not expose training seed
+model.hidden_dim,NOT_FOUND,128,NOT_FOUND,Low,top-level config does not expose model hidden_dim
+model.encoder.use_tag_encoder,False,True,FAIL,High,top-level tag flag compared to effective stage2 model encoder
+model.case_refiner.enabled,NOT_FOUND,True,NOT_FOUND,Low,top-level config does not expose case_refiner
+dual_stream.enabled,NOT_FOUND,NOT_FOUND,NOT_FOUND,Low,
+stage2.train.init_checkpoint_path,D:\RareDisease-traindata\outputs\mainline_full_pipeline\stage2_finetune\checkpoints\best.pt,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage1_pretrain\checkpoints\best.pt,FAIL,Medium,top resume checkpoint is not the same concept as stage2 pretrain init checkpoint
+paths.pretrain_config,D:\RareDisease-traindata\configs\train_pretrain.yaml,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage1_pretrain.yaml,FAIL,Low,"top config points to source template, snapshot points to generated effective config"
+paths.finetune_config,D:\RareDisease-traindata\configs\train_finetune_attn_idf_main.yaml,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage2_finetune.yaml,FAIL,Low,"top config points to source template, snapshot points to generated effective config"

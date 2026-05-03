@@ -1,0 +1,14 @@
+﻿key_path,locked_config_value,snapshot_value,status,severity,notes
+paths.output_dir,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5,PASS,Info,
+tag_encoder.enabled,True,True,PASS,Info,
+model.encoder.use_tag_encoder,True,True,PASS,Info,
+resume.finetune_checkpoint,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage2_finetune\checkpoints\best.pt,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage2_finetune\checkpoints\best.pt,PASS,Info,
+resume.pretrain_checkpoint,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage1_pretrain\checkpoints\best.pt,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\stage1_pretrain\checkpoints\best.pt,PASS,Info,
+paths.data_eval_config,D:\RareDisease-traindata\configs\data_llldataset_eval.yaml,D:\RareDisease-traindata\configs\data_llldataset_eval.yaml,PASS,Info,
+paths.pretrain_config,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage1_pretrain.yaml,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage1_pretrain.yaml,PASS,Info,
+paths.finetune_config,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage2_finetune.yaml,D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5\configs\stage2_finetune.yaml,PASS,Info,
+paths.pretrain_config.sha256,fcb17040eb4ffe1e74ccf9c37e9a6a854f454491ed0b8ecf0faffecbdb6b043d,fcb17040eb4ffe1e74ccf9c37e9a6a854f454491ed0b8ecf0faffecbdb6b043d,PASS,Info,hash comparison of effective stage1 config
+paths.finetune_config.sha256,d4ede580d7d30b32a34a788d37ee697ababe20170d57029d2615de9e2e0ef931,d4ede580d7d30b32a34a788d37ee697ababe20170d57029d2615de9e2e0ef931,PASS,Info,hash comparison of effective stage2 config
+tag_encoder.pretrained_embed_path,D:\RareDisease-traindata\data\processed\biolord_hpo_embeds_v5.npy,D:\RareDisease-traindata\data\processed\biolord_hpo_embeds_v5.npy,PASS,Info,
+resume.skip_pretrain,ABSENT,ABSENT_EXPECTED,PASS,Info,locked config must not contain runner-validated unsupported control-flow keys
+resume.skip_finetune,ABSENT,ABSENT_EXPECTED,PASS,Info,locked config must not contain runner-validated unsupported control-flow keys

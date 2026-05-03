@@ -1,0 +1,39 @@
+{
+  "audit_script": "D:\\RareDisease-traindata\\tools\\audit_current_framework_accuracy.py",
+  "run_dir": "D:\\RareDisease-traindata\\outputs\\mainline_full_pipeline_hybrid_tag_v5",
+  "report_dir": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit",
+  "output_dir": "D:\\RareDisease-traindata\\outputs\\current_framework_accuracy_audit",
+  "data_config_path": "D:\\RareDisease-traindata\\configs\\data_llldataset_eval.yaml",
+  "train_config_path": "D:\\RareDisease-traindata\\outputs\\mainline_full_pipeline_hybrid_tag_v5\\configs\\stage2_finetune.yaml",
+  "static_resources": {
+    "hpo_index_path": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\processed\\HPO_index_v4.xlsx",
+    "disease_index_path": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\processed\\Disease_index_v4.xlsx",
+    "incidence_path": "D:\\RareDisease-traindata\\LLLdataset\\DiseaseHy\\rare_disease_hgnn_clean_package_v59\\v59DiseaseHy.npz",
+    "H_disease_shape": [
+      19566,
+      16443
+    ],
+    "H_disease_nnz": 227907,
+    "hpo_obsolete_count": 555,
+    "hpo_alt_id_count": 3940,
+    "mondo_obsolete_count": 3952
+  },
+  "git": {
+    "status_short": "warning: unable to access 'C:\\Users\\admin/.config/git/ignore': Permission denied\nwarning: unable to access 'C:\\Users\\admin/.config/git/ignore': Permission denied\n M api_tset.py\n M configs/mainline_full_pipeline.yaml\nA  \"reports/TAG Implementation Report.md\"\n M reports/mainline/full_pipeline_readme.md\n M src/models/model_pipeline.py\n M src/runtime_config.py\n M src/training/trainer.py\n M tools/run_full_mainline_pipeline.py\n?? configs/train_finetune_dual_stream_frozen.yaml\n?? models/\n?? reports/current_framework_accuracy_audit/\n?? reports/dual_stream_frozen_ablation/\n?? reports/llm_reranker_top30_error_analysis.md\n?? reports/llm_reranker_top30_v2_deep_analysis_and_v3_update.md\n?? reports/llm_reranker_top30_v4_small_model_update.md\n?? src/extract_biolord_hpo.py\n?? src/hgnn_encoder_tag.py\n?? src/models/dual_stream_fusion.py\n?? tools/analyze_candidate_recall.py\n?? tools/audit_current_framework_accuracy.py\n?? tools/run_dual_stream_frozen_ablation.py\n?? tools/run_llm_reranker_top30.py\n?? tools/run_llm_reranker_top30_v2.py\n?? tools/run_llm_reranker_top30_v3.py\n?? tools/run_llm_reranker_top30_v4.py\n?? tools/run_llm_reranker_top30_v5.py\n?? tools/run_llm_reranker_top30_v5_guarded.py\n?? v59_rare_disease_authoritative_diagnostic_guide_final.zip\n?? v59_rare_disease_authoritative_diagnostic_guide_final/",
+    "status_branch": "warning: unable to access 'C:\\Users\\admin/.config/git/ignore': Permission denied\nwarning: unable to access 'C:\\Users\\admin/.config/git/ignore': Permission denied\n## master...origin/master\n M api_tset.py\n M configs/mainline_full_pipeline.yaml\nA  \"reports/TAG Implementation Report.md\"\n M reports/mainline/full_pipeline_readme.md\n M src/models/model_pipeline.py\n M src/runtime_config.py\n M src/training/trainer.py\n M tools/run_full_mainline_pipeline.py\n?? configs/train_finetune_dual_stream_frozen.yaml\n?? models/\n?? reports/current_framework_accuracy_audit/\n?? reports/dual_stream_frozen_ablation/\n?? reports/llm_reranker_top30_error_analysis.md\n?? reports/llm_reranker_top30_v2_deep_analysis_and_v3_update.md\n?? reports/llm_reranker_top30_v4_small_model_update.md\n?? src/extract_biolord_hpo.py\n?? src/hgnn_encoder_tag.py\n?? src/models/dual_stream_fusion.py\n?? tools/analyze_candidate_recall.py\n?? tools/audit_current_framework_accuracy.py\n?? tools/run_dual_stream_frozen_ablation.py\n?? tools/run_llm_reranker_top30.py\n?? tools/run_llm_reranker_top30_v2.py\n?? tools/run_llm_reranker_top30_v3.py\n?? tools/run_llm_reranker_top30_v4.py\n?? tools/run_llm_reranker_top30_v5.py\n?? tools/run_llm_reranker_top30_v5_guarded.py\n?? v59_rare_disease_authoritative_diagnostic_guide_final.zip\n?? v59_rare_disease_authoritative_diagnostic_guide_final/"
+  },
+  "tables": {
+    "repository_inventory": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\repository_inventory.csv",
+    "current_metrics_summary": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\current_metrics_summary.csv",
+    "candidate_recall_summary": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\candidate_recall_summary.csv",
+    "dataset_quality_summary": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\dataset_quality_summary.csv",
+    "top_hpo_by_dataset": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\top_hpo_by_dataset.csv",
+    "ddd_vs_mimic_gap": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\ddd_vs_mimic_gap.csv",
+    "failure_cases_mimic": "D:\\RareDisease-traindata\\reports\\current_framework_accuracy_audit\\tables\\failure_cases_mimic.csv"
+  },
+  "notes": [
+    "This script reads existing data, configs, checkpoints metadata, result CSV/JSON, and candidate CSV files.",
+    "It writes only to reports/current_framework_accuracy_audit and outputs/current_framework_accuracy_audit by default.",
+    "It does not train, modify source data, overwrite mainline outputs, or mutate checkpoints."
+  ]
+}

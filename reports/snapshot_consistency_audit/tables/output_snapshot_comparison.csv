@@ -1,0 +1,7 @@
+﻿output_dir,has_manifest,has_stage2_checkpoint,has_final_metrics,ALL_top1,DDD_top1,mimic_top1,mimic_top5,mimic_rank_le_50,notes
+D:\RareDisease-traindata\outputs\mainline_full_pipeline,true,true,true,0.3106111484217596,0.37582128777923784,0.20928990923651897,0.402562733582488,0.6556326748531767,
+D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5,true,true,true,0.31296171927468097,0.3639947437582129,0.21783235451147892,0.404164442071543,0.6689802455953017,
+D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5_nodegate_dropout,true,true,true,0.2988582941571524,0.3745072273324573,0.19434063000533902,0.3678590496529632,0.6332087560064068,
+D:\RareDisease-traindata\outputs\mainline_full_pipeline_hybrid_tag_v5_scalar_rollback,true,true,true,0.3035594358629953,0.3718791064388962,0.19914575547250402,0.3582487987186332,0.6300053390282968,
+D:\RareDisease-traindata\outputs\mainline_full_pipeline_tag,true,true,true,0.24210879785090664,0.3311432325886991,0.1382808328884143,0.2375867592098238,0.5691404164442072,
+D:\RareDisease-traindata\outputs\mainline_full_pipeline_tag_v5,true,true,true,0.2669576897246474,0.3639947437582129,0.16657768286171917,0.27282434596903365,0.584089695675387,

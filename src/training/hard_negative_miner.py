@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Any
+import scipy.sparse
+import numpy as np
 
 import torch
 
@@ -9,8 +12,10 @@ def mine_hard_negatives(
     scores: torch.Tensor,
     targets: torch.Tensor,
     k: int = 10,
+    H_disease: Any | None = None,
+    jaccard_threshold: float = 0.8,
 ) -> torch.Tensor:
-    """屏蔽正类后，返回每个样本分数最高的 top-k 负类。"""
+    """屏蔽正类后，返回每个样本分数最高的 top-k 负类。如果提供了 H_disease，屏蔽 Jaccard 相似度过高的近亲疾病。"""
     if scores.ndim != 2:
         raise ValueError(f"scores 必须是 2 维张量，当前 shape={tuple(scores.shape)}。")
     if targets.ndim != 1:
@@ -27,6 +32,38 @@ def mine_hard_negatives(
 
     masked_scores = scores.clone()
     masked_scores.scatter_(1, targets.unsqueeze(1), float('-inf'))
+    
+    if H_disease is not None and jaccard_threshold < 1.0:
+        device = scores.device
+        if scipy.sparse.issparse(H_disease):
+            H_coo = H_disease.tocoo()
+            idx = torch.tensor(np.vstack([H_coo.row, H_coo.col]), dtype=torch.long, device=device)
+            val = torch.ones(len(H_coo.data), dtype=torch.float32, device=device)
+            H_bin = torch.sparse_coo_tensor(idx, val, H_coo.shape).coalesce()
+        elif isinstance(H_disease, torch.Tensor):
+            H_d_sparse = H_disease.to(device).coalesce() if H_disease.is_sparse else H_disease.to_sparse().coalesce()
+            H_bin = torch.sparse_coo_tensor(H_d_sparse.indices(), torch.ones_like(H_d_sparse.values()), H_d_sparse.shape).coalesce()
+        else:
+            H_bin = None
+            
+        if H_bin is not None:
+            num_disease = H_bin.shape[1]
+            B = targets.shape[0]
+            T_idx = torch.stack([targets, torch.arange(B, device=device)])
+            T = torch.sparse_coo_tensor(T_idx, torch.ones(B, device=device), (num_disease, B)).coalesce()
+            
+            H_target = torch.sparse.mm(H_bin, T.to_dense())
+            intersection = torch.sparse.mm(H_bin.t(), H_target).t()
+            
+            sum_target = H_target.sum(dim=0, keepdim=True).t()
+            sum_all = torch.sparse.mm(H_bin.t(), torch.ones((H_bin.shape[0], 1), device=device)).t()
+            
+            union = sum_target + sum_all - intersection
+            jaccard = intersection / union.clamp(min=1e-6)
+            
+            too_similar = jaccard >= jaccard_threshold
+            masked_scores[too_similar] = float('-inf')
+
     return masked_scores.topk(real_k, dim=1).indices
 
 
@@ -133,6 +170,8 @@ def mine_configurable_hard_negatives(
     strategy: str = "HN-current",
     candidate_pools: Mapping[str, torch.Tensor] | None = None,
     sampling_ratios: Mapping[str, float] | None = None,
+    H_disease: Any | None = None,
+    jaccard_threshold: float = 0.8,
 ) -> torch.Tensor:
     """Mine hard negatives with optional ontology-aware candidate pools.
 
@@ -141,7 +180,10 @@ def mine_configurable_hard_negatives(
     per-batch MONDO relation pools; when a requested pool is unavailable this
     function fills the remaining quota with ``HN-current`` candidates.
     """
-    current = mine_hard_negatives(scores=scores, targets=targets, k=k)
+    current = mine_hard_negatives(
+        scores=scores, targets=targets, k=k,
+        H_disease=H_disease, jaccard_threshold=jaccard_threshold
+    )
     strategy = _normalize_strategy(strategy)
     if strategy == "HN-current" or not candidate_pools:
         return current

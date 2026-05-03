@@ -1,0 +1,10 @@
+﻿comparison_item,DDD,mimic_test,difference_mimic_minus_DDD,possible_impact
+n_cases,761.0,1873.0,1112.0,sample size and CI width
+hpo_mean,17.592641261498027,10.056059797116925,-7.536581464381102,case evidence density
+hpo_le_5_rate,0.2996057818659658,0.17245061398825415,-0.12715516787771167,sparse case risk
+gold_case_overlap_zero_rate,0.056504599211563734,0.36679124399359314,0.3102866447820294,candidate recall risk
+gold_label_in_train_case_rate,0.6609724047306176,0.9450080085424453,0.2840356038118277,direct training signal
+unique_gold_in_train_rate,0.6545209176788124,0.8854489164086687,0.23092799872985637,disease coverage in train split
+gold@50,0.7293035479632063,0.6294714361986119,-0.09983211176459439,top50 rerank upper bound
+top1_exact,0.3035479632063075,0.19914575547250402,-0.10440220773380349,baseline exact ranking
+median_rank_exact,7.0,20.0,13.0,ranking tail severity

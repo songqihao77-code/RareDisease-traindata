@@ -89,9 +89,18 @@ def build_model_pipeline_config(config: Mapping[str, Any], num_hpo: int) -> dict
     }
 
 
+    encoder_cfg = dict(model_cfg.get("encoder", {}))
+    encoder_type = str(encoder_cfg.get("type", "hgnn"))
+    if bool(encoder_cfg.get("use_tag_encoder", False)) or encoder_type in {"tag_hgnn", "hybrid_tag_hgnn"}:
+        raise ValueError("TAG encoder has been removed from the active framework; use model.encoder.type='hgnn'.")
+    encoder_cfg["type"] = "hgnn"
+    encoder_cfg.pop("use_tag_encoder", None)
+    encoder_cfg.pop("pretrained_embed_path", None)
+    encoder_cfg.pop("hpo_embed_path", None)
+
     pipeline_model_cfg: dict[str, Any] = {
         "encoder": {
-            "type": "hgnn",
+            **encoder_cfg,
             "num_hpo": int(num_hpo),
             "hidden_dim": hidden_dim,
         },

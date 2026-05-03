@@ -1,0 +1,7 @@
+﻿config_path,key_path,value,status,strict_would_fail,severity,notes
+D:\RareDisease-traindata\tools\run_full_mainline_pipeline.py,runner.validate_pipeline_config_keys,true,PASS,false,Info,runner exposes config-key validation function
+D:\RareDisease-traindata\tools\run_full_mainline_pipeline.py,runner.--strict-config-keys,true,PASS,false,Info,runner exposes strict CLI guard
+D:\RareDisease-traindata\configs\mainline_full_pipeline.yaml,resume.skip_pretrain,True,EXPECTED_STRICT_FAIL,true,High,unsupported control-flow key present; Use pipeline.run_pretrain or --mode instead.
+D:\RareDisease-traindata\configs\mainline_full_pipeline.yaml,resume.skip_finetune,True,EXPECTED_STRICT_FAIL,true,High,unsupported control-flow key present; Use pipeline.run_finetune or --mode instead.
+D:\RareDisease-traindata\configs\mainline_full_pipeline_hybrid_tag_v5.locked.yaml,resume.skip_pretrain,ABSENT,PASS,false,Info,key absent; strict validation passes for this key
+D:\RareDisease-traindata\configs\mainline_full_pipeline_hybrid_tag_v5.locked.yaml,resume.skip_finetune,ABSENT,PASS,false,Info,key absent; strict validation passes for this key

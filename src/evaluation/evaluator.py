@@ -22,6 +22,12 @@ from src.data.dataset import (
     load_namespaced_case_ids,
     read_case_table_file,
 )
+from src.evaluation.mondo_canonicalizer import MondoCanonicalizer
+from src.evaluation.multilabel_metrics import (
+    ordered_unique_labels,
+    rank_for_canonical_label_set,
+    rank_for_label_set,
+)
 from src.models.model_pipeline import ModelPipeline
 from src.runtime_config import (
     TRUSTED_MAINLINE,
@@ -401,10 +407,15 @@ def load_test_cases(
 
     case_records: list[dict[str, Any]] = []
     for case_id, group_df in raw_df.groupby(case_id_col, sort=False):
+        mondo_labels = ordered_unique_labels(group_df[label_col].tolist())
+        primary_mondo_label = mondo_labels[0] if mondo_labels else ""
         case_records.append(
             {
                 "case_id": str(case_id),
-                "mondo_label": str(group_df[label_col].iloc[0]),
+                "mondo_label": primary_mondo_label,
+                "mondo_labels": mondo_labels,
+                "num_mondo_labels": int(len(mondo_labels)),
+                "has_multiple_mondo_labels": bool(len(mondo_labels) > 1),
                 "hpo_ids": [str(hpo) for hpo in group_df[hpo_col].dropna().unique().tolist()],
                 "source_file": str(group_df["_source_file"].iloc[0]),
             }
@@ -532,6 +543,23 @@ def _build_per_dataset_summary(
             row["mean_rank"] = float(group_metrics["mean_rank"])
             row["median_rank"] = float(group_metrics["median_rank"])
             row["rank_le_50"] = float(group_metrics["rank_le_50"])
+            for rank_col, prefix in [
+                ("any_label_rank", "any_label"),
+                ("canonical_primary_rank", "canonical_primary"),
+                ("canonical_any_label_rank", "canonical_any_label"),
+            ]:
+                if rank_col not in details_df.columns:
+                    continue
+                extra_ranks = (
+                    details_df.loc[details_df["source_file"] == str(source_file), rank_col]
+                    .astype(int)
+                    .tolist()
+                )
+                extra_metrics = compute_topk_metrics(extra_ranks, ks=(1, 3, 5))
+                row[f"{prefix}_top1"] = float(extra_metrics["top1"])
+                row[f"{prefix}_top3"] = float(extra_metrics["top3"])
+                row[f"{prefix}_top5"] = float(extra_metrics["top5"])
+                row[f"{prefix}_rank_le_50"] = float(extra_metrics["rank_le_50"])
 
         summary_rows.append(row)
 
@@ -550,6 +578,7 @@ def evaluate(
     print(f"主线说明: {TRUSTED_MAINLINE['description']}")
 
     resources = load_static_resources(train_config)
+    mondo_canonicalizer = MondoCanonicalizer.load()
     test_bundle = load_test_cases(data_config, data_config_path)
     overlap_summary = _check_case_id_namespace_overlap(
         train_config,
@@ -572,6 +601,22 @@ def evaluate(
         lambda hpo_ids: [hpo_id for hpo_id in hpo_ids if hpo_id in hpo_to_idx]
     )
     case_table["valid_hpo_count"] = case_table["valid_hpo_ids"].apply(len)
+    case_table["valid_mondo_labels"] = case_table["mondo_labels"].apply(
+        lambda labels: [label for label in labels if label in disease_to_idx]
+    )
+    case_table["valid_mondo_label_count"] = case_table["valid_mondo_labels"].apply(len)
+    case_table["canonical_mondo_label"] = case_table["mondo_label"].apply(
+        mondo_canonicalizer.canonicalize
+    )
+    case_table["canonical_mondo_labels"] = case_table["mondo_labels"].apply(
+        mondo_canonicalizer.canonicalize_many
+    )
+    case_table["primary_mondo_is_obsolete"] = case_table["mondo_label"].apply(
+        mondo_canonicalizer.is_obsolete
+    )
+    case_table["any_mondo_is_obsolete"] = case_table["mondo_labels"].apply(
+        lambda labels: any(mondo_canonicalizer.is_obsolete(label) for label in labels)
+    )
     case_table["skip_reason"] = None
     case_table.loc[~case_table["mondo_label"].isin(disease_to_idx), "skip_reason"] = (
         "label_not_in_disease_index"
@@ -652,9 +697,16 @@ def evaluate(
             f"得到 {tuple(cached_disease_repr.shape)}，期望首维 {resources['num_disease']}。"
         )
     case_source_map = dict(zip(case_table["case_id"], case_table["source_file"], strict=True))
+    case_all_labels_map = dict(zip(case_table["case_id"], case_table["mondo_labels"], strict=True))
+    case_canonical_labels_map = dict(
+        zip(case_table["case_id"], case_table["canonical_mondo_labels"], strict=True)
+    )
 
     detailed_results: list[dict[str, Any]] = []
     true_ranks: list[int] = []
+    any_label_ranks: list[int] = []
+    canonical_primary_ranks: list[int] = []
+    canonical_any_label_ranks: list[int] = []
     processed_case_ids: set[str] = set()
     case_noise_aggregate: dict[str, Any] = {
         "present": False,
@@ -780,10 +832,31 @@ def evaluate(
                 if rank_position.numel() != 1:
                     raise ValueError(f"无法定位真实疾病排名: case_id={case_id}")
                 true_rank = int(rank_position.item()) + 1
+                ranked_index_list = [int(idx) for idx in ranked_indices[row_idx].tolist()]
+                ranked_label_ids = [resources["disease_labels"][idx] for idx in ranked_index_list]
+                all_true_labels = list(case_all_labels_map[str(case_id)])
+                canonical_true_labels = list(case_canonical_labels_map[str(case_id)])
+                any_label_rank = rank_for_label_set(
+                    ranked_index_list,
+                    all_true_labels,
+                    disease_to_idx,
+                )
+                canonical_primary_rank = rank_for_canonical_label_set(
+                    ranked_label_ids,
+                    [str(true_label)],
+                    mondo_canonicalizer.canonicalize,
+                )
+                canonical_any_label_rank = rank_for_canonical_label_set(
+                    ranked_label_ids,
+                    all_true_labels,
+                    mondo_canonicalizer.canonicalize,
+                )
 
                 top_indices = topk.indices[row_idx].tolist()
                 top_scores = [float(value) for value in topk.values[row_idx].tolist()]
                 top_labels = [resources["disease_labels"][idx] for idx in top_indices]
+                true_label_info = mondo_canonicalizer.explain(true_label)
+                pred_top1_info = mondo_canonicalizer.explain(top_labels[0])
 
                 detailed_results.append(
                     {
@@ -791,14 +864,31 @@ def evaluate(
                         "dataset_name": dataset_name,
                         "source_file": source_file,
                         "true_label": str(true_label),
+                        "all_true_labels": all_true_labels,
+                        "num_true_labels": int(len(all_true_labels)),
+                        "has_multiple_true_labels": bool(len(all_true_labels) > 1),
+                        "canonical_true_label": true_label_info.canonical_id,
+                        "canonical_true_labels": canonical_true_labels,
+                        "true_label_is_obsolete": bool(true_label_info.is_obsolete),
+                        "any_true_label_is_obsolete": bool(
+                            any(mondo_canonicalizer.is_obsolete(label) for label in all_true_labels)
+                        ),
                         "pred_top1": top_labels[0],
+                        "pred_top1_canonical": pred_top1_info.canonical_id,
+                        "pred_top1_is_obsolete": bool(pred_top1_info.is_obsolete),
                         "pred_top1_score": top_scores[0],
                         "top5_labels": top_labels,
                         "top5_scores": top_scores,
                         "true_rank": true_rank,
+                        "any_label_rank": any_label_rank,
+                        "canonical_primary_rank": canonical_primary_rank,
+                        "canonical_any_label_rank": canonical_any_label_rank,
                     }
                 )
                 true_ranks.append(true_rank)
+                any_label_ranks.append(any_label_rank)
+                canonical_primary_ranks.append(canonical_primary_rank)
+                canonical_any_label_ranks.append(canonical_any_label_rank)
                 processed_case_ids.add(str(case_id))
 
     expected_case_ids = set(evaluable_cases["case_id"].tolist())
@@ -808,6 +898,9 @@ def evaluate(
         raise RuntimeError(f"以下病例未完成评估: {preview}")
 
     metrics = compute_topk_metrics(true_ranks, ks=(1, 3, 5))
+    any_label_metrics = compute_topk_metrics(any_label_ranks, ks=(1, 3, 5))
+    canonical_primary_metrics = compute_topk_metrics(canonical_primary_ranks, ks=(1, 3, 5))
+    canonical_any_label_metrics = compute_topk_metrics(canonical_any_label_ranks, ks=(1, 3, 5))
     per_dataset_summary = _build_per_dataset_summary(case_table, detailed_results)
     case_noise_summary: dict[str, Any] | None = None
     if bool(case_noise_aggregate["present"]):
@@ -868,6 +961,20 @@ def evaluate(
         "mean_rank": float(metrics["mean_rank"]),
         "median_rank": float(metrics["median_rank"]),
         "rank_le_50": float(metrics["rank_le_50"]),
+        "multilabel_metrics": {
+            "strict_primary_label": {key: float(value) for key, value in metrics.items()},
+            "any_label": {key: float(value) for key, value in any_label_metrics.items()},
+            "canonical_primary_label": {
+                key: float(value) for key, value in canonical_primary_metrics.items()
+            },
+            "canonical_any_label": {
+                key: float(value) for key, value in canonical_any_label_metrics.items()
+            },
+            "multi_label_case_count": int(case_table["has_multiple_mondo_labels"].sum()),
+            "obsolete_primary_label_case_count": int(case_table["primary_mondo_is_obsolete"].sum()),
+            "obsolete_any_label_case_count": int(case_table["any_mondo_is_obsolete"].sum()),
+            "canonicalizer_sources": mondo_canonicalizer.source_paths,
+        },
         "per_dataset": per_dataset_summary,
         "case_id_overlap_check": overlap_summary,
         "run_manifest": run_manifest,
@@ -941,32 +1048,32 @@ def save_results(results: dict[str, Any], train_config: dict[str, Any]) -> dict[
     details_df = pd.DataFrame(results["details"])
     if not details_df.empty:
         details_df = details_df.copy()
-        details_df["top5_labels"] = details_df["top5_labels"].apply(
-            lambda values: json.dumps(values, ensure_ascii=False)
-        )
-        details_df["top5_scores"] = details_df["top5_scores"].apply(
-            lambda values: json.dumps(values, ensure_ascii=False)
-        )
+        for json_col in ("top5_labels", "top5_scores", "all_true_labels", "canonical_true_labels"):
+            if json_col in details_df.columns:
+                details_df[json_col] = details_df[json_col].apply(
+                    lambda values: json.dumps(values, ensure_ascii=False)
+                )
     details_df.to_csv(details_path, index=False, encoding="utf-8-sig")
 
-    per_dataset_df = pd.DataFrame(
-        results["per_dataset_summary"],
-        columns=[
-            "dataset_name",
-            "source_file",
-            "num_cases",
-            "num_evaluable",
-            "num_skipped",
-            "num_skipped_missing_label",
-            "num_skipped_no_valid_hpo",
-            "top1",
-            "top3",
-            "top5",
-            "mean_rank",
-            "median_rank",
-            "rank_le_50",
-        ],
-    )
+    base_per_dataset_cols = [
+        "dataset_name",
+        "source_file",
+        "num_cases",
+        "num_evaluable",
+        "num_skipped",
+        "num_skipped_missing_label",
+        "num_skipped_no_valid_hpo",
+        "top1",
+        "top3",
+        "top5",
+        "mean_rank",
+        "median_rank",
+        "rank_le_50",
+    ]
+    per_dataset_df = pd.DataFrame(results["per_dataset_summary"])
+    ordered_cols = [col for col in base_per_dataset_cols if col in per_dataset_df.columns]
+    ordered_cols.extend(col for col in per_dataset_df.columns if col not in ordered_cols)
+    per_dataset_df = per_dataset_df[ordered_cols]
     per_dataset_df.to_csv(per_dataset_path, index=False, encoding="utf-8-sig")
 
     skipped_df = pd.DataFrame(

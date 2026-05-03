@@ -27,6 +27,11 @@ postprocess:
     fixed_test: true
     similarity_device: cuda
     similarity_batch_size: 256
+    gated_rerank_enabled: true
+    gated_sim_weight: "0.2,0.3,0.4,0.5"
+    gated_ic_weight: "0.0,0.05,0.1"
+    gated_agree_boost: "0.0,0.05,0.1"
+    gated_protect_bonus: "0.0,0.05,0.1"
     dataset_aliases:
       - mimic_test
       - mimic_test_recleaned
@@ -40,5 +45,3 @@ aggregation:
 
 resume:
   finetune_checkpoint: outputs/mainline_full_pipeline/stage2_finetune/checkpoints/best.pt
-  skip_pretrain: true
-  skip_finetune: true

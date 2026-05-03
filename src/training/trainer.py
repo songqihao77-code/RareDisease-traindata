@@ -162,7 +162,6 @@ def load_init_checkpoint(
         )
     return resolved_path
 
-
 def split_train_val_by_case(
     df: pd.DataFrame,
     val_ratio: float,
@@ -725,6 +724,8 @@ def run_one_epoch(
                         k=hard_negative_k,
                         strategy=hard_negative_strategy,
                         sampling_ratios=hard_negative_sampling_ratios,
+                        H_disease=static_graph.get("H_disease"),
+                        jaccard_threshold=0.8,
                     )
 
             loss_output = loss_fn(scores, targets, hard_neg_indices=hard_neg_indices)
@@ -1032,8 +1033,11 @@ def main() -> None:
         top_m=hard_negative_cfg["top_m"],
         poly_epsilon=float(resolved_loss_cfg["poly_epsilon"]),
     )
+    trainable_parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
+    if not trainable_parameters:
+        raise RuntimeError("没有可训练参数，请检查模型配置。")
     optimizer = torch.optim.Adam(
-        model.parameters(),
+        trainable_parameters,
         lr=float(optimizer_cfg["lr"]),
         weight_decay=float(optimizer_cfg["weight_decay"]),
     )

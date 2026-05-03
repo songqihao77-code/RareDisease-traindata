@@ -32,6 +32,7 @@ from src.training.trainer import resolve_train_files, split_train_val_by_case
 DEFAULT_DATA_CONFIG = PROJECT_ROOT / "configs" / "data_llldataset_eval.yaml"
 DEFAULT_TRAIN_CONFIG = PROJECT_ROOT / "configs" / "train_finetune_attn_idf_main.yaml"
 DEFAULT_OUTPUT = PROJECT_ROOT / "outputs" / "rerank" / "top50_candidates_v2.csv"
+DEFAULT_CORE_HPO_TOP_K = 5
 
 
 def parse_args() -> argparse.Namespace:
@@ -116,6 +117,12 @@ def _nonzero_hpo_indices(matrix: Any, disease_idx: int) -> set[int]:
     return {int(idx) for idx in col.nonzero()[0].tolist()}
 
 
+def _weighted_hpo_indices(matrix: Any, disease_idx: int) -> list[tuple[int, float]]:
+    col = matrix[:, int(disease_idx)].tocoo()
+    pairs = [(int(row), float(value)) for row, value in zip(col.row, col.data, strict=True) if float(value) > 0.0]
+    return sorted(pairs, key=lambda item: (-item[1], item[0]))
+
+
 def _case_hpo_indices(case_hpo_ids: list[str], hpo_to_idx: dict[str, int]) -> set[int]:
     return {int(hpo_to_idx[hpo_id]) for hpo_id in case_hpo_ids if hpo_id in hpo_to_idx}
 
@@ -161,6 +168,55 @@ def _evidence_features(
         "shared_hpo_count": int(len(shared)),
         "jaccard_overlap": float(len(shared) / union_count) if union_count else 0.0,
         **semantic,
+    }
+
+
+def _core_evidence_features(
+    *,
+    case_hpo_idx: set[int],
+    disease_weighted_hpos: list[tuple[int, float]],
+    semantic_matcher: HpoSemanticMatcher,
+    idx_to_hpo: dict[int, str],
+    core_top_k: int = DEFAULT_CORE_HPO_TOP_K,
+) -> dict[str, float | int]:
+    core = disease_weighted_hpos[: max(0, int(core_top_k))]
+    if not core:
+        return {
+            "case_hpo_count": int(len(case_hpo_idx)),
+            "disease_core_hpo_count_top5": 0,
+            "core_exact_coverage_top5": 0.0,
+            "core_semantic_coverage_top5": 0.0,
+            "core_missing_exact_top5": 0.0,
+            "core_missing_semantic_top5": 0.0,
+        }
+
+    denom = float(sum(weight for _, weight in core))
+    if denom <= 0.0:
+        denom = float(len(core))
+        core = [(idx, 1.0) for idx, _ in core]
+
+    exact_covered_weight = float(sum(weight for idx, weight in core if idx in case_hpo_idx))
+    semantic_covered_weight = exact_covered_weight
+    if semantic_matcher.available and case_hpo_idx:
+        case_hpos = _hpo_ids_from_indices(case_hpo_idx, idx_to_hpo)
+        for idx, weight in core:
+            if idx in case_hpo_idx:
+                continue
+            core_hpo = idx_to_hpo.get(idx)
+            if core_hpo is None:
+                continue
+            if any(semantic_matcher.related(case_hpo, core_hpo) for case_hpo in case_hpos):
+                semantic_covered_weight += float(weight)
+
+    exact_coverage = float(exact_covered_weight / denom)
+    semantic_coverage = float(min(semantic_covered_weight / denom, 1.0))
+    return {
+        "case_hpo_count": int(len(case_hpo_idx)),
+        "disease_core_hpo_count_top5": int(len(core)),
+        "core_exact_coverage_top5": exact_coverage,
+        "core_semantic_coverage_top5": semantic_coverage,
+        "core_missing_exact_top5": float(1.0 - exact_coverage),
+        "core_missing_semantic_top5": float(1.0 - semantic_coverage),
     }
 
 
@@ -266,6 +322,10 @@ def export_top50_candidates(
         int(disease_idx): _nonzero_hpo_indices(resources["H_disease"], int(disease_idx))
         for disease_idx in range(int(resources["num_disease"]))
     }
+    disease_weighted_hpo_map = {
+        int(disease_idx): _weighted_hpo_indices(resources["H_disease"], int(disease_idx))
+        for disease_idx in range(int(resources["num_disease"]))
+    }
 
     rows: list[dict[str, Any]] = []
     processed_case_ids: set[str] = set()
@@ -327,6 +387,12 @@ def export_top50_candidates(
                         idx_to_hpo=idx_to_hpo,
                         hpo_specificity_by_id=hpo_specificity_by_id,
                     )
+                    core_features = _core_evidence_features(
+                        case_hpo_idx=case_hpo_idx,
+                        disease_weighted_hpos=disease_weighted_hpo_map[candidate_idx],
+                        semantic_matcher=semantic_matcher,
+                        idx_to_hpo=idx_to_hpo,
+                    )
                     rows.append(
                         {
                             "case_id": case_id,
@@ -336,6 +402,7 @@ def export_top50_candidates(
                             "original_rank": int(rank_offset),
                             "hgnn_score": float(score),
                             **features,
+                            **core_features,
                         }
                     )
                 processed_case_ids.add(case_id)
@@ -394,6 +461,8 @@ def export_top50_candidates(
             "evidence_rank_by_ic": "candidate rank within a case by ic_weighted_overlap desc",
             "semantic_ic_overlap": "case IC coverage by exact or HPO ancestor/descendant matches",
             "semantic_coverage_score": "mean of case and disease coverage under exact or HPO ancestor/descendant matches",
+            "core_missing_semantic_top5": "1 - weighted coverage of the candidate disease top5 weighted HPOs by exact or HPO ancestor/descendant case matches",
+            "core_missing_exact_top5": "1 - weighted exact coverage of the candidate disease top5 weighted HPOs by case HPOs",
         },
     }
     metadata_path = output_path.with_suffix(".metadata.json")

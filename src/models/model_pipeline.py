@@ -16,7 +16,9 @@ from src.models.readout import HyperedgeReadout
 from src.models.scorer import CosineScorer
 
 
-ENCODER_REGISTRY = {"hgnn": HGNNEncoder}
+ENCODER_REGISTRY = {
+    "hgnn": HGNNEncoder,
+}
 CASE_REFINER_REGISTRY = {"case_conditioned": CaseConditionedRefiner}
 READOUT_REGISTRY = {"hyperedge": HyperedgeReadout}
 SCORER_REGISTRY = {"cosine": CosineScorer}
@@ -72,10 +74,19 @@ class ModelPipeline(nn.Module):
     ) -> nn.Module:
         block = self._get_block(name)
         module_type = block.get("type", default_type)
+        if name == "encoder" and (
+            bool(block.get("use_tag_encoder", False))
+            or module_type in {"tag_hgnn", "hybrid_tag_hgnn"}
+        ):
+            raise ValueError("TAG encoder has been removed from the active framework; use encoder.type='hgnn'.")
         if module_type not in registry:
             raise ValueError(f"未知的 {name} 类型 {module_type!r}，可选值: {list(registry)}。")
 
-        params = {k: v for k, v in block.items() if k not in {"type", "params"}}
+        params = {
+            k: v
+            for k, v in block.items()
+            if k not in {"type", "params", "use_tag_encoder", "pretrained_embed_path", "hpo_embed_path"}
+        }
         params.update(block.get("params", {}))
         return registry[module_type](**params)
 
@@ -271,10 +282,12 @@ class ModelPipeline(nn.Module):
                         f"期望列号 {expected_col}，实际得到 {col}。"
                     )
 
-        return (
-            torch.as_tensor(gold_global, dtype=torch.long, device=device),
-            torch.as_tensor(gold_local, dtype=torch.long, device=device),
-        )
+        gold_local_tensor = torch.as_tensor(gold_local, dtype=torch.long, device=device)
+        if not (gold_local_tensor < num_disease).all():
+            raise ValueError("Bug 1 Prevention: Target index exceeds number of diseases in the score pool! Check index mapping.")
+        
+        outputs_global = torch.as_tensor(gold_global, dtype=torch.long, device=device)
+        return outputs_global, gold_local_tensor
 
     def _validate_refined_case_node_repr(
         self,

@@ -30,7 +30,9 @@ WEIGHT_COLUMNS = [
     "w_case_cov",
     "w_dis_cov",
     "w_size",
+    "w_core_missing",
 ]
+DEFAULT_WEIGHT_VALUES = {"w_core_missing": 0.0}
 V1_PRESETS: dict[str, dict[str, float]] = {
     "A_hgnn_only": {
         "w_hgnn": 1.0,
@@ -40,6 +42,7 @@ V1_PRESETS: dict[str, dict[str, float]] = {
         "w_case_cov": 0.0,
         "w_dis_cov": 0.0,
         "w_size": 0.0,
+        "w_core_missing": 0.0,
     },
     "D_hgnn_ic_coverage_v1": {
         "w_hgnn": 0.65,
@@ -49,6 +52,7 @@ V1_PRESETS: dict[str, dict[str, float]] = {
         "w_case_cov": 0.05,
         "w_dis_cov": 0.05,
         "w_size": 0.0,
+        "w_core_missing": 0.0,
     },
     "E_hgnn_ic_exact_coverage_v1": {
         "w_hgnn": 0.60,
@@ -58,6 +62,7 @@ V1_PRESETS: dict[str, dict[str, float]] = {
         "w_case_cov": 0.05,
         "w_dis_cov": 0.05,
         "w_size": 0.0,
+        "w_core_missing": 0.0,
     },
 }
 GRID = {
@@ -68,6 +73,7 @@ GRID = {
     "w_case_cov": [0.00, 0.03, 0.05],
     "w_dis_cov": [0.00, 0.03, 0.05],
     "w_size": [0.00, 0.01, 0.02],
+    "w_core_missing": [0.00, 0.02, 0.05, 0.08, 0.12],
 }
 
 
@@ -117,6 +123,12 @@ def required_columns() -> set[str]:
     }
 
 
+def optional_numeric_columns() -> set[str]:
+    return {
+        "core_missing_semantic_top5",
+    }
+
+
 def load_candidates(path: Path) -> pd.DataFrame:
     if not path.is_file():
         raise FileNotFoundError(f"Candidates CSV not found: {path}")
@@ -127,6 +139,11 @@ def load_candidates(path: Path) -> pd.DataFrame:
     numeric_cols = sorted(required_columns() - {"case_id", "dataset_name", "gold_id", "candidate_id"})
     for column in numeric_cols:
         df[column] = pd.to_numeric(df[column], errors="raise")
+    for column in optional_numeric_columns():
+        if column in df.columns:
+            df[column] = pd.to_numeric(df[column], errors="raise")
+        else:
+            df[column] = 0.0
     df = df.sort_values(["case_id", "original_rank"], kind="stable").reset_index(drop=True)
     counts = df.groupby("case_id")["candidate_id"].size()
     if counts.nunique() != 1:
@@ -156,6 +173,8 @@ def to_matrix(df: pd.DataFrame) -> CandidateMatrix:
     dis_cov = df["disease_coverage"].to_numpy(dtype=float).reshape(shape)
     size_penalty = np.log1p(df["disease_hpo_count"].to_numpy(dtype=float).reshape(shape))
     original_rank = df["original_rank"].to_numpy(dtype=int).reshape(shape)
+    core_missing = df["core_missing_semantic_top5"].to_numpy(dtype=float).reshape(shape)
+    protected_core_missing = np.where(original_rank <= 3, 0.0, core_missing)
 
     return CandidateMatrix(
         case_ids=case_meta["case_id"].to_numpy(dtype=str),
@@ -170,6 +189,7 @@ def to_matrix(df: pd.DataFrame) -> CandidateMatrix:
             "case_coverage": minmax_by_case(case_cov),
             "disease_coverage": minmax_by_case(dis_cov),
             "size_penalty": minmax_by_case(size_penalty),
+            "core_missing_semantic_top5": minmax_by_case(protected_core_missing),
         },
         top_k=top_k,
     )
@@ -184,6 +204,7 @@ def score_matrix(matrix: CandidateMatrix, weights: dict[str, float]) -> np.ndarr
         + weights["w_case_cov"] * matrix.feature_arrays["case_coverage"]
         + weights["w_dis_cov"] * matrix.feature_arrays["disease_coverage"]
         - weights["w_size"] * matrix.feature_arrays["size_penalty"]
+        - weights["w_core_missing"] * matrix.feature_arrays["core_missing_semantic_top5"]
     )
 
 
@@ -332,7 +353,12 @@ def load_weight_payload(path: Path, objective: str = "DDD_top1") -> dict[str, An
     if not path.is_file():
         raise FileNotFoundError(f"Fixed weights JSON not found: {path}")
     payload = _payload_from_container(json.loads(path.read_text(encoding="utf-8")), objective)
-    missing = set(WEIGHT_COLUMNS) - set(payload.get("weights", {}))
+    weights = payload.get("weights", {})
+    if not isinstance(weights, dict):
+        raise ValueError(f"{path} missing weights mapping.")
+    for key, default_value in DEFAULT_WEIGHT_VALUES.items():
+        weights.setdefault(key, default_value)
+    missing = set(WEIGHT_COLUMNS) - set(weights)
     if missing:
         raise ValueError(f"{path} missing weights: {sorted(missing)}")
     if payload.get("gate") not in (None, {}):
